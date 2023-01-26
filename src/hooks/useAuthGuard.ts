@@ -1,5 +1,5 @@
 import type { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from 'fastify'
-import { TokenService } from '@/api/services/TokenService'
+import { TokenService } from '@/api/services'
 import { UserDto } from '@/dto/UserDto'
 import ApiError from '@/exeptions/ApiError'
 
@@ -14,7 +14,7 @@ interface RequestGeneric {
    Reply: any;
 }
 
-export function useAuth(request: FastifyRequest<RequestGeneric>, reply: FastifyReply, done: HookHandlerDoneFunction) {
+export function useAuthGuard(request: FastifyRequest<RequestGeneric>, reply: FastifyReply, done: HookHandlerDoneFunction) {
    const authHeader = request.headers.authorization;
    if (!authHeader || !authHeader.split(' ')[1]) {
       throw ApiError.Unauthorized();
@@ -29,13 +29,4 @@ export function useAuth(request: FastifyRequest<RequestGeneric>, reply: FastifyR
 
    request.user = userData;
    return done();
-}
-
-export function useRoleGuard(roles: string[]) {
-   return function (request: FastifyRequest<RequestGeneric>, reply: FastifyReply, done: HookHandlerDoneFunction) {
-      for (const role of roles) {
-         if (request.user?.roles.includes(role)) return done();
-      }
-      throw ApiError.Forbidden();
-   }
 }

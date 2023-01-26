@@ -20,17 +20,17 @@ export class ToolsSchemas {
 
    static readonly setNewPasswordBody = {
       body: Joi.object<ToolsTypes.SetNewPasswordBody>().keys({
-         oldPassword: Joi.string().min(6).max(20),
-         newPassword: Joi.string().min(6).max(20)
+         oldPassword: Joi.string().required().max(20),
+         newPassword: Joi.string().required().min(6).max(20)
       }).required()
    }
 
    static readonly setGoogleServiceAccountSettingsBody = {
       body: Joi.object<ToolsTypes.SetGoogleServiceAccountSettingsBody>().keys({
-         serviceUser: Joi.string(),
-         servicePrivateKey: Joi.string(),
-         sheetId: Joi.string(),
-         folderId: Joi.string()
+         serviceUser: Joi.string().allow(''),
+         servicePrivateKey: Joi.string().allow(''),
+         sheetId: Joi.string().allow(''),
+         folderId: Joi.string().allow('')
       }).or('serviceUser', 'servicePrivateKey', 'sheetId', 'folderId')
    }
 
@@ -40,6 +40,13 @@ export class ToolsSchemas {
          roles: Joi.array().required().has(['user']).unique().custom((value, helper) => {
             return Validate.isValidRoles(value) ? value : helper.error('any.invalid');
          })
+      }).required()
+   }
+
+   static readonly getUsersQuery = {
+      querystring: Joi.object<ToolsTypes.GetUsersQuery>().keys({
+         limit: Joi.number().required().max(50),
+         page: Joi.number().required().min(1)
       }).required()
    }
 }

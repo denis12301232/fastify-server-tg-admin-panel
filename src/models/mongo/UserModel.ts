@@ -1,19 +1,21 @@
 import type { IUser } from '@/types/interfaces'
 import { Schema, model } from 'mongoose'
-import Validate from '@/util/Validate'
 
 
 const UserSchema = new Schema<IUser>({
+   login: {
+      type: String,
+      required: true,
+      unique: true
+   },
    email: {
       type: String,
       required: true,
       unique: true,
-      maxlength: [50, 'to many symbols'],
    },
    name: {
       type: String,
       required: true,
-      maxlength: [50, 'to many symbols'],
    },
    password: {
       type: String,
@@ -30,10 +32,10 @@ const UserSchema = new Schema<IUser>({
    roles: {
       type: [String],
       default: ['user'],
-      validate: {
-         validator: Validate.isValidRoles,
-         message: () => `Incorect roles`,
-      }
+   },
+   avatar: {
+      type: String,
+      default: '',
    }
 });
 

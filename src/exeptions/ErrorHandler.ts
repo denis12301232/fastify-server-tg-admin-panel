@@ -3,7 +3,7 @@ import ApiError from '@/exeptions/ApiError'
 
 export function ErrorHandler(fastify: FastifyInstance) {
    return function (e: Error, request: FastifyRequest, reply: FastifyReply) {
-      fastify.log.error(e.message);
+      fastify.log.error(e);
       if (e instanceof ApiError) {
          return reply.status(e.status).send({ message: e.message, errors: e.errors });
       } else {

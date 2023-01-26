@@ -1,6 +1,6 @@
-import { ImageService } from './../services/ImageService'
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import type { ImageTypes } from '@/types/queries'
+import { ImageService } from '@/api/services'
 
 
 export class ImagesController {

@@ -36,10 +36,10 @@ export default class Constants {
       invalids: {
          display: 'Есть ли среди проживающих инвалиды?',
       },
-      children: {
+      kids: {
          display: 'Есть ли дети?',
       },
-      children_age: {
+      kids_age: {
          display: 'Возраст детей',
       },
       food: {
@@ -48,20 +48,23 @@ export default class Constants {
       water: {
          display: 'Нужна ли вода?',
       },
-      drugs: {
+      medicines: {
          display: 'Лекарства?',
       },
-      products_detail: {
+      medicines_info: {
          display: 'Укажите кол-во (лекарств)',
       },
-      gigien: {
+      hygiene: {
          display: 'Средства личной гигиены',
       },
-      gigien_num: {
+      hygiene_info: {
          display: 'Укажите кол-во (средств)',
       },
       pampers: {
          display: 'Памперсы?',
+      },
+      pampers_info: {
+         display: 'Укажите какие?',
       },
       diet: {
          display: 'Особенности диеты и т.п.',

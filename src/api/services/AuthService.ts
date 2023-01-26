@@ -1,26 +1,35 @@
 import type { AuthTypes } from '@/types/queries'
 import { v4 } from 'uuid'
 import bcrypt from 'bcrypt'
-import UserModel from '@/models/mongo/UserModel'
-import RestoreModel from '@/models/mongo/RestoreModel'
+import { UserModel, RestoreModel } from '@/models/mongo'
+import { UserDto } from '@/dto'
+import { MailService, TokenService } from '@/api/services'
 import ApiError from '@/exeptions/ApiError'
-import { UserDto } from '@/dto/UserDto'
-import { MailService } from './MailService'
-import { TokenService } from './TokenService'
 
 
 export class AuthService {
    static async registration(user: AuthTypes.UserRegistrationBody) {
-      const { name, email, password } = user;
-      const candidate = await UserModel.findOne({ email: email.toLowerCase() }).lean();
+      const { login, name, email, password } = user;
+      const candidate = await UserModel.findOne({
+         $or: [
+            { email: email.toLowerCase() },
+            { login: login.toLowerCase() }
+         ]
+      }).lean();
 
       if (candidate) {
-         throw ApiError.BadRequest(400, `This email address already taken`, ['email']);
+         throw ApiError.BadRequest(400, `Already taken`, [candidate.email === email ? 'email' : 'login']);
       }
 
       const hashPassword = await bcrypt.hash(password, 5);
       const activationLink = v4();
-      const newUser = await UserModel.create({ email: email.toLowerCase(), password: hashPassword, activationLink, name });
+      const newUser = await UserModel.create({
+         login: login.toLowerCase(),
+         email: email.toLowerCase(),
+         password: hashPassword,
+         activationLink,
+         name
+      });
       MailService.sendActivationMail(email, `${process.env.SERVER_URL}/api/auth/activate/${activationLink}`)
          .catch((e: Error) => console.log(e.message));
 
@@ -33,11 +42,16 @@ export class AuthService {
    }
 
    static async login(user: AuthTypes.UserLoginBody) {
-      const { email, password } = user;
-      const userFromDb = await UserModel.findOne({ email: email.toLowerCase() }).lean();
+      const { loginOrEmail, password } = user;
+      const userFromDb = await UserModel.findOne({
+         $or: [
+            { email: loginOrEmail.toLowerCase() },
+            { login: loginOrEmail.toLowerCase() }
+         ]
+      }).lean();
 
       if (!userFromDb) {
-         throw ApiError.BadRequest(400, `Incorrect email`, ['email']);
+         throw ApiError.BadRequest(400, `Incorrect login or email`, ['login', 'email']);
       }
 
       const isPasswordsEqual = await bcrypt.compare(password, userFromDb.password);
@@ -69,11 +83,12 @@ export class AuthService {
 
       const userData = TokenService.validateRefreshToken<UserDto>(refreshToken);
       const tokenFromDb = await TokenService.findToken(refreshToken);
-
+      console.log(refreshToken);
+      
       if (!userData || !tokenFromDb) {
          throw ApiError.Unauthorized();
       }
-      
+
 
       const user = await UserModel.findById(userData._id);
 

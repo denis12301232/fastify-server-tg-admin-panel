@@ -4,7 +4,6 @@ import { factory } from '@/factory'
 
 
 export const fastify = Fastify({ logger: true });
-export const log = fastify.log;
 
 async function start() {
    try {

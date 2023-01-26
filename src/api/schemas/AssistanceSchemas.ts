@@ -6,9 +6,9 @@ import Validate from '@/util/Validate'
 export class AssistanceSchemas {
    static readonly getFormsQuery = {
       querystring: Joi.object<AssistanceTypes.GetFormsQuery>().keys({
-         name: Joi.string().required(),
-         surname: Joi.string().required(),
-         patronymic: Joi.string().required()
+         nameOrSurname: Joi.string().required(),
+         limit: Joi.number().required().min(1).max(100),
+         page: Joi.number().required()
       }).required()
    }
 

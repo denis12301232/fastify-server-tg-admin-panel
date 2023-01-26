@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import type { AssistanceTypes } from '@/types/queries'
-import { AssistanceService } from '../services/AssistanceService'
+import { AssistanceService } from '@/api/services'
 
 
 export class AssistanceController {
@@ -16,8 +16,11 @@ export class AssistanceController {
 
    static async getForms(request: FastifyRequest<{ Querystring: AssistanceTypes.GetFormsQuery }>, reply: FastifyReply) {
       try {
-         const fio = request.query;
-         const forms = await AssistanceService.getForms(fio);
+         const { nameOrSurname, limit, page } = request.query;
+         console.log( limit, page);
+         
+         const { forms, count } = await AssistanceService.getForms(nameOrSurname, limit, page);
+         reply.header('X-Total-Count', count);
          return forms;
       } catch (e) {
          throw e;
@@ -65,7 +68,7 @@ export class AssistanceController {
       }
    }
 
-   static async saveFormsToGoogleSheets(request: FastifyRequest<{ Body: AssistanceTypes.SaveFormsToSheetsBody }>, reply: FastifyReply){
+   static async saveFormsToGoogleSheets(request: FastifyRequest<{ Body: AssistanceTypes.SaveFormsToSheetsBody }>, reply: FastifyReply) {
       try {
          const filters = request.body;
          const result = await AssistanceService.saveFormsToSheet(filters);

@@ -1,9 +1,9 @@
+import type { MultipartFile } from '@fastify/multipart'
 import ApiError from '@/exeptions/ApiError'
-import UserModel from '@/models/mongo/UserModel'
-import ToolsModel from '@/models/mongo/ToolsModel'
+import { UserModel, ToolsModel } from '@/models/mongo'
 import { UserDto } from '@/dto/UserDto'
 import bcrypt from 'bcrypt'
-
+import { Util } from '@/util'
 
 
 export class ToolsService {
@@ -76,13 +76,17 @@ export class ToolsService {
       }
    }
 
-   static async getUsers(_id: string) {
-      const users = await UserModel.find({
-         _id: { $ne: _id }, email: { $ne: process.env.ROOT_EMAIL || 'root@root.root' }
-      }, {
-         _id: 1, email: 1, name: 1, roles: 1
-      }).lean();
-      return users;
+   static async getUsers(_id: string, limit: number, page: number) {
+      const skip = (page - 1) * limit;
+      const users = await UserModel.find(
+         { _id: { $ne: _id }, login: { $ne: 'root' } },
+         { _id: 1, login: 1, name: 1, roles: 1 }
+      )
+         .skip(skip)
+         .limit(limit)
+         .lean();
+      const count = await UserModel.count() - 1;
+      return { users, count };
    }
 
    static async updateRoles(_id: string, roles: string[]) {
@@ -96,5 +100,12 @@ export class ToolsService {
       user.roles = roles;
       await user.save();
       return { message: 'Updated' };
+   }
+
+   static async setAvatar(data: MultipartFile, user_id: string) {
+      const fileName = `${user_id}.${data.filename.split('.').reverse()[0]}`
+      await Util.createAsyncWriteStream(await data.toBuffer(), fileName);
+      const result = await UserModel.updateOne({ _id: user_id }, { avatar: fileName }).lean();
+      return result;
    }
 }

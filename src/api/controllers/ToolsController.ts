@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import type { ToolsTypes } from '@/types/queries'
-import { ToolsService } from '../services/ToolsService'
+import { ToolsService } from '@/api/services'
 import ApiError from '@/exeptions/ApiError'
 
 
@@ -63,15 +63,12 @@ export class ToolsController {
       }
    }
 
-   static async getUsers(request: FastifyRequest, reply: FastifyReply) {
+   static async getUsers(request: FastifyRequest<{ Querystring: ToolsTypes.GetUsersQuery }>, reply: FastifyReply) {
       try {
-         const _id = request.user?._id;
-
-         if (!_id) {
-            throw ApiError.Internal();
-         }
-
-         const users = await ToolsService.getUsers(_id);
+         const _id = request.user?._id!;
+         const { limit, page } = request.query;
+         const { users, count } = await ToolsService.getUsers(_id, limit, page);
+         reply.header('X-Total-Count', count);
          return users;
       } catch (e) {
          throw e;
@@ -91,5 +88,16 @@ export class ToolsController {
       } catch (e) {
          throw e;
       }
+   }
+
+   static async setAvatar(request: FastifyRequest) {
+      const id = request.user?._id!;
+      const data = await request.file();
+
+      if (!data) {
+         throw ApiError.BadRequest(400, 'Wrong query');
+      }
+      const result = await ToolsService.setAvatar(data, id);
+      return result;
    }
 }

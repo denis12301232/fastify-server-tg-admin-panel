@@ -3,13 +3,14 @@ import type { AssistanceForm } from './interfaces'
 
 export namespace AuthTypes {
    export interface UserRegistrationBody {
+      login: string;
       name: string;
       email: string;
       password: string;
    }
 
    export interface UserLoginBody {
-      email: string;
+      loginOrEmail: string;
       password: string;
    }
 
@@ -33,9 +34,9 @@ export namespace AssistanceTypes {
    }
 
    export interface GetFormsQuery {
-      name: string;
-      surname: string;
-      patronymic: string;
+      nameOrSurname: string;
+      limit: number;
+      page: number;
    }
 
    export interface GetHumansListQuery {
@@ -96,5 +97,10 @@ export namespace ToolsTypes {
    export interface UpdateRolesBody {
       _id: string;
       roles: string[];
+   }
+
+   export interface GetUsersQuery {
+      limit: number;
+      page: number;
    }
 }

@@ -1,9 +1,8 @@
 import type { AssistanceTypes } from '@/types/queries'
 import type { AssistanceForm, AnyObject } from '@/types/interfaces'
 import type { Types, FilterQuery } from 'mongoose'
-import AssistanceModel from '@/models/mongo/AssistanceModel'
+import { AssistanceModel, ToolsModel } from '@/models/mongo'
 import ApiError from '@/exeptions/ApiError'
-import ToolsModel from '@/models/mongo/ToolsModel'
 import Constants from '@/util/Constants'
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 
@@ -15,20 +14,31 @@ export class AssistanceService {
       return saved;
    }
 
-   static async getForms(fio: AssistanceTypes.GetFormsQuery) {
-      const { name, surname, patronymic } = fio;
-      const form = await AssistanceModel.find({ name, surname, patronymic }, { __v: 0 }).lean();
+   static async getForms(nameOrSurname: string, limit: number, page: number) {
+      const skip = (page - 1) * limit;
+      const form = await AssistanceModel.find({
+         $or: [{
+            name: { $regex: nameOrSurname },
+            surname: { $regex: nameOrSurname }
+         }]
+      }, { __v: 0 })
+         .skip(skip)
+         .limit(limit)
+         .lean();
+      const count = await AssistanceModel.count();
 
       if (!form.length) {
-         throw ApiError.BadRequest(400, `Увы, ничего не найдено по запросу ${surname} ${name} ${patronymic}`);
+         throw ApiError.BadRequest(400, `Увы, ничего не найдено по запросу ${nameOrSurname}`);
       }
 
-      return form.reduce((box: Array<{ _id: Types.ObjectId, form: AssistanceForm }>, item) => {
+      const forms = form.reduce((box: Array<{ _id: Types.ObjectId, form: AssistanceForm }>, item) => {
          return [...box, {
             _id: item._id,
             form: Object.fromEntries(Object.entries(item).filter(([key]) => key !== '_id'))
          }] as Array<{ _id: Types.ObjectId, form: AssistanceForm }>
       }, []);
+
+      return { forms: forms, count }
    }
 
    static async getHumansList(limit: number, page: number) {
@@ -78,7 +88,7 @@ export class AssistanceService {
          conditions.push({
             $expr: {
                $function: {
-                  body: "function (birth, filters) { return +birth.split('.')[0] >= +filters.birth.from && +birth.split('.')[0] <= +filters.birth.to }",
+                  body: "function (birth, filters) { return +birth.split('/')[0] >= +filters.birth.from && +birth.split('/')[0] <= +filters.birth.to }",
                   args: ["$birth", filters],
                   lang: "js"
                }
@@ -92,14 +102,17 @@ export class AssistanceService {
       if (!forms.length) throw ApiError.BadRequest(400, 'Увы, ничего не найдено по запросу!');
 
       const doc = new GoogleSpreadsheet(api[0].api.google.service.sheetId);
+
       await doc.useServiceAccountAuth({
          client_email: api[0].api.google.service.user,
          private_key: api[0].api.google.service.privateKey,
       });
       await doc.loadInfo();
+
       const sheet = doc.sheetsByIndex[0];
       await sheet.clear();
-      await sheet.loadCells('A1:X1');
+      await sheet.loadCells('A1:Y1');
+
       const allFields: Array<[any, { display: string }]> = Object.entries(Constants.assistance);
       allFields.forEach(async ([key, value], index) => {
          const cell = sheet.getCell(0, index);
@@ -110,7 +123,7 @@ export class AssistanceService {
       for (const item of forms) {
          const sheetObj = allFields.reduce((obj, [key, value]: [keyof AssistanceForm, { display: string }]) => {
             if (Array.isArray(item[key])) {
-               obj[value.display] = (<string[]>item[key])!.join(',');
+               obj[value.display] = (<string[]>item[key])?.join(',');
             } else if (item[key] === true) {
                obj[value.display] = 'Да';
             } else if (item[key] === false) {

@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import type { AuthTypes } from '@/types/queries'
-import { AuthService } from '../services/AuthService'
+import { AuthService } from '@/api/services'
 
 
 export class AuthController {
@@ -54,7 +54,7 @@ export class AuthController {
       try {
          const { refreshToken } = request.cookies;
          const userData = await AuthService.refresh(refreshToken);
-         
+
          reply.setCookie('refreshToken', userData.refreshToken, {
             maxAge: 30 * 24 * 60 * 60 * 1000,
             httpOnly: true,

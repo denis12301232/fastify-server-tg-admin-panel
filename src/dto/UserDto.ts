@@ -8,6 +8,8 @@ export class UserDto {
     readonly isActivated: boolean;
     readonly name: string;
     readonly roles: string[];
+    readonly login: string;
+    readonly avatar: string;
 
     constructor(model: LeanDocument<IUser & { _id: Types.ObjectId }>) {
         this.email = model.email;
@@ -15,5 +17,7 @@ export class UserDto {
         this.isActivated = model.isActivated;
         this.name = model.name;
         this.roles = model.roles;
+        this.login = model.login;
+        this.avatar = model.avatar;
     }
 }

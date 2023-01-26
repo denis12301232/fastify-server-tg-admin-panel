@@ -4,7 +4,6 @@ import { conversations, createConversation } from '@grammyjs/conversations'
 import { fillForm } from '~/conversations/fillForm'
 import Commands from '~/commands/Commands'
 import BotApi from '~/api/BotApi'
-import { log } from '@/main'
 
 
 export const bot = new Bot<MyContext>(process.env.BOT_TOKEN);
@@ -26,7 +25,7 @@ async function initBot() {
       bot.on('message:web_app_data', Commands.saveWebAppForm);
 
    } catch (e) {
-      if (e instanceof Error) log.error(e.message);
+      if (e instanceof Error) console.log(e.message);
    }
 }
 

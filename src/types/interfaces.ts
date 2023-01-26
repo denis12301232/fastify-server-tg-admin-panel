@@ -5,12 +5,14 @@ export interface AnyObject {
 }
 
 export interface IUser {
+   login: string;
    email: string;
    password: string;
    name: string;
    isActivated: boolean;
    activationLink: string;
    roles: string[];
+   avatar: string;
 }
 
 export interface IToken {
@@ -46,15 +48,16 @@ export interface AssistanceForm {
    people_num: number;
    people_fio: string[];
    invalids: string;
-   children: string;
-   children_age: string[];
+   kids: string;
+   kids_age: string[];
    food: string;
-   drugs: string;
    water: string;
-   products_detail: string;
-   gigien: string;
-   gigien_num: string;
+   medicines: string;
+   medicines_info: string;
+   hygiene: string;
+   hygiene_info: string;
    pampers: string;
+   pampers_info: string;
    diet: string;
    pers_data_agreement: boolean;
    photo_agreement: boolean;

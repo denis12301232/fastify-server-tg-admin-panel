@@ -14,6 +14,7 @@ export async function factory(fastify: FastifyInstance) {
       schema: { type: 'object' },
       dotenv: { path: `.env.${process.env.NODE_ENV || 'production'}`, debug: true }
    });
+   fastify.register(import('@fastify/multipart'))
    fastify.register(fastifyAutoload, { dir: join(__dirname, 'plugins') });
    fastify.register(cors, {
       credentials: true,
@@ -23,6 +24,7 @@ export async function factory(fastify: FastifyInstance) {
    fastify.register(fastifyCookie, { hook: 'onRequest' });
    fastify.register(fastifyAutoload, { dir: join(__dirname, 'routes'), options: { prefix: '/api' } });
    fastify.register(fastifyStatic, { root: resolve(__dirname, '../public') });
+   fastify.register(fastifyStatic, { root: resolve(__dirname, '../images/avatars'), prefix: '/avatars', decorateReply: false });
    fastify.setValidatorCompiler(({ schema }: { schema: ObjectSchema }) => data => schema.validate(data));
    fastify.setNotFoundHandler((request, reply) => { reply.sendFile('index.html') });
    fastify.setErrorHandler(ErrorHandler(fastify));

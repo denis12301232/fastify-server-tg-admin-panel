@@ -63,23 +63,23 @@ export async function fillForm(conversation: MyConversation, ctx: MyContext) {
       conversation.session.form.invalids = invalids.match as string;
       // ДЕТИ
       await ctx.reply('<b>Есть ли дети?</b>', { reply_markup: Keyboards.yes_no_keyboard, parse_mode: 'HTML' });
-      const children = await conversation.waitForHears(['Да', 'Нет']);
-      conversation.session.form.children = children.match as string;
+      const kids = await conversation.waitForHears(['Да', 'Нет']);
+      conversation.session.form.kids = kids.match as string;
       // ВОЗРАСТ ДЕТЕЙ
-      if (conversation.session.form.children === 'Да') {
-         conversation.session.form.children_age = [];
-         let markup = deepCopy<InlineKeyboard>(Keyboards.children_age_markup);
+      if (conversation.session.form.kids === 'Да') {
+         conversation.session.form.kids_age = [];
+         let markup = deepCopy<InlineKeyboard>(Keyboards.kids_age_markup);
          await ctx.reply('<b>Укажите возраст детей:</b>', { reply_markup: markup, parse_mode: 'HTML' });
          while (true) {
-            const children_age = await conversation.waitFor('callback_query:data');
-            if (children_age.update.callback_query.data === 'Ok') {
-               await children_age.editMessageReplyMarkup();
+            const kids_age = await conversation.waitFor('callback_query:data');
+            if (kids_age.update.callback_query.data === 'Ok') {
+               await kids_age.editMessageReplyMarkup();
                break;
             }
-            const age = children_age.update.callback_query.data;
-            if (conversation.session.form.children_age.includes(age)) {
-               const index = conversation.session.form.children_age.indexOf(age);
-               conversation.session.form.children_age.splice(index, 1);
+            const age = kids_age.update.callback_query.data;
+            if (conversation.session.form.kids_age.includes(age)) {
+               const index = conversation.session.form.kids_age.indexOf(age);
+               conversation.session.form.kids_age.splice(index, 1);
                switch (age) {
                   case '0-1':
                      markup.inline_keyboard[0][0].text = `от ${age.split('-')[0]} до ${age.split('-')[1]}`;
@@ -95,7 +95,7 @@ export async function fillForm(conversation: MyConversation, ctx: MyContext) {
                      break;
                }
             } else {
-               conversation.session.form.children_age = [...conversation.session.form.children_age, age];
+               conversation.session.form.kids_age = [...conversation.session.form.kids_age, age];
                switch (age) {
                   case '0-1':
                      markup.inline_keyboard[0][0].text = '\u2705 ' + age;
@@ -111,11 +111,11 @@ export async function fillForm(conversation: MyConversation, ctx: MyContext) {
                      break;
                }
             }
-            const newMarkup = await children_age.editMessageReplyMarkup({ reply_markup: markup });
+            const newMarkup = await kids_age.editMessageReplyMarkup({ reply_markup: markup });
             markup = (newMarkup as any).reply_markup;
-            await children_age.answerCallbackQuery();
+            await kids_age.answerCallbackQuery();
          }
-         await ctx.reply(`Выбрано: ${conversation.session.form.children_age.join(', ')}`);
+         await ctx.reply(`Выбрано: ${conversation.session.form.kids_age.join(', ')}`);
       }
       // ПРОДУКТЫ ПИТАНИЯ
       await ctx.reply('<b>Нужны ли продукты питания?</b>', { reply_markup: Keyboards.yes_no_keyboard, parse_mode: 'HTML' });
@@ -127,25 +127,31 @@ export async function fillForm(conversation: MyConversation, ctx: MyContext) {
       conversation.session.form.water = water.match as string;
       // ЛЕКАРСТВА
       await ctx.reply('<b>Нужны ли лекарства?</b>', { reply_markup: Keyboards.yes_no_keyboard, parse_mode: 'HTML' });
-      const drugs = await conversation.waitForHears(['Да', 'Нет']);
-      conversation.session.form.drugs = drugs.match as string;
+      const medicines = await conversation.waitForHears(['Да', 'Нет']);
+      conversation.session.form.medicines = medicines.match as string;
       // О ЛЕКАРСТВАХ 
-      if (conversation.session.form.drugs === 'Да') {
-         const products_detail = await BotApi.askConversationQuestion('<b>Укажите какие именно, кол-во, дозу:</b>', conversation, ctx);
-         conversation.session.form.products_detail = products_detail;
+      if (conversation.session.form.medicines === 'Да') {
+         const medicines_info = await BotApi.askConversationQuestion('<b>Укажите какие именно, кол-во, дозу:</b>', conversation, ctx);
+         conversation.session.form.medicines_info = medicines_info;
       }
       // СРЕДСТВА ЛИЧНОЙ ГИГИЕНЫ
       await ctx.reply('<b>Нужны ли средства личной гигиены?</b>', { reply_markup: Keyboards.yes_no_keyboard, parse_mode: 'HTML' });
-      const gigien = await conversation.waitForHears(['Да', 'Нет']);
-      conversation.session.form.gigien = gigien.match as string;
+      const hygiene = await conversation.waitForHears(['Да', 'Нет']);
+      conversation.session.form.hygiene = hygiene.match as string;
       // О СРЕДСТВАХ ЛИЧНОЙ ГИГИЕНЫ
-      if (conversation.session.form.gigien === 'Да') {
-         const gigien_num = await BotApi.askConversationQuestion('<b>Укажите какие именно:</b>', conversation, ctx);
-         conversation.session.form.gigien_num = gigien_num;
+      if (conversation.session.form.hygiene === 'Да') {
+         const hygiene_info = await BotApi.askConversationQuestion('<b>Укажите какие именно:</b>', conversation, ctx);
+         conversation.session.form.hygiene_info = hygiene_info;
       }
       // ПАМПЕРСЫ
-      const pampers = await BotApi.askConversationQuestion('<b>Памперсы? Если нужны, укажите какие (детские/взрослые, размер):</b>', conversation, ctx);
-      conversation.session.form.pampers = pampers;
+      await ctx.reply('<b>Памперсы?</b>', { reply_markup: Keyboards.yes_no_keyboard, parse_mode: 'HTML' });
+      const pampers = await conversation.waitForHears(['Да', 'Нет']);
+      conversation.session.form.pampers = pampers.match as string;
+      // О ЛЕКАРСТВАХ 
+      if (conversation.session.form.pampers === 'Да') {
+         const pampers_info = await BotApi.askConversationQuestion('<b>Укажите какие именно, кол-во, дозу:</b>', conversation, ctx);
+         conversation.session.form.pampers_info = pampers_info;
+      }
       // ОСОБЕННОСТИ ДИЕТЫ
       const diet = await BotApi.askConversationQuestion('<b>Особенности диеты, алергии, диабет и т.д.</b>', conversation, ctx);
       conversation.session.form.diet = diet;
@@ -154,14 +160,14 @@ export async function fillForm(conversation: MyConversation, ctx: MyContext) {
          reply_markup: { keyboard: [[{ text: 'Да' }]], resize_keyboard: true, one_time_keyboard: true },
          parse_mode: 'HTML'
       });
-      const pers_data_agreement = await conversation.waitForHears(['Да']);
+      await conversation.waitForHears(['Да']);
       conversation.session.form.pers_data_agreement = true;
       // СОГЛАСИЕ НА ФОТО.ВИДЕО
       await ctx.reply('<b>Даю согласие на фото/видео</b>', {
          reply_markup: { keyboard: [[{ text: 'Да' }]], resize_keyboard: true, one_time_keyboard: true },
          parse_mode: 'HTML'
       });
-      const photo_agreement = await conversation.waitForHears(['Да']);
+      await conversation.waitForHears(['Да']);
       conversation.session.form.pers_data_agreement = true;
 
       await ctx.reply(`Вы ввели:\n${showForm(conversation.session.form)}\nЕсли все верно - нажмите "Сохранить"`,
