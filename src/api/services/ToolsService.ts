@@ -91,9 +91,8 @@ export class ToolsService {
 
    static async updateRoles(_id: string, roles: string[]) {
       const user = await UserModel.findOne({ _id });
-      const ROOT_EMAIL = process.env.ROOT_EMAIL || 'root@root.root';
 
-      if (!user || user.email === ROOT_EMAIL) {
+      if (!user || user.login === 'root') {
          throw ApiError.BadRequest(400, 'User not found');
       }
 
@@ -103,9 +102,11 @@ export class ToolsService {
    }
 
    static async setAvatar(data: MultipartFile, user_id: string) {
-      const fileName = `${user_id}.${data.filename.split('.').reverse()[0]}`
-      await Util.createAsyncWriteStream(await data.toBuffer(), fileName);
-      const result = await UserModel.updateOne({ _id: user_id }, { avatar: fileName }).lean();
+      const fileName = `${user_id}.${data.filename.split('.').reverse()[0]}`;
+      const buffer = await data.toBuffer();
+      await Util.createAsyncWriteStream(buffer, '../../static/images/avatars/' + fileName);
+      const result = await UserModel.updateOne({ _id: user_id }, { avatar: fileName })
+         .lean();
       return result;
    }
 }

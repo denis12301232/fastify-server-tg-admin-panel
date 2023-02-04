@@ -104,3 +104,54 @@ export namespace ToolsTypes {
       page: number;
    }
 }
+
+export namespace MessangerTypes {
+   export interface FindUsersQuery {
+      loginOrName: string;
+   }
+
+   export interface CreateChatBody {
+      users: string[];
+   }
+
+   export interface CreateGroupBody {
+      users: string[];
+      title: string;
+   }
+
+   export interface AddUserToGroupBody {
+      user_id: string;
+      chat_id: string;
+   }
+
+   export interface RemoveUserFromGroupBody {
+      user_id: string;
+      chat_id: string;
+   }
+
+   export interface GetUsersListInChatQuery {
+      chat_id: string;
+   }
+
+   export interface LeaveGroupQuery {
+      chat_id: string;
+   }
+
+   export interface SaveMessageBody {
+      chat_id: string;
+      text: string;
+   }
+
+   export interface OpenChatQuery {
+      chat_id: string;
+      skip: number;
+   }
+
+   export interface DeleteChatBody {
+      chat_id: string;
+   }
+
+   export interface SaveAudioMessageQuery {
+      chat_id: string;
+   }
+}

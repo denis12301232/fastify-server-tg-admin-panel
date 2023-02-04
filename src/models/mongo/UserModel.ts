@@ -36,7 +36,11 @@ const UserSchema = new Schema<IUser>({
    avatar: {
       type: String,
       default: '',
+   },
+   status: {
+      type: String,
+      default: 'offline',
    }
-});
+}, { timestamps: true });
 
 export default model<IUser>('User', UserSchema);

@@ -2,3 +2,5 @@ node_modules
 dist
 .env*
 public/*
+static/audio/*
+static/images/avatars/*

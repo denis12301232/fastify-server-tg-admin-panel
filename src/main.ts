@@ -7,6 +7,7 @@ export const fastify = Fastify({ logger: true });
 
 async function start() {
    try {
+
       await factory(fastify);
       await fastify.listen({ port: process.env.PORT || 5000 })
          .then(() => fastify.log.info(`Server started on ${process.env.PORT} port`));

@@ -4,6 +4,38 @@ export interface AnyObject {
    [name: string]: any;
 }
 
+export interface WsMessage<T = any> {
+   event: WsEvent;
+   payload: T;
+}
+
+export type WsEvent = 'message' | 'chats_list' | 'open_chat' | 'read' | 'update_status' 
+| 'invite_to_group';
+
+export interface IGroup {
+   title: string;
+   avatar: string;
+   roles: Map<string, string>;
+}
+
+export interface IMessage {
+   chat_id: Types.ObjectId;
+   author: Types.ObjectId;
+   text: string;
+   attachments: [];
+   read: string[];
+}
+
+export interface IChat {
+   users: Types.ObjectId[];
+   messages: Types.ObjectId[];
+   type: 'dialog' | 'group';
+   group?: Types.ObjectId;
+   deleted: string[]
+   createdAt: NativeDate;
+   updatedAt: NativeDate;
+}
+
 export interface IUser {
    login: string;
    email: string;
@@ -13,6 +45,7 @@ export interface IUser {
    activationLink: string;
    roles: string[];
    avatar: string;
+   status: 'online' | 'offline';
 }
 
 export interface IToken {
