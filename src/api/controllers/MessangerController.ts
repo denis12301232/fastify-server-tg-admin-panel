@@ -10,18 +10,18 @@ import ApiError from '@/exeptions/ApiError'
 export class MessangerController {
    static async websocketConnect(connection: SocketStream, request: FastifyRequest) {
       try {
-         const socket: WebSocket.WebSocket = connection.socket;
+         const socket: any = connection.socket;
          socket.id = request.user._id;
          MessangerService.updateUserStatus(socket.id, 'online');
 
-         socket.on('error', (e) => { throw e });
+         socket.on('error', (e: any) => { throw e });
          socket.on('open', () => { });
-         socket.on('close', (code, reason) => {
+         socket.on('close', (code: any, reason: any) => {
             console.log('close');
             MessangerService.updateUserStatus(socket.id, 'offline');
          });
 
-         socket.on('message', async (message, isBinary) => {
+         socket.on('message', async (message: any, isBinary: any) => {
             const msg: WsMessage = JSON.parse(message.toString());
             // switch (msg.event) {
 
