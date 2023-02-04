@@ -1,1 +1,0 @@
-import{b as n}from"./QBtn-0e6d397d.js";import{ae as r,D as s,C as a,v as c}from"./index-06f4354f.js";function v(){let e;const i=c();function t(){e=void 0}return r(t),s(t),{removeTick:t,registerTick(o){e=o,a(()=>{e===o&&(n(i)===!1&&e(),e=void 0)})}}}export{v as u};
