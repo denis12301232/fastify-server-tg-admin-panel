@@ -199,46 +199,71 @@ export class MessangerService {
    }
 
    static async createChat(user_id: string, users: string[]) {
-      const chat = await ChatModel.findOne({ users: { $all: users } })
+      const chat = await ChatModel.findOneAndUpdate(
+         { users: { $all: users } },
+         { $pull: { deleted: user_id } },
+         { _id: 1 }
+      )
          .lean();
+      let chat_id = chat?._id;
 
-      if (!chat) {
+      if (!chat_id) {
          const newChat = await ChatModel.create({ users });
-         const chat = await ChatModel.aggregate([
-            { $match: { _id: newChat._id } },
-            {
-               $project: {
-                  messages: { $slice: ['$messages', -1] },
-                  users: 1,
-                  updatedAt: 1,
-                  createdAt: 1,
-                  total: { $size: "$messages" },
-                  unread: { $size: "$messages" },
-                  companion: {
-                     $first: {
-                        $filter: {
-                           input: '$users', as: 'user', cond: {
-                              $ne: ['$$user', new Types.ObjectId(user_id)]
-                           }
+         chat_id = newChat._id;
+      }
+
+      const result = await ChatModel.aggregate([
+         { $match: { _id: chat_id } },
+         {
+            $lookup: {
+               from: 'messages',
+               localField: 'messages',
+               foreignField: '_id',
+               as: "messages",
+               pipeline: [{
+                  $lookup: {
+                     from: 'attachments',
+                     localField: 'attachments',
+                     foreignField: '_id',
+                     pipeline: [{ $project: { type: 1, name: 1 } }],
+                     as: 'attachments'
+                  }
+               }]
+            }
+         },
+         {
+            $project: {
+               messages: { $slice: ['$messages', -1] },
+               users: 1,
+               updatedAt: 1,
+               createdAt: 1,
+               type: 1,
+               total: { $size: "$messages" },
+               unread: '0',
+               companion: {
+                  $first: {
+                     $filter: {
+                        input: '$users', as: 'user', cond: {
+                           $ne: ['$$user', new Types.ObjectId(user_id)]
                         }
                      }
-                  },
-               }
-            },
-            {
-               $lookup: {
-                  from: 'users',
-                  localField: 'companion',
-                  foreignField: '_id',
-                  pipeline: [{ $project: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } }],
-                  as: 'companion'
-               }
-            },
-            { $unwind: '$companion' }
-         ])
-         return chat.at(0);
-      }
-      return chat;
+                  }
+               },
+            }
+         },
+         {
+            $lookup: {
+               from: 'users',
+               localField: 'companion',
+               foreignField: '_id',
+               pipeline: [{ $project: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } }],
+               as: 'companion'
+            }
+         },
+         { $unwind: '$companion' }
+      ]);
+
+      return result.at(0);
    }
 
    static async getMessagesByChatId(chat_id: string, user_id: string) {
@@ -257,10 +282,10 @@ export class MessangerService {
          { $match: { _id: chat._id } },
          {
             $project: {
-               users: 1, updatedAt: 1, createdAt: 1, group: 1,
+               users: 1, updatedAt: 1, createdAt: 1, group: 1, type: 1,
                messages: { $slice: ['$messages', -1] },
-               total: { $size: "$messages" },
-               unread: { $size: "$messages" },
+               total: { $size: '$messages' },
+               unread: { $size: '$messages' },
             }
          },
          { $lookup: { from: 'groups', localField: 'group', foreignField: '_id', as: 'group' } },
@@ -313,7 +338,7 @@ export class MessangerService {
 
       const updated = await ChatModel.updateOne(
          { _id: chat_id },
-         { $pull: { users:  user_id } }
+         { $pull: { users: user_id } }
       ).lean();
       return updated;
    }
