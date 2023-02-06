@@ -104,7 +104,7 @@ export class ToolsService {
    static async setAvatar(data: MultipartFile, user_id: string) {
       const fileName = `${user_id}.${data.filename.split('.').reverse()[0]}`;
       const buffer = await data.toBuffer();
-      await Util.createAsyncWriteStream(buffer, '../../static/images/avatars/' + fileName);
+      await Util.createAsyncWriteStream(buffer, '../../static/images/avatars/', fileName);
       const result = await UserModel.updateOne({ _id: user_id }, { avatar: fileName })
          .lean();
       return result;

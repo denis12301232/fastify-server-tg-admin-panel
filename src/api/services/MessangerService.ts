@@ -366,7 +366,7 @@ export class MessangerService {
       const ext = data.filename.split('.').reverse()[0];
       const fileName = v4() + '.' + ext;
       const buffer = await data.toBuffer();
-      await Util.createAsyncWriteStream(buffer, '../../static/audio/' + fileName);
+      await Util.createAsyncWriteStream(buffer, '../../static/audio/', fileName);
 
       const attachment = await AttachmentModel.create({ name: fileName, ext, type: 'audio', mime: data.mimetype });
       const message = await this.saveMessage({ chat_id, author: user_id, attachments: [attachment._id.toString()] });

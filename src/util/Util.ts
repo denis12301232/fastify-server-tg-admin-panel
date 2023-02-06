@@ -1,13 +1,13 @@
-import { createWriteStream } from 'fs'
-import path from 'path'
+import { createWriteStream, } from 'fs'
+import { resolve } from 'path'
 
 
 export default class Util {
-   static async createAsyncWriteStream(data: Buffer, path_to_file: string): Promise<void> {
-      return new Promise((resolve, reject) => {
-         const stream = createWriteStream(path.resolve(__dirname, path_to_file));
-         stream.on('error', reject);
-         stream.on('finish', resolve);
+   static async createAsyncWriteStream(data: Buffer, folder: string, fileName: string): Promise<void> {
+      return new Promise((res, rej) => {
+         const stream = createWriteStream(resolve(__dirname, folder, fileName));
+         stream.on('error', rej);
+         stream.on('finish', res);
          stream.write(data);
          stream.end();
       });
