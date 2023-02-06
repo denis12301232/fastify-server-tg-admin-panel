@@ -1,5 +1,6 @@
 import type { FastifyPluginCallback } from 'fastify'
-import { access, constants, mkdir } from 'fs/promises'
+import { access, mkdir } from 'fs/promises'
+import { constants } from 'fs'
 import { resolve } from 'path'
 
 
