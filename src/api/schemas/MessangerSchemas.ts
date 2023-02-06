@@ -73,4 +73,10 @@ export class MessangerSchemas {
          chat_id: Joi.string().required(),
       }).required()
    }
+
+   static readonly updateReadBody = {
+      body: Joi.object<MessangerTypes.UpdateReadBody>().keys({
+         chat_id: Joi.string().required(),
+      }).required()
+   }
 }

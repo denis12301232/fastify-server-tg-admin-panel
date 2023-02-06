@@ -373,4 +373,21 @@ export class MessangerService {
 
       return message;
    }
+
+   static async updateRead(chat_id: string, user_id: string) {
+      const chat = await ChatModel.findById(chat_id, { users: 1 })
+         .lean();
+      const updated = await MessageModel.updateMany(
+         { chat_id, read: { $nin: [user_id] } },
+         { $addToSet: { read: user_id } }
+      ).lean();
+
+      if (updated.modifiedCount) {
+         const updateToSend = new WsMessageDto({ event: 'read', payload: { chat_id, user_id } });
+         WsService.broadcastMessage(updateToSend, chat?.users.map(user => user.toString())
+            .filter(user => user !== user_id) || []);
+      }
+
+      return updated;
+   }
 }

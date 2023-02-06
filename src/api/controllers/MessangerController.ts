@@ -135,4 +135,17 @@ export class MessangerController {
          throw e;
       }
    }
+
+   static async updateRead(request: FastifyRequest<{ Body: MessangerTypes.UpdateReadBody }>) {
+      try {
+         const _id = request.user._id;
+         const { chat_id } = request.body;
+         console.log(chat_id);
+         
+         const updated = await MessangerService.updateRead(chat_id, _id);
+         return updated;
+      } catch (e) {
+         throw e;
+      }
+   }
 }

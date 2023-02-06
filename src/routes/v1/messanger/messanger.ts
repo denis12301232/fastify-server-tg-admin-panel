@@ -68,4 +68,9 @@ export default async function MessangerRoutes(fastify: FastifyInstance) {
       schema: MessangerSchemas.saveAudioMessageQuery,
       preHandler: useAuthGuard,
    }, MessangerController.saveAudioMessage);
+
+   fastify.patch('/update_read', {
+      schema: MessangerSchemas.updateReadBody,
+      preHandler: useAuthGuard,
+   }, MessangerController.updateRead);
 }

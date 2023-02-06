@@ -154,4 +154,8 @@ export namespace MessangerTypes {
    export interface SaveAudioMessageQuery {
       chat_id: string;
    }
+
+   export interface UpdateReadBody {
+      chat_id: string;
+   }
 }
