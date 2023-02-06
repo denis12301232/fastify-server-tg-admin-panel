@@ -22,11 +22,10 @@ export class AssistanceService {
             surname: { $regex: nameOrSurname }
          }]
       }, { __v: 0 })
-         .skip(skip)
-         .limit(limit)
          .lean();
-      const count = await AssistanceModel.count();
-
+      const count = form.length;
+      form.splice(0, skip);
+      form.length ? form.length = limit : '';
       if (!form.length) {
          throw ApiError.BadRequest(400, `Увы, ничего не найдено по запросу ${nameOrSurname}`);
       }
@@ -42,13 +41,13 @@ export class AssistanceService {
    }
 
    static async getHumansList(limit: number, page: number) {
-      const skip = (page - 1) * limit;
+      const skip = (page - 1) * limit; 
       const humansList = await AssistanceModel.find({}, { name: 1, surname: 1, patronymic: 1, _id: 1 })
          .skip(skip)
          .limit(limit)
          .lean();
-
       const count = await AssistanceModel.count();
+      
       return {
          humansList: humansList.reduce((box: Array<{ _id: Types.ObjectId, fio: string }>, item) => {
             return [...box, { _id: item._id, fio: `${item.surname} ${item.name} ${item.patronymic}` }]

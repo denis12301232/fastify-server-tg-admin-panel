@@ -17,8 +17,6 @@ export class AssistanceController {
    static async getForms(request: FastifyRequest<{ Querystring: AssistanceTypes.GetFormsQuery }>, reply: FastifyReply) {
       try {
          const { nameOrSurname, limit, page } = request.query;
-         console.log( limit, page);
-         
          const { forms, count } = await AssistanceService.getForms(nameOrSurname, limit, page);
          reply.header('X-Total-Count', count);
          return forms;
