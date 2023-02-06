@@ -1,4 +1,5 @@
 import type { Types } from 'mongoose'
+import Joi, { ObjectSchema } from 'joi'
 
 export interface AnyObject {
    [name: string]: any;
@@ -9,8 +10,8 @@ export interface WsMessage<T = any> {
    payload: T;
 }
 
-export type WsEvent = 'message' | 'chats_list' | 'open_chat' | 'read' | 'update_status' 
-| 'invite_to_group';
+export type WsEvent = 'message' | 'chats_list' | 'open_chat' | 'read' | 'update_status'
+   | 'invite_to_group';
 
 export interface IGroup {
    title: string;

@@ -1,0 +1,1 @@
+import{M as o}from"./MessangerInput-a056115a.js";import{d as t,c as r,o as e}from"./index-daaabc4f.js";import"./QBtn-84d97db2.js";import"./QInput-f9d1dd50.js";import"./use-key-composition-88659357.js";import"./uid-6a237b22.js";import"./focus-manager-e79c27be.js";const d=t({__name:"Test",setup(p){return(m,s)=>(e(),r(o))}});export{d as default};

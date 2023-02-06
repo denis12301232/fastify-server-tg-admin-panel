@@ -16,34 +16,49 @@ export async function factory(fastify: FastifyInstance) {
    });
 
    fastify.register(fastifyAutoload, { dir: join(__dirname, 'plugins') });
+
    fastify.register(cors, {
       credentials: true,
       origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(' ') : `http://localhost:${process.env.PORT}`,
       exposedHeaders: ['X-Total-Count']
    });
+
    fastify.register(import('@fastify/websocket'), {
       errorHandler: function (e, connection, request, reply) {
          connection.destroy(e);
          request.log.error(e);
-      },
+      }
    });
    fastify.register(import('@fastify/multipart'));
+
    fastify.register(fastifyCookie, { hook: 'onRequest' });
-   fastify.register(fastifyAutoload, { dir: join(__dirname, 'routes'), options: { prefix: '/api' } });
+
+   fastify.register(fastifyAutoload, {
+      dir: join(__dirname, 'routes'),
+      options: { prefix: '/api' }
+   });
+
    fastify.register(fastifyStatic, {
       root: resolve(__dirname, '../public')
    });
+
    fastify.register(fastifyStatic, {
-      root: resolve(__dirname, '../static/images/avatars'), prefix: '/avatars',
+      root: resolve(__dirname, '../static/images/avatars'),
+      prefix: '/avatars',
       decorateReply: false
    });
+
    fastify.register(fastifyStatic, {
-      root: resolve(__dirname, '../static/audio'), 
+      root: resolve(__dirname, '../static/audio'),
       prefix: '/audio',
       decorateReply: false,
    });
+
    fastify.setValidatorCompiler(({ schema }: { schema: ObjectSchema }) => data => schema.validate(data));
+
    fastify.setNotFoundHandler((request, reply) => { reply.sendFile('index.html') });
+
    fastify.setErrorHandler(ErrorHandler(fastify));
+
    await fastify.ready();
 }

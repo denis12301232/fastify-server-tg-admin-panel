@@ -1,4 +1,4 @@
-import UserModel from '@/models/mongo/UserModel'
+import { UserModel } from '@/models/mongo'
 import { hash } from 'bcrypt'
 
 

@@ -5,10 +5,12 @@ import { resolve } from 'path'
 
 
 const createStaticFolders: FastifyPluginCallback<any> = async (fastify, options, done) => {
-   await access(resolve(__dirname, '../../static/audio'), constants.R_OK | constants.W_OK)
-      .catch(async (e) => await mkdir(resolve(__dirname, '../../static/audio'), { recursive: true }));
-   await access(resolve(__dirname, '../../static/images/avatars'), constants.R_OK | constants.W_OK)
-      .catch(async (e) => await mkdir(resolve(__dirname, '../../static/images/avatars'), { recursive: true }));
+   await Promise.all([
+      access(resolve(__dirname, '../../static/audio'), constants.R_OK | constants.W_OK)
+         .catch(async (e) => await mkdir(resolve(__dirname, '../../static/audio'), { recursive: true })),
+      access(resolve(__dirname, '../../static/images/avatars'), constants.R_OK | constants.W_OK)
+         .catch(async (e) => await mkdir(resolve(__dirname, '../../static/images/avatars'), { recursive: true }))
+   ]);
    done();
 };
 
