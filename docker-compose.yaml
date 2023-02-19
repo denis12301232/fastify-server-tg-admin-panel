@@ -1,0 +1,24 @@
+version: "3.8"
+services:
+  mongo:
+    hostname: mongo
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+  server:
+    image: test12301232/server
+    container_name: server
+    ports:
+      - "5000:5000"
+    links:
+      - mongo
+    env_file:
+      - .env.production
+  client:
+    image: test12301232/client
+    container_name: client
+    ports:
+      - "8080:80"
+    links:
+      - server
