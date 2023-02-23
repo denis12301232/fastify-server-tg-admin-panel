@@ -49,8 +49,7 @@ export class MessangerService {
          users: { $in: [user_id] },
          deleted: { $nin: [user_id] },
       })
-         .populate({ path: 'messages' })
-         .populate({ path: 'messages.attachments', select: { type: 1, name: 1 } })
+         .populate({ path: 'messages', populate: { path: 'attachments', select: { type: 1, name: 1 } } })
          .populate({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
          .populate({ path: 'group', select: { title: 1, avatar: 1, roles: 1, _id: 1 } })
          .sort({ updatedAt: -1 })
@@ -59,24 +58,14 @@ export class MessangerService {
       return chats.map(chat => new ChatDto(chat, user_id));
    }
 
-   static async openChat(user_id: string, chat_id: string, skip: number) {
-      const chat = await ChatModel.findById(chat_id, { users: 1 })
-         .lean();
+   static async openChat(user_id: string, chat_id: string, page: number, limit: number) {
+      const skip = (page - 1) * limit;
       const messages = await MessageModel.find({ chat_id })
-         .sort({ _id: -1 })
-         .skip(skip ? skip : 0)
          .populate({ path: 'attachments', select: { type: 1, name: 1 } })
+         .sort({ _id: -1 })
+         .skip(skip)
+         .limit(limit)
          .lean();
-      const updated = await MessageModel.updateMany(
-         { chat_id, read: { $nin: [user_id] } },
-         { $addToSet: { read: user_id } }
-      ).lean();
-
-      if (updated.modifiedCount) {
-         const updateToSend = new WsMessageDto({ event: 'read', payload: { chat_id, user_id } });
-         WsService.broadcastMessage(updateToSend, chat?.users.map(user => user.toString())
-            .filter(user => user !== user_id) || []);
-      }
 
       return { messages: messages.reverse(), chat_id };
    }

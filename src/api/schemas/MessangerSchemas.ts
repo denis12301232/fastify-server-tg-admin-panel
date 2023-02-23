@@ -52,7 +52,8 @@ export class MessangerSchemas {
    static readonly openChatQuery = {
       querystring: Joi.object<MessangerTypes.OpenChatQuery>().keys({
          chat_id: Joi.string().required(),
-         skip: Joi.number().required(),
+         limit: Joi.number().required().allow('Infinity'),
+         page: Joi.number().required()
       }).required()
    }
 

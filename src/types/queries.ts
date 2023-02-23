@@ -141,7 +141,8 @@ export namespace MessangerTypes {
 
    export interface OpenChatQuery {
       chat_id: string;
-      skip: number;
+      limit: number;
+      page: number;
    }
 
    export interface DeleteChatBody {

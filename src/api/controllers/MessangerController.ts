@@ -58,8 +58,8 @@ export class MessangerController {
    static async openChat(request: FastifyRequest<{ Querystring: MessangerTypes.OpenChatQuery }>) {
       try {
          const _id = request.user._id;
-         const { chat_id, skip } = request.query;
-         const messages = await MessangerService.openChat(_id, chat_id, skip);
+         const { chat_id, page, limit } = request.query;  
+         const messages = await MessangerService.openChat(_id, chat_id, page, limit);
          return messages;
       } catch (e) {
          throw e;
@@ -137,7 +137,7 @@ export class MessangerController {
 
          if (type === 'image' && !Validate.isValidMime(['image/'])(data.mimetype)) {
             throw ApiError.BadRequest(400, 'Wrong mime');
-         } else if (type === 'audio' && !Validate.isValidMime(['audio/ogg'])(data.mimetype)) {
+         } else if (type === 'audio' && !Validate.isValidMime(['audio/webm'])(data.mimetype)) {
             throw ApiError.BadRequest(400, 'Wrong mime');
          }
 
