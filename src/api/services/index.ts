@@ -1,0 +1,8 @@
+export { default as AssistanceService } from './AssistanceService'
+export { default as AuthService } from './AuthService'
+export { default as ImageService } from './ImageService'
+export { default as MailService } from './MailService'
+export { default as TokenService } from './TokenService'
+export { default as ToolsService } from './ToolsService'
+export { default as MessangerService } from './MessangerService'
+export { default as TaskService } from './TaskService'
