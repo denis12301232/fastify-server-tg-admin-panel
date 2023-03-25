@@ -1,5 +1,5 @@
 import type { AssistanceTypes, AssistanceForm, AnyObject } from '@/types'
-import type { Types, FilterQuery } from 'mongoose'
+import type { FilterQuery } from 'mongoose'
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 import { AssistanceModel, ToolsModel } from '@/models/mongo'
 import { Constants } from '@/util'

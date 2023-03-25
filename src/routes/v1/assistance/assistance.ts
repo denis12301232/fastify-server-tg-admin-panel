@@ -5,9 +5,9 @@ import { useAuthGuard, useRoleGuard } from '@/hooks'
 
 
 export default async function AssistanceRoutes(fastify: FastifyInstance) {
-   fastify.post('/', 
-   
-   AssistanceController.saveForm);
+   fastify.post('/', {
+      schema: AssistanceSchemas.saveFormBody
+   }, AssistanceController.saveForm);
 
    fastify.get('/', {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],

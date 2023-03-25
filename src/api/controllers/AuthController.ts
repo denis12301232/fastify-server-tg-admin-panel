@@ -39,8 +39,6 @@ export class AuthController {
 
    static async refresh(request: FastifyRequest, reply: FastifyReply) {
       const { refreshToken } = request.cookies;
-      console.log(refreshToken);
-      
       const userData = await AuthService.refresh(refreshToken);
       reply.setCookie('refreshToken', userData.refreshToken, {
          maxAge: 30 * 24 * 60 * 60 * 1000,

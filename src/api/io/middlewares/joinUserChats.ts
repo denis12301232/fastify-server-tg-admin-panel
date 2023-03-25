@@ -1,5 +1,5 @@
 import type { Socket } from 'socket.io'
-import { MessangerService } from '@/api/services';
+import { MessangerService } from '@/api/services'
 
 
 export default async function joinUserChats(socket: Socket, next: (e?: Error) => any) {

@@ -1,7 +1,4 @@
 import type { FastifyPluginCallback } from 'fastify'
-//import { useCreateRoot } from '@/hooks'
-
-
 
 
 const peerServerPlugin: FastifyPluginCallback<any> = async (app, options, done) => {
@@ -21,7 +18,6 @@ const peerServerPlugin: FastifyPluginCallback<any> = async (app, options, done) 
    } catch (e) {
       if (e instanceof Error) done(e);
    }
-
 };
 
 export default peerServerPlugin;
