@@ -6,12 +6,17 @@ import { ApiError } from '@/exeptions'
 
 export default function socketAuthGuard(socket: Socket, next: (e?: Error) => any) {
    const accessToken = socket.handshake.auth.token;
+
+   if (!accessToken) {
+      return next(ApiError.Unauthorized());
+   }
+
    const userData = TokenService.validateAccessToken<UserDto>(accessToken);
 
    if (!userData) {
-      return next( ApiError.Unauthorized());
+      return next(ApiError.Unauthorized());
    }
-   
+
    socket.data.user = userData;
    socket.join(userData._id);
    next();

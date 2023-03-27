@@ -1,6 +1,6 @@
 import fastify from 'fastify'
 import factory from '@/factory'
-import IO from '@/api/io';
+import IO from '@/api/io'
 
 
 export const app = fastify({ logger: true });

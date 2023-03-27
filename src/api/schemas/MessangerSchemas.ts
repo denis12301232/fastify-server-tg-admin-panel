@@ -98,4 +98,10 @@ export class MessangerSchemas {
          chat_id: Joi.string().required()
       }).required()
    }
+
+   static readonly typingSchema = Joi.object({
+      chat_id: Joi.string().required(),
+      user_name: Joi.string().required(),
+      user_id: Joi.string().required(),
+   });
 }
