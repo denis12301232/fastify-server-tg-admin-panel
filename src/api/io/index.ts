@@ -15,27 +15,28 @@ export default class IO {
 
    private onConnection(socket: Socket) {
       socket.to(Array.from(socket.rooms)).emit(ACTIONS.UPDATE_STATUS, socket.data.user._id, 'online');
-      socket.on(ACTIONS.TYPING, this.onTyping(socket));
-      socket.on('disconnect', this.onDisconnect(socket));
-   }
-
-   private onTyping(socket: Socket) {
-      return function (chat_id: string, user_name: string, user_id: string) {
-         const { error } = MessangerSchemas.typingSchema.validate({ chat_id, user_name, user_id });
-         if (error) {
-            return socket.disconnect(true);
-         }
-         socket.to(chat_id).emit(ACTIONS.TYPING, chat_id, user_name, user_id);
-      }
-   }
-
-   private onDisconnect(socket: Socket) {
-      return function (reason: DisconnectReason, description?: any) {
-         socket.to(Array.from(socket.rooms)).emit(ACTIONS.UPDATE_STATUS, socket.data.user._id, 'offline');
-      }
+      socket.on('disconnect', onDisconnect);
+      socket.on(ACTIONS.TYPING, onTyping);
+      socket.on(ACTIONS.PEER_JOIN, onPeerJoin);
    }
 
    setListeners() {
       this.io.on('connection', this.onConnection);
    }
+}
+
+function onTyping(this: Socket, chat_id: string, user_name: string, user_id: string) {
+   const { error } = MessangerSchemas.typingSchema.validate({ chat_id, user_name, user_id });
+   if (error) {
+      return this.disconnect(true);
+   }
+   this.broadcast.to(chat_id).emit(ACTIONS.TYPING, chat_id, user_name, user_id);
+}
+
+function onDisconnect(this: Socket, reason: DisconnectReason, description?: any) {
+   this.to(Array.from(this.rooms)).emit(ACTIONS.UPDATE_STATUS, this.data.user._id, 'offline');
+}
+
+function onPeerJoin(this: Socket, roomId: string) {
+   this.broadcast.to(roomId).emit(ACTIONS.PEER_ADD);
 }
