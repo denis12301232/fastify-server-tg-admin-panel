@@ -6,7 +6,7 @@ import cookie from '@fastify/cookie'
 import multipart from '@fastify/multipart'
 import fastifyStatic from '@fastify/static'
 import autoload from '@fastify/autoload'
-import { socketIoPlugin, mongoDbPlugin, peerServerPlugin, staticFoldersCreatePlugin } from '@/plugins'
+import { socketIoPlugin, mongoDbPlugin, staticFoldersCreatePlugin } from '@/plugins'
 import { join, resolve } from 'path'
 import { apiErrorHandler } from '@/exeptions'
 
@@ -19,13 +19,15 @@ export default async function factory(app: FastifyInstance) {
 
    await app.register(cors, {
       origin: process.env.CLIENT_DOMAIN.split(' '),
-      credentials: true
+      credentials: true,
+      exposedHeaders: ['X-Total-Count'],
    });
 
    app.register(cookie, { hook: 'onRequest' });
    app.register(socketIoPlugin, {
       cors: {
          origin: process.env.CLIENT_DOMAIN.split(' '),
+         credentials: true,
          exposedHeaders: ['X-Total-Count'],
       }
    });
@@ -49,7 +51,6 @@ export default async function factory(app: FastifyInstance) {
    });
 
    app.register(mongoDbPlugin, { url: process.env.MONGO_URL, opts: { dbName: process.env.MONGO_NAME } });
-   app.register(peerServerPlugin)
    app.register(staticFoldersCreatePlugin, ['../../static/audio', '../../static/images/avatars',
       '../../static/media', '../../public', '../../static/temp']);
    app.setValidatorCompiler(({ schema }: { schema: ObjectSchema }) => (data) => schema.validate(data));

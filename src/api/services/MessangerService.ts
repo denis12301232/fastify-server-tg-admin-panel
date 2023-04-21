@@ -2,7 +2,7 @@ import type { MultipartFile } from '@fastify/multipart'
 import type { IUser, IGroup } from '@/types'
 import { ChatModel, UserModel, MessageModel, GroupModel, AttachmentModel } from '@/models/mongo'
 import { ChatDto } from '@/dto'
-import { Util, ACTIONS } from '@/util'
+import { Util } from '@/util'
 import { v4 } from 'uuid'
 import { ApiError } from '@/exeptions'
 import { app } from '@/main'
@@ -31,7 +31,7 @@ export default class MessangerService {
       const result = attachments?.length
          ? await message.populate({ path: 'attachments', select: { name: 1, type: 1 } })
          : message;
-      app.io.to(String(chat._id)).emit(ACTIONS.NEW_MESSAGE, result)
+      app.io.to(String(chat._id)).emit('chat:message', result);
       return result;
    }
 
@@ -73,7 +73,7 @@ export default class MessangerService {
          chat.users.forEach((user) => user.toString() !== user_id ? unique.add(user.toString()) : '');
          return unique;
       }, new Set<string>));
-      app.io.to(uniqueUsers).emit(ACTIONS.UPDATE_STATUS, user_id, status);
+      app.io.to(uniqueUsers).emit('chat:user-status', user_id, status);
    }
 
    static async findUsers(loginOrName: string, user_id: string) {
@@ -163,8 +163,7 @@ export default class MessangerService {
          .populate({ path: 'group', select: { title: 1, avatar: 1, roles: 1, _id: 1 } })
          .lean();
 
-      app.io.to(user_id).emit(ACTIONS.INVITE_TO_GROUP, new ChatDto(result, user_id));
-
+      app.io.to(user_id).emit('chat:invite-to-group', new ChatDto(result, user_id));
       return { user: user_id };
    }
 
@@ -180,7 +179,7 @@ export default class MessangerService {
       const updated = await ChatModel.updateOne({ _id: chat?._id }, { $addToSet: { deleted: user_id } })
          .lean();
 
-      app.io.to(user_id).emit(ACTIONS.KICK_FROM_GROUP, chat_id);
+      app.io.to(user_id).emit('chat:kick-from-group', chat_id);
       app.io.sockets.adapter.rooms.get(chat_id)?.delete(user_id);
 
       return updated;
@@ -200,18 +199,15 @@ export default class MessangerService {
    }
 
    static async updateRead(chat_id: string, user_id: string) {
-      const chat = await ChatModel.findById(chat_id, { users: 1 })
-         .lean();
+      await ChatModel.findById(chat_id, { users: 1 }).lean();
       const updated = await MessageModel.updateMany(
          { chat_id, read: { $nin: [user_id] } },
          { $addToSet: { read: user_id } }
       ).lean();
-      console.log(updated);
 
       if (updated.modifiedCount) {
-         app.io.to(String(chat_id)).emit(ACTIONS.READ_MESSAGE, chat_id, user_id);
+         app.io.to(String(chat_id)).emit('chat:read-message', chat_id, user_id);
       }
-
       return updated;
    }
 
@@ -246,7 +242,7 @@ export default class MessangerService {
    static async updateRolesInGroup(my_id: string, group_id: string, role: string, users: string[]) {
       const group = await GroupModel.findById(group_id).lean();
 
-      if (!group?.roles?.creator?.includes(my_id) && !group?.roles?.admin?.includes(my_id)) {
+      if (!group?.roles?.admin?.includes(my_id)) {
          throw ApiError.BadRequest(403, 'Not enough rights');
       }
 

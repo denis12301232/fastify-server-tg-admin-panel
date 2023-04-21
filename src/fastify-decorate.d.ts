@@ -1,4 +1,4 @@
-import type { Server } from 'socket.io'
+import { ServerTyped } from '@/types';
 import type { UserDto } from '@/dto'
 
 
@@ -12,6 +12,6 @@ declare module 'fastify' {
       }
    }
    export interface FastifyInstance {
-      io: Server;
+      io: ServerTyped;
    }
 }
