@@ -29,8 +29,6 @@ function useSocketEvents(io: ServerTyped) {
       'webrtc:add-peer': onWebRtcAddPeer,
       'webrtc:sdp': onWebRtcSdp,
       'webrtc:ice': onWebRtcIce,
-      'webrtc:identify-stream': onWebRtcIdentifyStream,
-      'webrtc:negotiate': onWebRtcNegitiate,
       'webrtc:remove-peer': onWebRtcRemovePeer,
       'meet:create': onMeetCreate,
       'meet:leave': onMeetLeave,
@@ -97,14 +95,6 @@ function useSocketEvents(io: ServerTyped) {
 
    function onWebRtcIce(this: SocketTyped, peerId: string, ice: RTCIceCandidate) {
       this.to(peerId).emit('webrtc:ice', this.data.user!._id, ice);
-   }
-
-   function onWebRtcIdentifyStream(this: SocketTyped, chatId: string, type: 'screen' | 'camera', id: string) {
-      this.broadcast.to(chatId).emit('webrtc:identify-stream', type, id);
-   }
-
-   function onWebRtcNegitiate(this: SocketTyped, peerId: string) {
-      this.to(peerId).emit('webrtc:negotiate', peerId);
    }
 
    function onMeetCreate(this: SocketTyped, title: string) {

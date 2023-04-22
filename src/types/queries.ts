@@ -72,6 +72,8 @@ export namespace ImageTypes {
    export interface GetImagesQuery {
       pageToken: string;
    }
+
+   export type DeleteImagesBody = string[];
 }
 
 export namespace ToolsTypes {

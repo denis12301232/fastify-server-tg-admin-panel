@@ -31,7 +31,7 @@ export default async function factory(app: FastifyInstance) {
          exposedHeaders: ['X-Total-Count'],
       }
    });
-   app.register(multipart, { limits: { fileSize: 10000000, files: 10 } });
+   app.register(multipart, { limits: { fileSize: 100000000, files: 10 } });
    app.register(autoload, { dir: join(__dirname, 'routes'), options: { prefix: '/api' } });
    app.register(fastifyStatic, { root: resolve(__dirname, '../public') });
    app.register(fastifyStatic, {

@@ -20,8 +20,6 @@ interface ServerToClientEvents {
    'webrtc:remove-peer': (peer_id: string) => void;
    'webrtc:sdp': (peerId: string, sdp: RTCSessionDescriptionInit) => void;
    'webrtc:ice': (peerId: string, ice: RTCIceCandidate) => void;
-   'webrtc:identify-stream': (type: 'screen' | 'camera', id: string) => void;
-   'webrtc:negotiate': (peerId: string) => void;
    'rtc:call': (peer_id: string, chat_id: string) => void;
    'rtc:add-peer': (peer_id: string, offer: boolean, user?: UserDto) => void;
    'rtc:session-description': (peer_id: string, sessionDescription: RTCSessionDescriptionInit) => void;
@@ -40,8 +38,6 @@ interface ClientToServerEvents {
    'webrtc:remove-peer': (this: SocketTyped) => void;
    'webrtc:sdp': (this: SocketTyped, peerId: string, sdp: RTCSessionDescriptionInit) => void;
    'webrtc:ice': (this: SocketTyped, peerId: string, ice: RTCIceCandidate) => void;
-   'webrtc:identify-stream': (this: SocketTyped, chatId: string, type: 'screen' | 'camera', id: string) => void;
-   'webrtc:negotiate': (this: SocketTyped, peerId: string) => void;
    'rtc:call': (chat_id: string) => void;
    'rtc:answer': (answer: boolean, chat_id: string) => void;
    'rtc:relay-sdp': (this: SocketTyped, peer_id: string, sessionDescription: RTCSessionDescriptionInit) => void;
