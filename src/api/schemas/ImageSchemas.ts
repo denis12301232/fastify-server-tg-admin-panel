@@ -8,4 +8,8 @@ export class ImageSchemas {
          pageToken: Joi.string()
       }).required()
    }
+
+   static readonly deleteImagesBody = {
+      body: Joi.array().items(Joi.string()).required()
+   }
 }

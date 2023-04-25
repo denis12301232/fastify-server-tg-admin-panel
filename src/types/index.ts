@@ -2,6 +2,7 @@ import type { Types } from 'mongoose'
 
 export * from './queries'
 export * from './io'
+export * from './socket'
 
 export interface AnyObject {
    [name: string]: any;

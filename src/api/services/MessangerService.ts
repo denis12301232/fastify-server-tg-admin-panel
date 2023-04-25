@@ -257,7 +257,7 @@ export default class MessangerService {
          throw ApiError.Forbidden();
       }
       const ext = data?.filename.split('.').at(-1);
-      const fileName = ext ? `${group._id}.${ext}` : '';
+      const fileName = ext && `${group._id}.${ext}`;
       if (fileName && data) {
          await Util.pipeStreamAsync(data.file, '../../static/images/avatars/', fileName);
       }
