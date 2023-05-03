@@ -1,5 +1,5 @@
 import type { MultipartFile } from '@fastify/multipart'
-import type { IUser, IGroup } from '@/types'
+import type { IUser, IGroup, SocketTyped } from '@/types'
 import { ChatModel, UserModel, MessageModel, GroupModel, AttachmentModel } from '@/models/mongo'
 import { ChatDto } from '@/dto'
 import { Util } from '@/util'
@@ -99,6 +99,16 @@ export default class MessangerService {
       if (!chat_id) {
          const newChat = await ChatModel.create({ users, deleted: users.filter(user => user !== user_id) });
          chat_id = newChat._id;
+         const sockets = users.reduce((sockets, userId) => {
+            for (const [id, socket] of app.io.sockets.sockets as Map<string, SocketTyped>) {
+               if (socket.data.user?._id === userId) {
+                  sockets.add(socket);
+                  continue;
+               }
+            }
+            return sockets;
+         }, new Set<SocketTyped>);
+         sockets.forEach((socket) => socket.join(String(chat_id)));
       }
 
       const createdChat = await ChatModel.findById(chat_id)

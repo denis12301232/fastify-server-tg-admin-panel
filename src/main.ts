@@ -1,6 +1,6 @@
 import fastify from 'fastify'
 import factory from '@/factory'
-import setSocketListers from '@/api/io'
+import SocketEvents from '@/api/io'
 
 
 export const app = fastify({ logger: true });
@@ -8,7 +8,7 @@ export const app = fastify({ logger: true });
 async function start() {
    try {
       await factory(app);
-      setSocketListers(app.io);
+      new SocketEvents(app.io);
       await app.listen({ port: process.env.PORT, host: process.env.HOST });
    } catch (e) {
       app.log.error(e);

@@ -29,7 +29,8 @@ export default async function factory(app: FastifyInstance) {
          origin: process.env.CLIENT_DOMAIN.split(' '),
          credentials: true,
          exposedHeaders: ['X-Total-Count'],
-      }
+      },
+      path: '/socket'
    });
    app.register(multipart, { limits: { fileSize: 100000000, files: 10 } });
    app.register(autoload, { dir: join(__dirname, 'routes'), options: { prefix: '/api' } });
