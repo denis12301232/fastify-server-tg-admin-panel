@@ -9,37 +9,11 @@ import { app } from '@/main'
 
 
 export default class MessangerService {
-   static async saveMessage({ chat_id, author, text, attachments }: { chat_id: string, author: string, text?: string, attachments?: string[] }) {
-      const chat = await ChatModel.findOne({ _id: chat_id, users: { $in: [author] } });
-
-      if (!chat) {
-         throw ApiError.BadRequest(400, 'Chat not found');
-      }
-
-      if (chat.type === 'group' && chat.deleted.includes(author)) {
-         throw ApiError.Forbidden();
-      }
-
-      const message = await MessageModel.create({
-         chat_id, author, text, read: [author], attachments
-      });
-
-      chat.messages.push(message._id);
-      chat.type === 'dialog' && (chat.deleted = []);
-      await chat.save();
-
-      const result = attachments?.length
-         ? await message.populate({ path: 'attachments', select: { name: 1, type: 1 } })
-         : message;
-      app.io.to(String(chat._id)).emit('chat:message', result);
-      return result;
-   }
-
    static async getUserChats(user_id: string) {
       const chats = await ChatModel.find({ users: { $in: [user_id] }, deleted: { $nin: [user_id] } })
          .populate({ path: 'messages', populate: { path: 'attachments', select: { type: 1, name: 1 } } })
          .populate({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
-         .populate({ path: 'group', select: { title: 1, avatar: 1, roles: 1, _id: 1 } })
+         .populate({ path: 'group', select: { title: 1, avatar: 1, roles: 1, about: 1, _id: 1 } })
          .sort({ updatedAt: -1 })
          .lean();
 
@@ -87,40 +61,6 @@ export default class MessangerService {
       return users;
    }
 
-   static async createChat(user_id: string, users: string[]) {
-      const chat = await ChatModel.findOneAndUpdate(
-         { users: { $all: users }, type: 'dialog' },
-         { $pull: { deleted: user_id } },
-         { _id: 1 }
-      ).lean();
-
-      let chat_id = chat?._id;
-
-      if (!chat_id) {
-         const newChat = await ChatModel.create({ users, deleted: users.filter(user => user !== user_id) });
-         chat_id = newChat._id;
-         const sockets = users.reduce((sockets, userId) => {
-            for (const [id, socket] of app.io.sockets.sockets as Map<string, SocketTyped>) {
-               if (socket.data.user?._id === userId) {
-                  sockets.add(socket);
-                  continue;
-               }
-            }
-            return sockets;
-         }, new Set<SocketTyped>);
-         sockets.forEach((socket) => socket.join(String(chat_id)));
-      }
-
-      const createdChat = await ChatModel.findById(chat_id)
-         .populate({ path: 'messages' })
-         .populate({ path: 'messages.attachments', select: { type: 1, name: 1 } })
-         .populate({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
-         .populate({ path: 'group', select: { title: 1, avatar: 1, roles: 1, _id: 1 } })
-         .lean();
-
-      return new ChatDto(createdChat, user_id);
-   }
-
    static async getMessagesByChatId(chat_id: string, user_id: string) {
       const messages = await MessageModel.find({ chat_id })
          .populate({ path: 'attachments', select: { type: 1, name: 1 } })
@@ -130,24 +70,6 @@ export default class MessangerService {
       return messages;
    }
 
-   static async createGroup(user_id: string, users: string[], title: string, about: string, avatar?: MultipartFile) {
-      let fileName;
-      if (avatar) {
-         fileName = `${v4()}.${avatar.filename.split('.').at(-1)}`;
-         await Util.pipeStreamAsync(avatar.file, '../../static/images/avatars/', fileName);
-      }
-
-      const group = await GroupModel.create({ title, about, roles: { admin: [user_id] }, avatar: fileName });
-      const chat = await ChatModel.create({ users, type: 'group', group: group._id });
-      const createdGroup = await ChatModel.findById(chat._id)
-         .populate({ path: 'messages' })
-         .populate({ path: 'messages.attachments', select: { type: 1, name: 1 } })
-         .populate({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
-         .populate({ path: 'group', select: { title: 1, avatar: 1, roles: 1, _id: 1 } })
-         .lean();
-
-      return new ChatDto(createdGroup, user_id);
-   }
 
    static async addUserToGroup(my_id: string, chat_id: string, user_id: string) {
       const chat = await ChatModel.findById(chat_id, { _id: 1, deleted: 1, users: 1 })
@@ -221,33 +143,7 @@ export default class MessangerService {
       return updated;
    }
 
-   static async saveImageMessage(chat_id: string, user_id: string, parts: AsyncIterableIterator<MultipartFile>) {
-      const attachmentsIds = [];
-      for await (const part of parts) {
-         if (!part) {
-            throw ApiError.BadRequest(400, 'File required');
-         }
-         const ext = part.filename.split('.').at(-1);
-         const fileName = `${v4()}.${ext}`;
-         await Util.pipeStreamAsync(part.file, '../../static/media/', fileName);
-         const attachment = await AttachmentModel.create({ name: fileName, ext, type: 'image', mime: part.mimetype });
-         attachmentsIds.push(attachment._id.toString());
-      }
-      const message = await this.saveMessage({ chat_id, author: user_id, attachments: attachmentsIds });
-      return message;
-   }
 
-   static async saveAudioMessage(chat_id: string, user_id: string, file?: MultipartFile) {
-      if (!file) {
-         throw ApiError.BadRequest(400, 'File required');
-      }
-      const ext = file.filename.split('.').at(-1);
-      const fileName = `${v4()}.${ext}`;
-      await Util.pipeStreamAsync(file.file, '../../static/audio/', fileName);
-      const attachment = await AttachmentModel.create({ name: fileName, ext, type: 'audio', mime: file.mimetype });
-      const message = await this.saveMessage({ chat_id, author: user_id, attachments: [attachment._id.toString()] });
-      return message;
-   }
 
    static async updateRolesInGroup(my_id: string, group_id: string, role: string, users: string[]) {
       const group = await GroupModel.findById(group_id).lean();
@@ -274,7 +170,7 @@ export default class MessangerService {
       await GroupModel.updateOne({ _id: group_id },
          { avatar: fileName, title: title || undefined, about: about || undefined })
          .lean();
-      return { avatar: fileName, title: title || undefined };
+      return { avatar: fileName, title: title || undefined, about: about || undefined };
    }
 
    static async getUserChatById(user_id: string, chat_id: string) {

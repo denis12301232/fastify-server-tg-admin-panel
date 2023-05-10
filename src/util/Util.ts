@@ -1,16 +1,16 @@
 import type { Stream } from 'stream'
 import { createWriteStream } from 'fs'
+import { Readable } from 'stream'
 import { unlink } from 'fs/promises'
 import { resolve } from 'path'
 
 
 export default class Util {
-   static async createAsyncWriteStream(data: Buffer, folder: string, fileName: string): Promise<void> {
+   static async createAsyncWriteStream(data: Buffer, folder: string, fileName: string): Promise<string> {
       return new Promise((res, rej) => {
-         createWriteStream(resolve(__dirname, folder, fileName))
+         Readable.from(data).pipe(createWriteStream(resolve(__dirname, folder, fileName)))
             .on('error', rej)
-            .on('finish', res)
-            .write(data);
+            .on('finish', () => res(resolve(__dirname, folder, fileName)));
       });
    }
 

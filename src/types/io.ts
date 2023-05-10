@@ -1,6 +1,6 @@
 import type { Server, Socket, DisconnectReason } from 'socket.io'
 import type { UserDto, ChatDto } from '@/dto'
-import type { IMessage } from './index'
+import type { IMessage, ChatTypes } from '@/types'
 
 
 export type ServerTyped = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -16,6 +16,8 @@ interface ServerToClientEvents {
    'chat:call': (chatId: string) => void;
    'chat:call-answer': (chatId: string, answer: boolean) => void;
    'chat:call-cancel': () => void;
+   'chat:create': (chat: ChatDto) => void;
+   'chat:create-group': (chat: ChatDto) => void;
    'webrtc:add-peer': (peerId: string, offer: boolean, user?: UserDto) => void;
    'webrtc:remove-peer': (peer_id: string) => void;
    'webrtc:sdp': (peerId: string, sdp: RTCSessionDescriptionInit) => void;
@@ -31,9 +33,12 @@ interface ServerToClientEvents {
 
 interface ClientToServerEvents {
    'chat:typing': (this: SocketTyped, chat_id: string, user_name: string, user_id: string) => void;
+   'chat:message': (this: SocketTyped, data: ChatTypes.Message) => void;
    'chat:call': (this: SocketTyped, chatId: string) => void;
    'chat:call-answer': (this: SocketTyped, chatId: string, answer: boolean) => void;
    'chat:call-cancel': (this: SocketTyped, chatId: string) => void;
+   'chat:create': (this: SocketTyped, userId: string, users: string[]) => void;
+   'chat:create-group': (this: SocketTyped, data: ChatTypes.CreateGroup) => void;
    'webrtc:add-peer': (this: SocketTyped, chatId: string) => void;
    'webrtc:remove-peer': (this: SocketTyped) => void;
    'webrtc:sdp': (this: SocketTyped, peerId: string, sdp: RTCSessionDescriptionInit) => void;

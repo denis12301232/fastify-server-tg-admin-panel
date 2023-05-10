@@ -6,27 +6,6 @@ import { ApiError } from '@/exeptions'
 
 
 export class MessangerController {
-   static async saveMessage(request: FastifyRequest<{ Body: MessangerTypes.SaveMessageBody }>) {
-      const _id = request.user._id;
-      const { chat_id, text } = request.body;
-      const message = await MessangerService.saveMessage({ chat_id, text, author: _id });
-      return message;
-   }
-
-   static async saveMediaMessage(request: FastifyRequest<{ Querystring: MessangerTypes.SaveMediaMessageQuery }>) {
-      const _id = request.user._id;
-      const { chat_id, type } = request.query;
-
-      switch (type) {
-         case 'image':
-            const parts = request.files();
-            return await MessangerService.saveImageMessage(chat_id, _id, parts);
-         case 'audio':
-            const file = await request.file();
-            return await MessangerService.saveAudioMessage(chat_id, _id, file);
-      }
-   }
-
    static async getUserChats(request: FastifyRequest) {
       const _id = request.user._id;
       const chats = await MessangerService.getUserChats(_id);
@@ -45,21 +24,6 @@ export class MessangerController {
       const { loginOrName } = request.query;
       const users = await MessangerService.findUsers(loginOrName, _id);
       return users;
-   }
-
-   static async createChat(request: FastifyRequest<{ Body: MessangerTypes.CreateChatBody }>) {
-      const _id = request.user._id;
-      const { users } = request.body;
-      const chat = await MessangerService.createChat(_id, users);
-      return chat;
-   }
-
-   static async createGroup(request: FastifyRequest<{ Querystring: MessangerTypes.CreateGroupQuery }>) {
-      const _id = request.user._id;
-      const { ['users[]']: users, title, about } = request.query;
-      const file = await request.file();
-      const group = await MessangerService.createGroup(_id, users, title, about, file);
-      return group;
    }
 
    static async addUserToGroup(request: FastifyRequest<{ Body: MessangerTypes.AddUserToGroupBody }>) {

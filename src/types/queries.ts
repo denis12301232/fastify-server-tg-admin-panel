@@ -232,3 +232,43 @@ export namespace TaskTypes {
       task_id: string;
    }
 }
+
+export namespace ChatTypes {
+   export interface Typing {
+      chatId: string;
+      userName: string;
+      userId: string;
+   }
+
+   export interface Call {
+      chatId: string;
+   }
+
+   export interface CallAnswer {
+      chatId: string;
+      answer: boolean;
+   }
+
+   export interface CallCancel {
+      chatId: string;
+   }
+
+   export interface Create {
+      userId: string;
+      users: string[];
+   }
+
+   export interface CreateGroup {
+      users: string[];
+      title: string;
+      about: string;
+      avatar: Buffer;
+   }
+
+   export interface Message {
+      chatId: string;
+      text: string;
+      attachments?: Buffer[];
+      type: 'audio' | 'image';
+   }
+}

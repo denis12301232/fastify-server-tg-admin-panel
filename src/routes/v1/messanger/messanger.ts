@@ -10,16 +10,6 @@ export default async function MessangerRoutes(fastify: FastifyInstance) {
       preHandler: useAuthGuard
    }, MessangerController.findUsers);
 
-   fastify.post('/create_chat', {
-      schema: MessangerSchemas.createChatBody,
-      preHandler: useAuthGuard
-   }, MessangerController.createChat);
-
-   fastify.post('/create_group', {
-      //schema: MessangerSchemas.createGroupQuery,
-      preHandler: useAuthGuard,
-   }, MessangerController.createGroup);
-
    fastify.patch('/add_user_to_group', {
       schema: MessangerSchemas.addUserToGroupBody,
       preHandler: useAuthGuard,
@@ -35,10 +25,6 @@ export default async function MessangerRoutes(fastify: FastifyInstance) {
       preHandler: useAuthGuard,
    }, MessangerController.getUsersListInChat);
 
-   fastify.post('/save_message', {
-      schema: MessangerSchemas.saveMessageBody,
-      preHandler: useAuthGuard,
-   }, MessangerController.saveMessage);
 
    fastify.get('/get_user_chats', {
       preHandler: useAuthGuard,
@@ -58,11 +44,6 @@ export default async function MessangerRoutes(fastify: FastifyInstance) {
       schema: MessangerSchemas.updateReadBody,
       preHandler: useAuthGuard,
    }, MessangerController.updateRead);
-
-   fastify.post('/save_media_message', {
-      schema: MessangerSchemas.saveMediaMessageQuery,
-      preHandler: useAuthGuard
-   }, MessangerController.saveMediaMessage);
 
    fastify.patch('/update_roles_in_group', {
       schema: MessangerSchemas.updateRolesInGroupBody,

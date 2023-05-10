@@ -1,5 +1,6 @@
-import type { SocketTyped, ServerTyped } from '@/types'
-import SocketSchemas from '@/api/schemas/SocketSchemas'
+import type { SocketTyped, ServerTyped, ChatTypes } from '@/types'
+import ChatSchemas from '@/api/schemas/ChatSchemas'
+import { ChatService } from '@/api/services';
 
 
 export default function useChatEvents(io: ServerTyped) {
@@ -8,10 +9,13 @@ export default function useChatEvents(io: ServerTyped) {
       'chat:call': onChatCall,
       'chat:call-answer': onChatCallAnswer,
       'chat:call-cancel': onChatCallCancel,
+      'chat:create': onChatCreate,
+      'chat:create-group': onChatCreateGroup,
+      'chat:message': onChatMessage
    }
 
    function onChatTyping(this: SocketTyped, chatId: string, userName: string, userId: string) {
-      const { error } = SocketSchemas.chatTyping.validate({ chatId, userName, userId });
+      const { error } = ChatSchemas.typing.validate({ chatId, userName, userId });
       if (error) {
          return this.disconnect(true);
       }
@@ -19,7 +23,7 @@ export default function useChatEvents(io: ServerTyped) {
    }
 
    function onChatCall(this: SocketTyped, chatId: string) {
-      const { error } = SocketSchemas.chatCall.validate({ chatId });
+      const { error } = ChatSchemas.call.validate({ chatId });
       if (error) {
          return this.disconnect(true);
       }
@@ -27,7 +31,7 @@ export default function useChatEvents(io: ServerTyped) {
    }
 
    function onChatCallAnswer(this: SocketTyped, chatId: string, answer: boolean) {
-      const { error } = SocketSchemas.chatCallAnswer.validate({ chatId, answer });
+      const { error } = ChatSchemas.callAnswer.validate({ chatId, answer });
       if (error) {
          return this.disconnect(true);
       }
@@ -37,7 +41,7 @@ export default function useChatEvents(io: ServerTyped) {
    }
 
    function onChatCallCancel(this: SocketTyped, chatId: string) {
-      const { error } = SocketSchemas.chatCallCancel.validate({ chatId });
+      const { error } = ChatSchemas.callCancel.validate({ chatId });
       if (error) {
          return this.disconnect(true);
       }
@@ -48,6 +52,50 @@ export default function useChatEvents(io: ServerTyped) {
          if (userId !== this.data.user?._id) {
             this.to(id).emit('chat:call-cancel');
          }
+      }
+   }
+
+   async function onChatCreate(this: SocketTyped, userId: string, users: string[]) {
+      try {
+         const { error } = ChatSchemas.create.validate({ userId, users });
+         if (error) {
+            throw error;
+         }
+         const chatId = await ChatService.createChat(this, userId, users).catch(e => console.log(e));
+         
+         if (chatId) {
+            users.filter((user) => user !== userId).forEach((user) => {
+               const socket = Array.from(io.sockets.sockets.values())
+                  .find((socket: SocketTyped) => socket.data.user?._id === user);
+               socket?.join(chatId.toString());
+            });
+         }
+      } catch (e) {
+         return this.disconnect(true);
+      }
+   }
+
+   async function onChatCreateGroup(this: SocketTyped, data: ChatTypes.CreateGroup) {
+      try {
+         const { error } = ChatSchemas.createGroup.validate(data);
+         if (error) {
+            throw error;
+         }
+         await ChatService.createGroup(this, data);
+      } catch (e) {
+         return this.disconnect(true);
+      }
+   }
+
+   async function onChatMessage(this: SocketTyped, data: ChatTypes.Message) {
+      try {
+         const { error } = ChatSchemas.message.validate(data);
+         if (error) {
+            throw error;
+         }
+         await ChatService.saveMessage(this, data);
+      } catch (e) {
+         return this.disconnect();
       }
    }
 

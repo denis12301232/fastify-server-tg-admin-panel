@@ -18,21 +18,21 @@ export class AssistanceSchemas {
          house: Joi.string().required().max(50),
          flat: Joi.string().max(50).pattern(/^\d+$/).required(),
          people_num: Joi.number().min(1).max(10).required(),
-         people_fio: Joi.array().min(1),
+         people_fio: Joi.array(),
          invalids: Joi.boolean(),
          kids: Joi.boolean(),
-         kids_age: Joi.array().valid('0-1', '1-3', '3-9', '9-18'),
+         kids_age: Joi.array().valid('0-1', '1-3', '3-9', '9-18').empty(Joi.array().length(0)),
          food: Joi.boolean(),
          water: Joi.boolean(),
          medicines: Joi.boolean(),
-         medicines_info: Joi.string().max(100),
+         medicines_info: Joi.string().max(100).allow('', null),
          hygiene: Joi.boolean(),
-         hygiene_info: Joi.string().max(100),
+         hygiene_info: Joi.string().max(100).allow('', null),
          pampers: Joi.boolean(),
-         pampers_info: Joi.string().max(100),
-         diet: Joi.string().max(100),
-         pers_data_agreement: Joi.boolean().required().valid('true'),
-         photo_agreement: Joi.boolean().required().valid('true')
+         pampers_info: Joi.string().max(100).allow('', null),
+         diet: Joi.string().max(100).allow(''),
+         pers_data_agreement: Joi.boolean().required().valid(true),
+         photo_agreement: Joi.boolean().required().valid(true)
       }).required()
    }
 

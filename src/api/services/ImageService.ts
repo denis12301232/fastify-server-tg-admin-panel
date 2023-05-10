@@ -21,7 +21,7 @@ export default class ImageService {
          scopes: ['https://www.googleapis.com/auth/drive']
       });
       const client = await auth.getClient();
-      const driveService = google.drive({ version: 'v3', auth: client });
+      const driveService = google.drive({ version: 'v3', auth: client as any });
       const list = await driveService.files.list({
          q: `'${googleApi.settings.folderId}' in parents and trashed=false 
       and (mimeType=\'image/png\' or mimeType=\'image/jpeg\')`,
@@ -51,7 +51,7 @@ export default class ImageService {
          scopes: ['https://www.googleapis.com/auth/drive']
       });
       const client = await auth.getClient();
-      const driveService = google.drive({ version: 'v3', auth: client });
+      const driveService = google.drive({ version: 'v3', auth: client as any });
       const images: { link: string, fileId: string }[] = [];
 
       for await (const part of parts) {
@@ -88,7 +88,7 @@ export default class ImageService {
          scopes: ['https://www.googleapis.com/auth/drive']
       });
       const client = await auth.getClient();
-      const driveService = google.drive({ version: 'v3', auth: client });
+      const driveService = google.drive({ version: 'v3', auth: client as any });
       const removed = [];
 
       for (const id of ids) {
