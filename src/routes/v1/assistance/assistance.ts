@@ -39,5 +39,8 @@ export default async function AssistanceRoutes(fastify: FastifyInstance) {
       schema: AssistanceSchemas.saveFormsToGoogleSheetsBody
    }, AssistanceController.saveFormsToGoogleSheets);
 
-   fastify.get('/stats', {}, AssistanceController.getStats);
+   fastify.get('/stats', {
+      onRequest: [useAuthGuard, useRoleGuard(['admin'])],
+      schema: { querystring: AssistanceSchemas.getStatsQuery }
+   }, AssistanceController.getStats);
 }
