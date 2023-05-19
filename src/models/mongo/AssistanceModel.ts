@@ -103,6 +103,6 @@ const AssistanceSchema = new Schema<AssistanceForm>({
       type: Boolean,
       required: true,
    }
-});
+}, { timestamps: true });
 
 export default model<AssistanceForm>('Assistance', AssistanceSchema);

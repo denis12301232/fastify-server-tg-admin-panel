@@ -29,6 +29,7 @@ interface ServerToClientEvents {
    'rtc:remove-peer': (peer_id: string) => void;
    'rtc:call-cancel': () => void;
    'meet:create': (meetId: string) => void;
+   'error:meet-join': (code: number, message: string) => void;
 }
 
 interface ClientToServerEvents {

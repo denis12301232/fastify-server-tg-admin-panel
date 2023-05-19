@@ -19,7 +19,7 @@ export default class AssistanceService {
             { name: { $regex: nameOrSurname, $options: 'i' } },
             { surname: { $regex: nameOrSurname, $options: 'i' } }
          ]
-      }, { __v: 0 }).lean();
+      }, { __v: 0, createdAt: 0, updatedAt: 0 }).lean();
       if (!forms.length) {
          throw ApiError.BadRequest(400, `Nothing was found at query ${nameOrSurname}`);
       }
@@ -66,7 +66,7 @@ export default class AssistanceService {
    }
 
    static async getFormById(id: string) {
-      const form = await AssistanceModel.findById(id, { __v: 0, _id: 0 }).lean();
+      const form = await AssistanceModel.findById(id, { __v: 0, _id: 0, createdAt: 0, updatedAt: 0 }).lean();
       return form;
    }
 
@@ -140,5 +140,37 @@ export default class AssistanceService {
          message: 'Successfully formed',
          link: `https://docs.google.com/spreadsheets/d/${google.settings.sheetId}`
       };
+   }
+
+   static async getStats(filters: AssistanceTypes.GetStatsQuery) {
+      const forms = await AssistanceModel.find({}, { createdAt: 1 }).lean();
+      const now = new Date();
+      const date = new Date(parseInt(filters.timestamp));
+      const list = new Map();
+
+      if (filters.by === 'month') {
+         for (let i = 0; i <= 11; i++) {
+            list.set(i, 0);
+         }
+         for (const form of forms) {
+            const formDate = new Date(form.createdAt);
+            if (date.getFullYear() === formDate.getFullYear()) {
+               list.set(formDate.getMonth(), list.get(formDate.getMonth())! + 1);
+            }
+         }
+      } else if (filters.by === 'day') {
+         const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+         for (let i = 1; i <= lastDay; i++) {
+            list.set(i, 0);
+         }
+         for (const form of forms) {
+            const formDate = new Date(form.createdAt);
+            if (date.getFullYear() === formDate.getFullYear() && date.getMonth() === formDate.getMonth()) {
+               list.set(formDate.getDate(), list.get(formDate.getDate())! + 1);
+            }
+         }
+      }
+
+      return Object.fromEntries(list.entries());
    }
 }

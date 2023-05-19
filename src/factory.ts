@@ -6,7 +6,7 @@ import cookie from '@fastify/cookie'
 import multipart from '@fastify/multipart'
 import fastifyStatic from '@fastify/static'
 import autoload from '@fastify/autoload'
-import { socketIoPlugin, mongoDbPlugin, staticFoldersCreatePlugin } from '@/plugins'
+import Plugins from '@/plugins'
 import { join, resolve } from 'path'
 import { apiErrorHandler } from '@/exeptions'
 
@@ -24,7 +24,7 @@ export default async function factory(app: FastifyInstance) {
    });
 
    app.register(cookie, { hook: 'onRequest' });
-   app.register(socketIoPlugin, {
+   app.register(Plugins.socketIoPlugin, {
       cors: {
          origin: process.env.CLIENT_DOMAIN.split(' '),
          credentials: true,
@@ -51,8 +51,9 @@ export default async function factory(app: FastifyInstance) {
       decorateReply: false,
    });
 
-   app.register(mongoDbPlugin, { url: process.env.MONGO_URL, opts: { dbName: process.env.MONGO_NAME } });
-   app.register(staticFoldersCreatePlugin, ['../../static/audio', '../../static/images/avatars',
+   app.register(Plugins.redisPlugin, { url: process.env.REDIS_URL })
+   app.register(Plugins.mongoDbPlugin, { url: process.env.MONGO_URL, opts: { dbName: process.env.MONGO_NAME } });
+   app.register(Plugins.staticFoldersCreatePlugin, ['../../static/audio', '../../static/images/avatars',
       '../../static/media', '../../public', '../../static/temp']);
    app.setValidatorCompiler(({ schema }: { schema: ObjectSchema }) => (data) => schema.validate(data));
    app.setNotFoundHandler((request, reply) => { reply.sendFile('index.html') });

@@ -66,6 +66,11 @@ export namespace AssistanceTypes {
          to: string;
       }
    }
+
+   export interface GetStatsQuery {
+      by: 'month' | 'day';
+      timestamp: string;
+   }
 }
 
 export namespace ImageTypes {
@@ -270,5 +275,11 @@ export namespace ChatTypes {
       text: string;
       attachments?: Buffer[];
       type: 'audio' | 'image';
+   }
+}
+
+export namespace MeetTypes {
+   export interface GetInfoQuery {
+      meetId: string;
    }
 }

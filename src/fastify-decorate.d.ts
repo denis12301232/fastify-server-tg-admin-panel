@@ -1,5 +1,6 @@
-import { ServerTyped } from '@/types';
+import type { ServerTyped } from '@/types';
 import type { UserDto } from '@/dto'
+import type { RedisClientType } from 'redis'
 
 
 declare module 'fastify' {
@@ -13,5 +14,6 @@ declare module 'fastify' {
    }
    export interface FastifyInstance {
       io: ServerTyped;
+      redis: RedisClientType;
    }
 }

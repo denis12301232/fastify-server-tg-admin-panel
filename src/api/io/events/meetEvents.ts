@@ -1,28 +1,35 @@
 import type { SocketTyped, ServerTyped } from '@/types'
 import SocketSchemas from '@/api/schemas/SocketSchemas'
 import { v4 } from 'uuid'
+import { app } from '@/main'
 
 
 export default function useMeetEvents(io: ServerTyped) {
+   const { redis } = app;
    const events = {
       'meet:create': onMeetCreate,
       'meet:leave': onMeetLeave,
       'meet:join': onMeetJoin
    }
 
-   function onMeetCreate(this: SocketTyped, title: string) {
+   async function onMeetCreate(this: SocketTyped, title: string) {
       const { error } = SocketSchemas.meetCreate.validate({ title });
       if (error) {
          return this.disconnect(true);
       }
       const meetId = v4();
+      await redis.hSet('meets', meetId, JSON.stringify({ title }));
       this.emit('meet:create', meetId);
    }
 
-   function onMeetJoin(this: SocketTyped, meetId: string) {
+   async function onMeetJoin(this: SocketTyped, meetId: string) {
       const { error } = SocketSchemas.meetJoin.validate({ meetId });
       if (error) {
          return this.disconnect(true);
+      }
+      const info = await redis.hGet('meets', meetId);
+      if (!info) {
+         return this.emit('error:meet-join', 404, 'Not found');
       }
       this.join(meetId);
       const clientsIds = io.sockets.adapter.rooms.get(meetId);
@@ -35,14 +42,19 @@ export default function useMeetEvents(io: ServerTyped) {
       }
    }
 
-   function onMeetLeave(this: SocketTyped, meetId: string) {
+   async function onMeetLeave(this: SocketTyped, meetId: string) {
       const { error } = SocketSchemas.meetLeave.validate({ meetId });
       if (error) {
          return this.disconnect(true);
       }
       this.broadcast.to(meetId).emit('webrtc:remove-peer', this.data.user!._id);
       this.leave(meetId);
+      const clients = io.sockets.adapter.rooms.get(meetId);
+
+      if (!clients?.size) {
+         redis.hDel('meets', meetId);
+      }
    }
-   
+
    return events;
 }

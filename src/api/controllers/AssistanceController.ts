@@ -45,4 +45,10 @@ export class AssistanceController {
       const result = await AssistanceService.saveFormsToSheet(filters);
       return result;
    }
+
+   static async getStats(request: FastifyRequest<{ Querystring: AssistanceTypes.GetStatsQuery }>) {
+      const filters = request.query;
+      const result = await AssistanceService.getStats(filters);
+      return result;
+   }
 }

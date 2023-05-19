@@ -104,4 +104,6 @@ export interface AssistanceForm {
    diet: string;
    pers_data_agreement: boolean;
    photo_agreement: boolean;
+   createdAt: NativeDate;
+   updatedAt: NativeDate;
 }

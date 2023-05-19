@@ -6,6 +6,7 @@ declare namespace NodeJS {
       readonly CLIENT_DOMAIN: string;
       readonly MONGO_URL: string;
       readonly MONGO_NAME: string;
+      readonly REDIS_URL: string;
       readonly GOOGLE_USER: string;
       readonly GOOGLE_APP_PASS: string;
       readonly JWT_ACCESS_SECRET: string;
