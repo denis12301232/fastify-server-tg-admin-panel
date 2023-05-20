@@ -6,6 +6,7 @@ import { Constants } from '@/util'
 import ApiError from '@/exeptions/ApiError'
 
 
+
 export default class AssistanceService {
    static async saveForm(form: AssistanceForm) {
       const saved = await AssistanceModel.create(form);
@@ -143,31 +144,40 @@ export default class AssistanceService {
    }
 
    static async getStats(filters: AssistanceTypes.GetStatsQuery) {
-      const forms = await AssistanceModel.find({}, { createdAt: 1 }).lean();
-      const now = new Date();
-      const date = new Date(parseInt(filters.timestamp));
+      const date = new Date(filters.timestamp);
       const list = new Map();
 
-      if (filters.by === 'month') {
-         for (let i = 0; i <= 11; i++) {
-            list.set(i, 0);
-         }
-         for (const form of forms) {
-            const formDate = new Date(form.createdAt);
-            if (date.getFullYear() === formDate.getFullYear()) {
-               list.set(formDate.getMonth(), list.get(formDate.getMonth())! + 1);
-            }
-         }
-      } else if (filters.by === 'day') {
+      if (filters.by === 'day') {
          const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+         const forms = await AssistanceModel.find({
+            createdAt: {
+               $gte: new Date(date.getFullYear(), date.getMonth(), 1),
+               $lte: new Date(date.getFullYear(), date.getMonth(), lastDay)
+            }
+         }, { createdAt: 1 });
          for (let i = 1; i <= lastDay; i++) {
             list.set(i, 0);
          }
+
          for (const form of forms) {
             const formDate = new Date(form.createdAt);
-            if (date.getFullYear() === formDate.getFullYear() && date.getMonth() === formDate.getMonth()) {
-               list.set(formDate.getDate(), list.get(formDate.getDate())! + 1);
+            list.set(formDate.getDate(), list.get(formDate.getDate())! + 1);
+         }
+      } else if (filters.by === 'month') {
+         const forms = await AssistanceModel.find({
+            createdAt: {
+               $gte: new Date(date.getFullYear(), 0),
+               $lte: new Date(date.getFullYear(), 11)
             }
+         }, { createdAt: 1 });
+
+         for (let i = 0; i <= 11; i++) {
+            list.set(i, 0);
+         }
+
+         for (const form of forms) {
+            const formDate = new Date(form.createdAt);
+               list.set(formDate.getMonth(), list.get(formDate.getMonth())! + 1);
          }
       }
 

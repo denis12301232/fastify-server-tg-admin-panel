@@ -69,7 +69,7 @@ export namespace AssistanceTypes {
 
    export interface GetStatsQuery {
       by: 'month' | 'day';
-      timestamp: string;
+      timestamp: number;
    }
 }
 

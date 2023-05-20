@@ -85,6 +85,6 @@ export class AssistanceSchemas {
 
    static readonly getStatsQuery = Joi.object<AssistanceTypes.GetStatsQuery>({
       by: Joi.string().required().valid('month', 'day'),
-      timestamp: Joi.string().required()
+      timestamp: Joi.number().required()
    }).required();
 }
