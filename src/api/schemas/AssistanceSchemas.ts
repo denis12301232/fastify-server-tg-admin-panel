@@ -21,7 +21,7 @@ export class AssistanceSchemas {
          people_fio: Joi.array(),
          invalids: Joi.boolean(),
          kids: Joi.boolean(),
-         kids_age: Joi.array().valid('0-1', '1-3', '3-9', '9-18').empty(Joi.array().length(0)),
+         kids_age: Joi.array().items(Joi.string().valid('0-1', '1-3', '3-9', '9-18')).empty(Joi.array().length(0)),
          food: Joi.boolean(),
          water: Joi.boolean(),
          medicines: Joi.boolean(),
@@ -75,9 +75,7 @@ export class AssistanceSchemas {
 
    static readonly saveFormsToGoogleSheetsBody = {
       body: Joi.object<AssistanceTypes.SaveFormsToSheetsBody>().keys({
-         district: Joi.string().allow('').custom((value, helper) => {
-            return Validate.isValidDistrict(value) ? value : helper.error('any.invalid');
-         }),
+         district: Joi.string().allow('').valid(...Constants.districts),
          birth: Joi.object<{ from: string; to: string }>().keys({
             from: Joi.number().required().min(1920).max(2022),
             to: Joi.number().required().min(1920).max(2022)
