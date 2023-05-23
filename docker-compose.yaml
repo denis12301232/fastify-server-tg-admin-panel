@@ -1,0 +1,35 @@
+version: "3.8"
+services:
+  redis:
+    hostname: redis
+    image: redis/redis-stack-server:latest
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+  mongo:
+    hostname: mongo
+    image: mongo
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+  server:
+    image: test12301232/server
+    container_name: server
+    restart: always
+    ports:
+      - "5000:5000"
+    links:
+      - mongo
+      - redis
+    env_file:
+      - .env.server
+  client:
+    image: test12301232/client
+    container_name: client
+    restart: always
+    ports:
+      - "8080:80"
+    links:
+      - server
