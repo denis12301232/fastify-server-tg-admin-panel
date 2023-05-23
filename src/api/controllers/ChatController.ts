@@ -1,8 +1,8 @@
 import type { FastifyRequest, FastifyInstance } from 'fastify';
 import type { ChatTypes } from '@/types/index.js';
 import { ChatService } from '@/api/services/index.js';
-import { Validate } from '@/util/index.js';
 import ApiError from '@/exceptions/ApiError.js';
+import { fileTypeFromBuffer } from 'file-type';
 
 export default class MessangerController {
   static async getUserChats(request: FastifyRequest) {
@@ -72,12 +72,22 @@ export default class MessangerController {
   static async updateGroup(request: FastifyRequest<{ Querystring: ChatTypes.UpdateGroupQuery }>) {
     const _id = request.user._id;
     const { group_id, title, about } = request.query;
-    const data = await request.file();
-    if (data) {
-      if (!Validate.isValidMime(['image/'])(data.mimetype)) throw ApiError.BadRequest(400, 'Wrong mime');
+    const file = await request.file({ limits: { fileSize: 2e6 } });
+    const buffer = await file?.toBuffer();
+
+    if (buffer) {
+      const validateResult = await fileTypeFromBuffer(buffer);
+
+      if (!validateResult?.mime.includes('image/')) {
+        throw ApiError.BadRequest(400, 'Wrong file type');
+      }
     }
 
-    const result = await ChatService.updateGroup(_id, group_id, data, title, about);
+    const result = await ChatService.updateGroup(_id, group_id, {
+      title,
+      about,
+      file: { buffer, ext: file?.filename.split('.').at(-1) },
+    });
     return result;
   }
 

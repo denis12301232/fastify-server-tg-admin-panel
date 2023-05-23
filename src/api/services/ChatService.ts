@@ -1,5 +1,4 @@
 import type { ServerTyped, SocketTyped, ChatTypes, IGroup, IUser, IMessage } from '@/types/index.js';
-import type { MultipartFile } from '@fastify/multipart';
 import Models from '@/models/mongo/index.js';
 import { ChatDto } from '@/dto/index.js';
 import { Util } from '@/util/index.js';
@@ -271,20 +270,26 @@ export default class ChatService {
     return updated;
   }
 
-  static async updateGroup(_id: string, group_id: string, data?: MultipartFile, title?: string, about?: string) {
-    const group = await Models.Group.findById(group_id).lean();
-    if (!group?.roles?.admin.includes(_id)) {
+  static async updateGroup(
+    userId: string,
+    groupId: string,
+    { title, about, file }: { title?: string; about?: string; file: { buffer?: Buffer; ext?: string } }
+  ) {
+    const group = await Models.Group.findById(groupId).lean();
+    if (!group?.roles.admin?.includes(userId)) {
       throw ApiError.Forbidden();
     }
-    const ext = data?.filename.split('.').at(-1);
-    const fileName = ext && `${group._id}.${ext}`;
-    if (fileName && data) {
-      await Util.pipeStreamAsync(data.file, '../../static/images/avatars/', fileName);
+    const fileName = file.ext && `${group._id}.${file.ext}`;
+
+    if (fileName && file.buffer) {
+      Util.createAsyncWriteStream(file.buffer, '../../static/images/avatars/', fileName);
     }
+
     await Models.Group.updateOne(
-      { _id: group_id },
+      { _id: groupId },
       { avatar: fileName, title: title || undefined, about: about || undefined }
     ).lean();
+
     return { avatar: fileName, title: title || undefined, about: about || undefined };
   }
 

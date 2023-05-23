@@ -4,7 +4,6 @@ import { ToolsService } from '@/api/services/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 import { fileTypeFromBuffer } from 'file-type';
 
-
 export default class ToolsController {
   static async setNewName(request: FastifyRequest<{ Body: ToolsTypes.SetNewNameBody }>) {
     const _id = request.user._id;
@@ -52,7 +51,7 @@ export default class ToolsController {
   }
 
   static async setAvatar(this: FastifyInstance, request: FastifyRequest) {
-    const file = await request.file({ limits: { fileSize: 2e+6 } });
+    const file = await request.file({ limits: { fileSize: 2e6 } });
     const buffer = await file?.toBuffer();
 
     if (buffer) {
@@ -63,7 +62,7 @@ export default class ToolsController {
       }
     }
 
-    const result = await ToolsService.setAvatar(request.user._id, { buffer, ext: file?.filename?.at(0) });
+    const result = await ToolsService.setAvatar(request.user._id, { buffer, ext: file?.filename?.split('.').at(-1) });
     return result;
   }
 }
