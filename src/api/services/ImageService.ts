@@ -3,6 +3,8 @@ import { google } from 'googleapis';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 import { v4 } from 'uuid';
+import { fileTypeFromBuffer } from 'file-type';
+import { Readable } from 'stream';
 
 export default class ImageService {
   static async getImages(pageToken: string) {
@@ -22,7 +24,7 @@ export default class ImageService {
     const driveService = google.drive({ version: 'v3', auth });
     const list = await driveService.files.list({
       q: `'${googleApi.settings.folderId}' in parents and trashed=false 
-      and (mimeType=\'image/png\' or mimeType=\'image/jpeg\')`,
+      and (mimeType contains 'image/')`,
       pageSize: 20,
       pageToken,
     });
@@ -53,14 +55,23 @@ export default class ImageService {
     const images: { link: string; fileId: string }[] = [];
 
     for await (const part of parts) {
-      if (!part) {
+      const buffer = await part.toBuffer();
+
+      if (!buffer) {
         throw ApiError.BadRequest(400, 'File required');
       }
+
+      const validateResult = await fileTypeFromBuffer(buffer);
+
+      if (!validateResult?.mime.includes('image/')) {
+        throw ApiError.BadRequest(400, 'Wrong file type');
+      }
+
       const ext = part.filename.split('.').at(-1);
       const fileName = `${v4()}.${ext}`;
       const response = await driveService.files.create({
         requestBody: { name: fileName, mimeType: part.mimetype, parents: [googleApi.settings.folderId as string] },
-        media: { mimeType: part.mimetype, body: part.file },
+        media: { mimeType: part.mimetype, body: Readable.from(buffer) },
       });
       images.push({
         link: `https://drive.google.com/uc?export=view&id=${response.data.id}`,
