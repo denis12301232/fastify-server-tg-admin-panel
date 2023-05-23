@@ -2,6 +2,8 @@ import type { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
 import type { ToolsTypes } from '@/types/index.js';
 import { ToolsService } from '@/api/services/index.js';
 import ApiError from '@/exceptions/ApiError.js';
+import { fileTypeFromBuffer } from 'file-type';
+
 
 export default class ToolsController {
   static async setNewName(request: FastifyRequest<{ Body: ToolsTypes.SetNewNameBody }>) {
@@ -50,8 +52,18 @@ export default class ToolsController {
   }
 
   static async setAvatar(this: FastifyInstance, request: FastifyRequest) {
-    const file = await request.file();
-    const result = await ToolsService.setAvatar(request.user._id, file);
+    const file = await request.file({ limits: { fileSize: 2e+6 } });
+    const buffer = await file?.toBuffer();
+
+    if (buffer) {
+      const validateResult = await fileTypeFromBuffer(buffer);
+
+      if (!validateResult?.mime.includes('image/')) {
+        throw ApiError.BadRequest(400, 'Wrong file type');
+      }
+    }
+
+    const result = await ToolsService.setAvatar(request.user._id, { buffer, ext: file?.filename?.at(0) });
     return result;
   }
 }
