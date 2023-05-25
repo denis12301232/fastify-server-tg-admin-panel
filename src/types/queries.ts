@@ -139,9 +139,7 @@ export namespace AssistanceTypes {
     descending: boolean;
   }
 
-  export interface DeleteFormByIdBody {
-    id: string;
-  }
+  export type DeleteFormsBody = string[];
 
   export interface ModifyFormBody {
     id: string;

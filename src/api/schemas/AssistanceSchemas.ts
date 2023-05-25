@@ -57,12 +57,8 @@ export default class AssistanceSchemas {
     })
     .required();
 
-  static readonly deleteFormByIdBody = Joi.object<AssistanceTypes.DeleteFormByIdBody>()
-    .keys({
-      id: Joi.string().required(),
-    })
-    .required();
-
+  static readonly deleteFormsBody = Joi.array<AssistanceTypes.DeleteFormsBody>().required().items(Joi.string())
+  
   static readonly modifyFormBody = Joi.object<AssistanceTypes.ModifyFormBody>()
     .keys({
       id: Joi.string().required(),

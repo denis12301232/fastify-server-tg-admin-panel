@@ -57,8 +57,8 @@ export default class AssistanceService {
     return { humansList, count };
   }
 
-  static async deleteFormById(id: string) {
-    const deleteResult = await Models.Assistance.deleteOne({ _id: id }).lean();
+  static async deleteForms(ids: string[]) {
+    const deleteResult = await Models.Assistance.deleteMany({ _id: { $in: ids } }).lean();
     return deleteResult;
   }
 

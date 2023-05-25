@@ -22,9 +22,9 @@ export default class AssistanceController {
       return humansList;
    }
 
-   static async deleteFormById(request: FastifyRequest<{ Body: AssistanceTypes.DeleteFormByIdBody }>) {
-      const { id } = request.body;
-      const deleteResult = await AssistanceService.deleteFormById(id);
+   static async deleteForms(request: FastifyRequest<{ Body: AssistanceTypes.DeleteFormsBody }>){
+      const ids = request.body;
+      const deleteResult = await AssistanceService.deleteForms(ids);
       return deleteResult;
    }
 

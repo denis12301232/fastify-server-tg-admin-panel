@@ -22,12 +22,12 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
     AssistanceController.getHumansList
   );
   app.delete(
-    '/',
+    '/forms',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { body: AssistanceSchemas.deleteFormByIdBody },
+      schema: { body: AssistanceSchemas.deleteFormsBody },
     },
-    AssistanceController.deleteFormById
+    AssistanceController.deleteForms
   );
   app.patch(
     '/',

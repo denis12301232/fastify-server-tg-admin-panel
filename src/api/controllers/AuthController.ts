@@ -32,9 +32,9 @@ export default class AuthController {
 
    static async logout(request: FastifyRequest, reply: FastifyReply) {
       const { refreshToken } = request.cookies;
-      const token = await AuthService.logout(refreshToken);
+      await AuthService.logout(refreshToken);
       reply.clearCookie('refreshToken');
-      return token;
+      return null;
    }
 
    static async refresh(request: FastifyRequest, reply: FastifyReply) {
