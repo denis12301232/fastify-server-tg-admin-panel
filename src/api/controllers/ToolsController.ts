@@ -51,7 +51,7 @@ export default class ToolsController {
   }
 
   static async setAvatar(this: FastifyInstance, request: FastifyRequest) {
-    const file = await request.file({ limits: { fileSize: 2e6 } });
+    const file = await request.file({ limits: { fileSize: 2048e3 } });
     const buffer = await file?.toBuffer();
 
     if (buffer) {

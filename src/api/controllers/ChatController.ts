@@ -72,7 +72,7 @@ export default class MessangerController {
   static async updateGroup(request: FastifyRequest<{ Querystring: ChatTypes.UpdateGroupQuery }>) {
     const _id = request.user._id;
     const { group_id, title, about } = request.query;
-    const file = await request.file({ limits: { fileSize: 2e6 } });
+    const file = await request.file({ limits: { fileSize: 2048e3 } });
     const buffer = await file?.toBuffer();
 
     if (buffer) {
