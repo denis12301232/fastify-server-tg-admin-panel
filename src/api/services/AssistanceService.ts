@@ -76,7 +76,7 @@ export default class AssistanceService {
     const google = await Models.Tools.findOne({ api: 'google' }).lean();
 
     if (!google) {
-      return { message: 'Integration not set' };
+      throw ApiError.BadRequest(400, 'Integration not set');
     }
 
     const conditions: FilterQuery<IAssistance>[] = [];
@@ -100,8 +100,8 @@ export default class AssistanceService {
 
     const finalCondition = conditions.length ? { $and: conditions } : {};
     const forms = await Models.Assistance.find(finalCondition).lean();
-
-    if (!forms.length) throw ApiError.BadRequest(400, 'Nothing was found');
+    
+    if (!forms.length) throw ApiError.NotFound();
 
     const doc = new GoogleSpreadsheet(google.settings.sheetId as string);
 

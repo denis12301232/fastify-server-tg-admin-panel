@@ -30,6 +30,23 @@ export default async function factory(app: FastifyInstance) {
     options: { prefix: '/api' },
     forceESM: true,
   });
+  app.register(Plugins.staticFolders, [
+    '../../static/audio',
+    '../../static/images/avatars',
+    '../../static/media',
+    '../../public',
+    '../../static/temp',
+  ]);
+  app.register(Plugins.io, {
+    cors: {
+      origin: process.env.CLIENT_DOMAIN.split(' '),
+      credentials: true,
+      exposedHeaders: ['X-Total-Count'],
+    },
+    path: '/socket',
+  });
+  app.register(Plugins.mongo, { url: process.env.MONGO_URL, opts: { dbName: process.env.MONGO_NAME } });
+  app.register(Plugins.redis, { url: process.env.REDIS_URL });
   app.register(fastifyStatic, { root: resolve(dirname, '../public') });
   app.register(fastifyStatic, {
     root: resolve(dirname, '../static/images/avatars'),
@@ -46,23 +63,6 @@ export default async function factory(app: FastifyInstance) {
     prefix: '/media',
     decorateReply: false,
   });
-  app.register(Plugins.io, {
-    cors: {
-      origin: process.env.CLIENT_DOMAIN.split(' '),
-      credentials: true,
-      exposedHeaders: ['X-Total-Count'],
-    },
-    path: '/socket',
-  });
-  app.register(Plugins.mongo, { url: process.env.MONGO_URL, opts: { dbName: process.env.MONGO_NAME } });
-  app.register(Plugins.redis, { url: process.env.REDIS_URL });
-  app.register(Plugins.staticFolders, [
-    '../../static/audio',
-    '../../static/images/avatars',
-    '../../static/media',
-    '../../public',
-    '../../static/temp',
-  ]);
   app.setValidatorCompiler(
     ({ schema }: { schema: ObjectSchema }) =>
       (data) =>
