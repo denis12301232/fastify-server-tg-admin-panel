@@ -35,7 +35,7 @@ export default class TaskService {
 
   static async updateTaskStatus(taskId: string, status: string) {
     const task = await Models.Task.findByIdAndUpdate(taskId, { status }).lean();
-    await Models.Subtask.updateMany({ _id: { $in: task?.subtasks }, status: { $ne: 'Отменена' } }, { status }).lean();
+    await Models.Subtask.updateMany({ _id: { $in: task?.subtasks }, status: { $ne: 'canceled' } }, { status }).lean();
 
     return { message: 'Updated', taskId };
   }
@@ -49,8 +49,8 @@ export default class TaskService {
   }
 
   static async setUserForTask(userId: string, taskId: string) {
-    const task = await Models.Task.findByIdAndUpdate(taskId, { user: userId, status: 'В работе' }).lean();
-    await Models.Subtask.updateMany({ _id: { $in: task?.subtasks } }, { status: 'В работе' }).lean();
+    const task = await Models.Task.findByIdAndUpdate(taskId, { user: userId, status: 'performed' }).lean();
+    await Models.Subtask.updateMany({ _id: { $in: task?.subtasks } }, { status: 'performed' }).lean();
 
     return { message: 'Updated', taskId };
   }

@@ -18,7 +18,7 @@ export default class TaskSchemas {
   static readonly updateTaskStatusBody = Joi.object<TaskTypes.UpdateTaskStatusBody>()
     .keys({
       task_id: Joi.string().required(),
-      status: Joi.string().required(),
+      status: Joi.string().required().allow('untaken', 'performed', 'canceled', 'completed'),
     })
     .required();
 
@@ -37,7 +37,7 @@ export default class TaskSchemas {
   static readonly updateSubtaskBody = Joi.object<TaskTypes.UpdateSubtaskBody>()
     .keys({
       subtask_id: Joi.string().required(),
-      status: Joi.string(),
+      status: Joi.string().allow('untaken', 'performed', 'canceled', 'completed'),
       cause: Joi.string(),
     })
     .required();

@@ -14,7 +14,7 @@ const TaskSchema = new Schema<ITask>(
     status: {
       type: String,
       required: true,
-      default: 'Не выбрана',
+      default: 'untaken',
     },
     subtasks: {
       type: [

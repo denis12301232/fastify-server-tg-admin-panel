@@ -13,7 +13,7 @@ const SubtaskSchema = new Schema<ISubtask>(
     },
     status: {
       type: String,
-      default: 'Не выбрана',
+      default: 'untaken',
     },
     cause: {
       type: String,

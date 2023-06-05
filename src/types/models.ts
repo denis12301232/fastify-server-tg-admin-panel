@@ -87,7 +87,7 @@ export interface ITask {
   _id: Types.ObjectId;
   title: string;
   tags: string[];
-  status: 'Не выбрана' | 'В работе' | 'Отменена' | 'Выполнена';
+  status: 'untaken' | 'performed' | 'canceled' | 'completed';
   subtasks: Types.ObjectId[];
   user: Types.ObjectId;
   createdAt: NativeDate;

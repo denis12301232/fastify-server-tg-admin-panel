@@ -1,6 +1,6 @@
 import type { AssistanceTypes, IAssistance } from '@/types/index.js';
 import Joi from 'joi';
-import { Validate, Constants } from '@/util/index.js';
+import { Validate } from '@/util/index.js';
 
 export default class AssistanceSchemas {
   static readonly saveFormBody = Joi.object<IAssistance>()
@@ -14,9 +14,7 @@ export default class AssistanceSchemas {
         .custom((value: string, helper) => {
           return Validate.isYYYYMMDD(value) ? value : helper.error('any.invalid');
         }),
-      district: Joi.string()
-        .required()
-        .valid(...Constants.districts),
+      district: Joi.number().required().valid(1, 2, 3, 4, 5, 6, 7, 8, 9),
       street: Joi.string().required().max(50),
       house: Joi.string().required().max(50),
       flat: Joi.string().max(50).pattern(/^\d+$/).required(),
@@ -57,8 +55,8 @@ export default class AssistanceSchemas {
     })
     .required();
 
-  static readonly deleteFormsBody = Joi.array<AssistanceTypes.DeleteFormsBody>().required().items(Joi.string())
-  
+  static readonly deleteFormsBody = Joi.array<AssistanceTypes.DeleteFormsBody>().required().items(Joi.string());
+
   static readonly modifyFormBody = Joi.object<AssistanceTypes.ModifyFormBody>()
     .keys({
       id: Joi.string().required(),
@@ -74,9 +72,7 @@ export default class AssistanceSchemas {
 
   static readonly saveFormsToGoogleSheetsBody = Joi.object<AssistanceTypes.SaveFormsToSheetsBody>()
     .keys({
-      district: Joi.string()
-        .allow('')
-        .valid(...Constants.districts),
+      district: Joi.number().allow('').valid(1, 2, 3, 4, 5, 6, 7, 8, 9),
       birth: Joi.object<{ from: string; to: string }>().keys({
         from: Joi.number().required().min(1920).max(2022),
         to: Joi.number().required().min(1920).max(2022),
