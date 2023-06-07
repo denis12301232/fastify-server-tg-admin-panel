@@ -168,7 +168,7 @@ export namespace AssistanceTypes {
   }
 
   export interface GetStatsQuery {
-    by: 'month' | 'day';
+    by: 'month' | 'year';
     timestamp: number;
   }
 }

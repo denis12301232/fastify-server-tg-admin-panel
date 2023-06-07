@@ -1,17 +1,13 @@
-import type { FastifyPluginCallback, onCloseHookHandler } from 'fastify'
+import type { FastifyPluginCallback } from 'fastify'
 import fp from 'fastify-plugin';
 import { createClient, type RedisClientOptions } from 'redis';
 
-
-const onClose: onCloseHookHandler = (app, done) => {
-   app.redis.disconnect().finally(done);
-}
 
 const redisPlugin: FastifyPluginCallback<RedisClientOptions> = async (app, options, done) => {
    try {
       const client = createClient(options);
       app.decorate('redis', client);
-      app.addHook('onClose', onClose);
+      app.addHook('onClose', (app, done) => app.redis.disconnect().finally(done));
       client.on('error', (e) => {
          app.log.error(e);
          done(e);
@@ -22,6 +18,7 @@ const redisPlugin: FastifyPluginCallback<RedisClientOptions> = async (app, optio
    } catch (e) {
       if (e instanceof Error) {
          done(e);
+         app.close();
       }
    }
 };

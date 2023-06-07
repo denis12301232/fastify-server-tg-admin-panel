@@ -34,7 +34,7 @@ export default class ChatSchemas {
   }).required();
 
   static readonly message = Joi.object<ChatTypes.Message>({
-    text: Joi.string().required().allow(null),
+    text: Joi.string().required().allow(''),
     chatId: Joi.string().required(),
     attachments: Joi.array().items(Joi.binary()).allow(null),
     type: Joi.string().required().valid('image', 'audio').allow(null),

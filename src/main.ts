@@ -11,6 +11,7 @@ async function main() {
     app.listen({ port: process.env.PORT, host: process.env.HOST });
   } catch (e) {
     app.log.error(e);
+    app.close();
     process.exit(1);
   }
 }

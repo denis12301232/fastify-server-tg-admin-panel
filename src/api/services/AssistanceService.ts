@@ -34,12 +34,12 @@ export default class AssistanceService {
   static async getHumansList({ limit, page, filter, sort, descending }: AssistanceTypes.GetHumansListQuery) {
     const query = filter
       ? {
-          $or: [
-            { surname: { $regex: filter, $options: 'i' } },
-            { name: { $regex: filter, $options: 'i' } },
-            { patronymic: { $regex: filter, $options: 'i' } },
-          ],
-        }
+        $or: [
+          { surname: { $regex: filter, $options: 'i' } },
+          { name: { $regex: filter, $options: 'i' } },
+          { patronymic: { $regex: filter, $options: 'i' } },
+        ],
+      }
       : {};
 
     const skip = (page - 1) * limit;
@@ -100,7 +100,7 @@ export default class AssistanceService {
 
     const finalCondition = conditions.length ? { $and: conditions } : {};
     const forms = await Models.Assistance.find(finalCondition).lean();
-    
+
     if (!forms.length) throw ApiError.NotFound();
 
     const doc = new GoogleSpreadsheet(google.settings.sheetId as string);
@@ -114,17 +114,19 @@ export default class AssistanceService {
     const sheet = doc.sheetsByIndex[0];
     await sheet.clear();
     await sheet.loadCells('A1:Y1');
-
+    // Head
     const allFields = Object.entries(Constants.assistanceFields) as Entries<typeof Constants.assistanceFields>;
     allFields.forEach(([key, value], index) => {
       const cell = sheet.getCell(0, index);
       cell.value = value;
     });
     await sheet.saveUpdatedCells();
-
+    // Values
     for (const item of forms) {
       const sheetObj = allFields.reduce((obj, [key, value]) => {
-        if (Array.isArray(item[key])) {
+        if (key === 'district') {
+          obj[value] = Constants.districts[+item[key] - 1];
+        } else if (Array.isArray(item[key])) {
           obj[value] = (item[key] as string[])?.join(',');
         } else if (typeof item[key] === 'boolean') {
           obj[value] = item[key] ? 'Да' : 'Нет';
@@ -146,7 +148,7 @@ export default class AssistanceService {
     const date = new Date(filters.timestamp);
     const list = new Map();
 
-    if (filters.by === 'day') {
+    if (filters.by === 'month') {
       const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
       const forms = await Models.Assistance.find(
         {
@@ -165,7 +167,7 @@ export default class AssistanceService {
         const formDate = new Date(form.createdAt);
         list.set(formDate.getDate(), list.get(formDate.getDate()) + 1);
       }
-    } else if (filters.by === 'month') {
+    } else if (filters.by === 'year') {
       const forms = await Models.Assistance.find(
         {
           createdAt: {
