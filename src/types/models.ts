@@ -1,4 +1,5 @@
 import type { Types } from 'mongoose';
+import type { TaskTypes } from './queries.js';
 
 export interface IAssistance {
   _id: Types.ObjectId;
@@ -87,7 +88,7 @@ export interface ITask {
   _id: Types.ObjectId;
   title: string;
   tags: string[];
-  status: 'untaken' | 'performed' | 'canceled' | 'completed';
+  status: TaskTypes.TaskStatus;
   subtasks: Types.ObjectId[];
   user: Types.ObjectId;
   createdAt: NativeDate;

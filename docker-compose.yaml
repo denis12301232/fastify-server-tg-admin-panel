@@ -2,7 +2,7 @@ version: "3.8"
 services:
   redis:
     hostname: redis
-    image: redis/redis-stack-server:latest
+    image: redis/redis-stack
     container_name: redis
     restart: always
     ports:
@@ -33,3 +33,12 @@ services:
       - "8080:80"
     links:
       - server
+      - bot
+  bot:
+    image: test12301232/tgbot
+    container_name: tgbot
+    restart: always
+    ports:
+      - "7000:7000"
+    env_file:
+      - .env.bot

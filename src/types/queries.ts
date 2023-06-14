@@ -34,6 +34,8 @@ export namespace ToolsTypes {
 }
 
 export namespace TaskTypes {
+  export type TaskStatus = 'untaken' | 'performed' | 'canceled' | 'completed';
+
   export interface CreateTaskBody {
     title: string;
     tags: string[];
@@ -42,7 +44,7 @@ export namespace TaskTypes {
 
   export interface UpdateTaskStatusBody {
     task_id: string;
-    status: 'Не выбрана' | 'В работе' | 'Отменена' | 'Выполнена';
+    status: TaskStatus;
   }
 
   export interface GetTaskByIdQuery {
@@ -55,7 +57,7 @@ export namespace TaskTypes {
 
   export interface UpdateSubtaskBody {
     subtask_id: string;
-    status: 'Не выбрана' | 'В работе' | 'Отменена' | 'Выполнена';
+    status: TaskStatus;
     cause: string;
   }
 
@@ -151,16 +153,7 @@ export namespace AssistanceTypes {
   }
 
   export interface SaveFormsToSheetsBody {
-    district?:
-      | 'Индустриальный'
-      | 'Киевский'
-      | 'Московский'
-      | 'Немышлянский'
-      | 'Новобаварский'
-      | 'Основянский'
-      | 'Слободской'
-      | 'Холодногорский'
-      | 'Шевченковский';
+    district?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
     birth: {
       from: string;
       to: string;
@@ -212,149 +205,75 @@ export namespace ChatTypes {
     type: 'audio' | 'image';
   }
 
-     export interface FindUsersQuery {
-      loginOrName: string;
-   }
+  export interface FindUsersQuery {
+    loginOrName: string;
+  }
 
-   export interface CreateChatBody {
-      users: string[];
-   }
+  export interface CreateChatBody {
+    users: string[];
+  }
 
-   export interface CreateGroupQuery {
-      'users[]': string[];
-      title: string;
-      about: string;
-   }
+  export interface CreateGroupQuery {
+    'users[]': string[];
+    title: string;
+    about: string;
+  }
 
-   export interface AddUserToGroupBody {
-      user_id: string;
-      chat_id: string;
-   }
+  export interface AddUserToGroupBody {
+    user_id: string;
+    chat_id: string;
+  }
 
-   export interface RemoveUserFromGroupBody {
-      user_id: string;
-      chat_id: string;
-   }
+  export interface RemoveUserFromGroupBody {
+    user_id: string;
+    chat_id: string;
+  }
 
-   export interface GetUsersListInChatQuery {
-      chat_id: string;
-   }
+  export interface GetUsersListInChatQuery {
+    chat_id: string;
+  }
 
-   export interface SaveMessageBody {
-      chat_id: string;
-      text: string;
-   }
+  export interface SaveMessageBody {
+    chat_id: string;
+    text: string;
+  }
 
-   export interface OpenChatQuery {
-      chat_id: string;
-      limit: number;
-      page: number;
-   }
+  export interface OpenChatQuery {
+    chat_id: string;
+    limit: number;
+    page: number;
+  }
 
-   export interface DeleteChatBody {
-      chat_id: string;
-   }
+  export interface DeleteChatBody {
+    chat_id: string;
+  }
 
-   export interface SaveAudioMessageQuery {
-      chat_id: string;
-   }
+  export interface SaveAudioMessageQuery {
+    chat_id: string;
+  }
 
-   export interface UpdateReadBody {
-      chat_id: string;
-   }
+  export interface UpdateReadBody {
+    chat_id: string;
+  }
 
-   export interface SaveMediaMessageQuery {
-      chat_id: string;
-      type: 'audio' | 'image';
-   }
+  export interface SaveMediaMessageQuery {
+    chat_id: string;
+    type: 'audio' | 'image';
+  }
 
-   export interface UpdateRolesInGroupBody {
-      group_id: string;
-      role: string;
-      users: string[];
-   }
+  export interface UpdateRolesInGroupBody {
+    group_id: string;
+    role: string;
+    users: string[];
+  }
 
-   export interface UpdateGroupQuery {
-      group_id: string;
-      title: string;
-      about: string;
-   }
+  export interface UpdateGroupQuery {
+    group_id: string;
+    title: string;
+    about: string;
+  }
 
-   export interface GetUserChatByIdQuery {
-      chat_id: string;
-   }
+  export interface GetUserChatByIdQuery {
+    chat_id: string;
+  }
 }
-
-// export namespace MessangerTypes {
-//    export interface FindUsersQuery {
-//       loginOrName: string;
-//    }
-
-//    export interface CreateChatBody {
-//       users: string[];
-//    }
-
-//    export interface CreateGroupQuery {
-//       'users[]': string[];
-//       title: string;
-//       about: string;
-//    }
-
-//    export interface AddUserToGroupBody {
-//       user_id: string;
-//       chat_id: string;
-//    }
-
-//    export interface RemoveUserFromGroupBody {
-//       user_id: string;
-//       chat_id: string;
-//    }
-
-//    export interface GetUsersListInChatQuery {
-//       chat_id: string;
-//    }
-
-//    export interface SaveMessageBody {
-//       chat_id: string;
-//       text: string;
-//    }
-
-//    export interface OpenChatQuery {
-//       chat_id: string;
-//       limit: number;
-//       page: number;
-//    }
-
-//    export interface DeleteChatBody {
-//       chat_id: string;
-//    }
-
-//    export interface SaveAudioMessageQuery {
-//       chat_id: string;
-//    }
-
-//    export interface UpdateReadBody {
-//       chat_id: string;
-//    }
-
-//    export interface SaveMediaMessageQuery {
-//       chat_id: string;
-//       type: 'audio' | 'image';
-//    }
-
-//    export interface UpdateRolesInGroupBody {
-//       group_id: string;
-//       role: string;
-//       users: string[];
-//    }
-
-//    export interface UpdateGroupQuery {
-//       group_id: string;
-//       title: string;
-//       about: string;
-//    }
-
-//    export interface GetUserChatByIdQuery {
-//       chat_id: string;
-//    }
-// }

@@ -18,7 +18,14 @@ export default function useMeetEvents(io: ServerTyped) {
          return this.disconnect(true);
       }
       const meetId = v4();
-      await redis.hSet('meets', meetId, JSON.stringify({ title }));
+      await redis.json.set('meets', '$', {
+         [meetId]: {
+            title,
+            roles: {
+               admin: [this.data.user?._id || '']
+            }
+         }
+      });
       this.emit('meet:create', meetId);
    }
 
@@ -27,7 +34,7 @@ export default function useMeetEvents(io: ServerTyped) {
       if (error) {
          return this.disconnect(true);
       }
-      const info = await redis.hGet('meets', meetId);
+      const info = await redis.json.get('meets', { path: [`.${meetId}`] });
       if (!info) {
          return this.emit('error:meet-join', 404, 'Not found');
       }
@@ -52,8 +59,8 @@ export default function useMeetEvents(io: ServerTyped) {
       const clients = io.sockets.adapter.rooms.get(meetId);
 
       if (!clients?.size) {
-         redis.hDel('meets', meetId);
-      }
+         redis.json.del('meets', `.${meetId}`);
+      } 
    }
 
    return events;
