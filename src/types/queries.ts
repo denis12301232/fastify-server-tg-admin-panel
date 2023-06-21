@@ -1,4 +1,4 @@
-import { IAssistance } from './models.js';
+import type { Langs, IAssistance } from './index.js';
 
 export namespace ToolsTypes {
   export interface SetNewNameBody {
@@ -30,6 +30,10 @@ export namespace ToolsTypes {
     limit: number;
     page: number;
     filter: string;
+  }
+
+  export interface GetLocaleQuery {
+    locale: Langs;
   }
 }
 
@@ -153,11 +157,13 @@ export namespace AssistanceTypes {
   }
 
   export interface SaveFormsToSheetsBody {
+    locale: Langs;
     district?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
     birth: {
       from: string;
       to: string;
     };
+    street: string;
   }
 
   export interface GetStatsQuery {

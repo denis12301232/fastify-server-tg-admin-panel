@@ -68,8 +68,8 @@ export default async function factory(app: FastifyInstance) {
       (data) =>
         schema.validate(data)
   );
-  app.setNotFoundHandler((request, reply) => {
-    reply.send('index.html');
+  app.setNotFoundHandler(async () => {
+    return { code: 404, message: 'Not Found' };
   });
   app.setErrorHandler(apiErrorHandler);
   await app.ready();

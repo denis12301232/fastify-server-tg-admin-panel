@@ -3,6 +3,7 @@ import type { ToolsTypes } from '@/types/index.js';
 import { ToolsService } from '@/api/services/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 import { fileTypeFromBuffer } from 'file-type';
+import { locales } from '@/i18/index.js';
 
 export default class ToolsController {
   static async setNewName(request: FastifyRequest<{ Body: ToolsTypes.SetNewNameBody }>) {
@@ -64,5 +65,9 @@ export default class ToolsController {
 
     const result = await ToolsService.setAvatar(request.user._id, { buffer, ext: file?.filename?.split('.').at(-1) });
     return result;
+  }
+
+  static async getLocale(request: FastifyRequest<{ Querystring: ToolsTypes.GetLocaleQuery }>) {
+    return locales[request.query.locale];
   }
 }

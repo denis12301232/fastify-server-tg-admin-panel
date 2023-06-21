@@ -2,8 +2,8 @@ import type { AssistanceTypes, Entries, IAssistance } from '@/types/index.js';
 import type { FilterQuery } from 'mongoose';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import Models from '@/models/mongo/index.js';
-import { Constants } from '@/util/index.js';
 import ApiError from '@/exceptions/ApiError.js';
+import { locales } from '@/i18/index.js';
 
 export default class AssistanceService {
   static async saveForm(form: IAssistance) {
@@ -34,12 +34,12 @@ export default class AssistanceService {
   static async getHumansList({ limit, page, filter, sort, descending }: AssistanceTypes.GetHumansListQuery) {
     const query = filter
       ? {
-        $or: [
-          { surname: { $regex: filter, $options: 'i' } },
-          { name: { $regex: filter, $options: 'i' } },
-          { patronymic: { $regex: filter, $options: 'i' } },
-        ],
-      }
+          $or: [
+            { surname: { $regex: filter, $options: 'i' } },
+            { name: { $regex: filter, $options: 'i' } },
+            { patronymic: { $regex: filter, $options: 'i' } },
+          ],
+        }
       : {};
 
     const skip = (page - 1) * limit;
@@ -74,34 +74,35 @@ export default class AssistanceService {
 
   static async saveFormsToSheet(filters: AssistanceTypes.SaveFormsToSheetsBody) {
     const google = await Models.Tools.findOne({ api: 'google' }).lean();
+    const LINK = 'https://docs.google.com/spreadsheets/d/';
 
     if (!google) {
       throw ApiError.BadRequest(400, 'Integration not set');
     }
 
-    const conditions: FilterQuery<IAssistance>[] = [];
+    const conditions: { [name: string]: FilterQuery<IAssistance> } = {
+      disrtict: filters.district ? { district: filters.district } : {},
+      street: filters.street ? { street: filters.street } : {},
+      birth:
+        filters.birth?.from && filters.birth?.to
+          ? {
+              $expr: {
+                $function: {
+                  body: `${function (birth: string, filters: AssistanceTypes.SaveFormsToSheetsBody) {
+                    return +birth.split('/')[0] >= +filters.birth.from && +birth.split('/')[0] <= +filters.birth.to;
+                  }}`,
+                  args: ['$birth', filters],
+                  lang: 'js',
+                },
+              },
+            }
+          : {},
+    };
+    const forms = await Models.Assistance.find({ $and: Object.values(conditions) }).lean();
 
-    if (filters.district) {
-      conditions.push({ district: filters.district });
+    if (!forms.length) {
+      throw ApiError.NotFound();
     }
-    if (filters.birth?.from && filters.birth?.to) {
-      conditions.push({
-        $expr: {
-          $function: {
-            body: `${function (birth: string, filters: AssistanceTypes.SaveFormsToSheetsBody) {
-              return +birth.split('/')[0] >= +filters.birth.from && +birth.split('/')[0] <= +filters.birth.to;
-            }}`,
-            args: ['$birth', filters],
-            lang: 'js',
-          },
-        },
-      });
-    }
-
-    const finalCondition = conditions.length ? { $and: conditions } : {};
-    const forms = await Models.Assistance.find(finalCondition).lean();
-
-    if (!forms.length) throw ApiError.NotFound();
 
     const doc = new GoogleSpreadsheet(google.settings.sheetId as string);
 
@@ -115,7 +116,9 @@ export default class AssistanceService {
     await sheet.clear();
     await sheet.loadCells('A1:Y1');
     // Head
-    const allFields = Object.entries(Constants.assistanceFields) as Entries<typeof Constants.assistanceFields>;
+    const allFields = Object.entries(locales[filters.locale].assistance.fields) as Entries<
+      (typeof locales)['en']['assistance']['fields']
+    >;
     allFields.forEach(([key, value], index) => {
       const cell = sheet.getCell(0, index);
       cell.value = value;
@@ -125,11 +128,15 @@ export default class AssistanceService {
     for (const item of forms) {
       const sheetObj = allFields.reduce((obj, [key, value]) => {
         if (key === 'district') {
-          obj[value] = Constants.districts[+item[key] - 1];
+          obj[value] = locales[filters.locale].assistance.districts[item[key]];
+        } else if (key === 'street') {
+          obj[value] = locales[filters.locale].assistance.streets[item.district][item[key]];
         } else if (Array.isArray(item[key])) {
           obj[value] = (item[key] as string[])?.join(',');
         } else if (typeof item[key] === 'boolean') {
-          obj[value] = item[key] ? 'Да' : 'Нет';
+          obj[value] = item[key]
+            ? locales[filters.locale].assistance.checkboxes.yesNo.yes
+            : locales[filters.locale].assistance.checkboxes.yesNo.no;
         } else {
           obj[value] = item[key];
         }
@@ -140,7 +147,7 @@ export default class AssistanceService {
 
     return {
       message: 'Successfully formed',
-      link: `https://docs.google.com/spreadsheets/d/${google.settings.sheetId}`,
+      link: new URL(google.settings.sheetId as string, LINK).toString(),
     };
   }
 

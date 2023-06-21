@@ -56,4 +56,8 @@ export default class ToolsSchemas {
       filter: Joi.string().allow(''),
     })
     .required();
+
+  static readonly getLocaleQuery = Joi.object<ToolsTypes.GetLocaleQuery>().keys({
+    locale: Joi.string().required().valid('ru', 'uk', 'en'),
+  });
 }

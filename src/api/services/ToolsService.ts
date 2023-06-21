@@ -46,21 +46,20 @@ export default class ToolsService {
         api: 'google',
         settings: {
           serviceUser: serviceUser,
-          servicePrivateKey: servicePrivateKey.replace(/\n/g, '\n'),
+          servicePrivateKey: servicePrivateKey.replace(/\\n/g, '\n'),
           sheetId: sheetId,
           folderId: folderId,
         },
       });
     } else {
       if (serviceUser) google.settings.serviceUser = serviceUser;
-      if (servicePrivateKey) google.settings.servicePrivateKey = servicePrivateKey;
+      if (servicePrivateKey) google.settings.servicePrivateKey = servicePrivateKey.replace(/\\n/g, '\n');
       if (sheetId) google.settings.sheetId = sheetId;
       if (folderId) google.settings.folderId = folderId;
 
       google.markModified('settings');
       await google.save();
     }
-
     return { message: 'Saved' };
   }
 

@@ -59,4 +59,6 @@ export default async function ToolsRoutes(app: FastifyInstance) {
     },
     ToolsController.setAvatar
   );
+
+  app.get('/locale', { schema: { querystring: ToolsSchemas.getLocaleQuery } }, ToolsController.getLocale);
 }
