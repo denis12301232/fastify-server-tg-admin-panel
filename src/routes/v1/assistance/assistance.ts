@@ -61,4 +61,10 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
     },
     AssistanceController.getStats
   );
+
+  app.post(
+    '/report',
+    { onRequest: [useAuthGuard, useRoleGuard(['admin'])], schema: { body: AssistanceSchemas.createReportBody } },
+    AssistanceController.getReport
+  );
 }

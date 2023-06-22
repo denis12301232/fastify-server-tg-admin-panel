@@ -39,6 +39,7 @@
     "@types/jsonwebtoken": "^9.0.2",
     "bcrypt": "^5.1.0",
     "csv-stringify": "^6.4.0",
+    "exceljs": "^4.3.0",
     "fastify": "^4.17.0",
     "fastify-plugin": "^4.5.0",
     "file-type": "^18.4.0",

@@ -158,17 +158,26 @@ export namespace AssistanceTypes {
 
   export interface SaveFormsToSheetsBody {
     locale: Langs;
-    district?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-    birth: {
-      from: string;
-      to: string;
+    filters: {
+      district?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+      birth: { from: string; to: string };
+      street?: string;
     };
-    street: string;
   }
 
   export interface GetStatsQuery {
     by: 'month' | 'year';
     timestamp: number;
+  }
+
+  export interface CreateReportBody {
+    locale: Langs;
+    type: 'csv' | 'xlsx';
+    filters: {
+      district?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+      birth: { from: string; to: string };
+      street?: string;
+    };
   }
 }
 

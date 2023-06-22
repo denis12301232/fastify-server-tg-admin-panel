@@ -3,7 +3,10 @@ import type { FilterQuery } from 'mongoose';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
-import { locales } from '@/i18/index.js';
+import { locales } from '@/i18n/index.js';
+import Excel from 'exceljs';
+import { createWriteStream } from 'fs';
+import { Readable } from 'stream';
 
 export default class AssistanceService {
   static async saveForm(form: IAssistance) {
@@ -72,10 +75,10 @@ export default class AssistanceService {
     return form;
   }
 
-  static async saveFormsToSheet(filters: AssistanceTypes.SaveFormsToSheetsBody) {
+  static async saveFormsToSheet({locale, filters}: AssistanceTypes.SaveFormsToSheetsBody) {
     const google = await Models.Tools.findOne({ api: 'google' }).lean();
     const LINK = 'https://docs.google.com/spreadsheets/d/';
-
+    filters.birth.from
     if (!google) {
       throw ApiError.BadRequest(400, 'Integration not set');
     }
@@ -88,7 +91,7 @@ export default class AssistanceService {
           ? {
               $expr: {
                 $function: {
-                  body: `${function (birth: string, filters: AssistanceTypes.SaveFormsToSheetsBody) {
+                  body: `${function (birth: string, filters: AssistanceTypes.SaveFormsToSheetsBody['filters']) {
                     return +birth.split('/')[0] >= +filters.birth.from && +birth.split('/')[0] <= +filters.birth.to;
                   }}`,
                   args: ['$birth', filters],
@@ -116,7 +119,7 @@ export default class AssistanceService {
     await sheet.clear();
     await sheet.loadCells('A1:Y1');
     // Head
-    const allFields = Object.entries(locales[filters.locale].assistance.fields) as Entries<
+    const allFields = Object.entries(locales[locale].assistance.fields) as Entries<
       (typeof locales)['en']['assistance']['fields']
     >;
     allFields.forEach(([key, value], index) => {
@@ -128,15 +131,15 @@ export default class AssistanceService {
     for (const item of forms) {
       const sheetObj = allFields.reduce((obj, [key, value]) => {
         if (key === 'district') {
-          obj[value] = locales[filters.locale].assistance.districts[item[key]];
+          obj[value] = locales[locale].assistance.districts[item[key]];
         } else if (key === 'street') {
-          obj[value] = locales[filters.locale].assistance.streets[item.district][item[key]];
+          obj[value] = locales[locale].assistance.streets[item.district][item[key]];
         } else if (Array.isArray(item[key])) {
           obj[value] = (item[key] as string[])?.join(',');
         } else if (typeof item[key] === 'boolean') {
           obj[value] = item[key]
-            ? locales[filters.locale].assistance.checkboxes.yesNo.yes
-            : locales[filters.locale].assistance.checkboxes.yesNo.no;
+            ? locales[locale].assistance.checkboxes.yesNo.yes
+            : locales[locale].assistance.checkboxes.yesNo.no;
         } else {
           obj[value] = item[key];
         }
@@ -196,5 +199,57 @@ export default class AssistanceService {
     }
 
     return Object.fromEntries(list.entries());
+  }
+
+  static async createReport({ type, locale, filters }: AssistanceTypes.CreateReportBody) {
+    const allFields = Object.entries(locales[locale].assistance.fields) as Entries<
+      (typeof locales)['en']['assistance']['fields']
+    >;
+    const conditions: { [name: string]: FilterQuery<IAssistance> } = {
+      disrtict: filters.district ? { district: filters.district } : {},
+      street: filters.street ? { street: filters.street } : {},
+      birth:
+        filters.birth?.from && filters.birth?.to
+          ? {
+              $expr: {
+                $function: {
+                  body: `${function (birth: string, filters: AssistanceTypes.CreateReportBody['filters']) {
+                    return +birth.split('/')[0] >= +filters.birth.from && +birth.split('/')[0] <= +filters.birth.to;
+                  }}`,
+                  args: ['$birth', filters],
+                  lang: 'js',
+                },
+              },
+            }
+          : {},
+    };
+    const forms = await Models.Assistance.find({ $and: Object.values(conditions) }).lean();
+    if (!forms.length) {
+      throw ApiError.NotFound();
+    }
+    const workbook = new Excel.Workbook();
+    const sheet = workbook.addWorksheet('Assistance');
+    sheet.columns = allFields.map(([key, value]) => ({ header: value, key, width: 10 }));
+    for (const item of forms) {
+      const sheetObj = allFields.reduce((obj, [key]) => {
+        if (key === 'district') {
+          obj[key] = locales[locale].assistance.districts[item[key]];
+        } else if (key === 'street') {
+          obj[key] = locales[locale].assistance.streets[item.district][item[key]];
+        } else if (Array.isArray(item[key])) {
+          obj[key] = (item[key] as string[])?.join(',');
+        } else if (typeof item[key] === 'boolean') {
+          obj[key] = item[key]
+            ? locales[locale].assistance.checkboxes.yesNo.yes
+            : locales[locale].assistance.checkboxes.yesNo.no;
+        } else {
+          obj[key] = item[key];
+        }
+        return obj;
+      }, {});
+      sheet.addRow(sheetObj);
+    }
+    const buffer = type === 'xlsx' ? await workbook.xlsx.writeBuffer() : await workbook.csv.writeBuffer();
+    return Readable.from(Buffer.from(buffer));
   }
 }

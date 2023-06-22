@@ -73,12 +73,14 @@ export default class AssistanceSchemas {
   static readonly saveFormsToGoogleSheetsBody = Joi.object<AssistanceTypes.SaveFormsToSheetsBody>()
     .keys({
       locale: Joi.string().required().valid('ru', 'uk', 'en'),
-      district: Joi.number().allow('').valid(1, 2, 3, 4, 5, 6, 7, 8, 9),
-      birth: Joi.object<{ from: string; to: string }>().keys({
-        from: Joi.number().required().min(1920).max(2022),
-        to: Joi.number().required().min(1920).max(2022),
+      filters: Joi.object<AssistanceTypes.SaveFormsToSheetsBody['filters']>({
+        district: Joi.number().allow('').valid(1, 2, 3, 4, 5, 6, 7, 8, 9),
+        birth: Joi.object<{ from: string; to: string }>().keys({
+          from: Joi.number().required().min(1920).max(2022),
+          to: Joi.number().required().min(1920).max(2022),
+        }),
+        street: Joi.string().allow(''),
       }),
-      street: Joi.string(),
     })
     .required();
 
@@ -86,4 +88,19 @@ export default class AssistanceSchemas {
     by: Joi.string().required().valid('month', 'year'),
     timestamp: Joi.number().required(),
   }).required();
+
+  static readonly createReportBody = Joi.object<AssistanceTypes.CreateReportBody>()
+    .keys({
+      locale: Joi.string().required().valid('ru', 'uk', 'en'),
+      type: Joi.string().required().valid('xlsx', 'csv'),
+      filters: Joi.object<AssistanceTypes.SaveFormsToSheetsBody['filters']>({
+        district: Joi.number().allow('').valid(1, 2, 3, 4, 5, 6, 7, 8, 9),
+        birth: Joi.object<{ from: string; to: string }>().keys({
+          from: Joi.number().required().min(1920).max(2022),
+          to: Joi.number().required().min(1920).max(2022),
+        }),
+        street: Joi.string().allow(''),
+      }),
+    })
+    .required();
 }

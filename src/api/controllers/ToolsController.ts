@@ -3,7 +3,7 @@ import type { ToolsTypes } from '@/types/index.js';
 import { ToolsService } from '@/api/services/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 import { fileTypeFromBuffer } from 'file-type';
-import { locales } from '@/i18/index.js';
+import { locales } from '@/i18n/index.js';
 
 export default class ToolsController {
   static async setNewName(request: FastifyRequest<{ Body: ToolsTypes.SetNewNameBody }>) {
