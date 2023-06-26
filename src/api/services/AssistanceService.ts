@@ -1,12 +1,12 @@
 import type { AssistanceTypes, Entries, IAssistance } from '@/types/index.js';
 import type { FilterQuery } from 'mongoose';
-import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { google } from 'googleapis';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 import { locales } from '@/i18n/index.js';
 import Excel from 'exceljs';
-import { createWriteStream } from 'fs';
 import { Readable } from 'stream';
+
 
 export default class AssistanceService {
   static async saveForm(form: IAssistance) {
@@ -75,11 +75,10 @@ export default class AssistanceService {
     return form;
   }
 
-  static async saveFormsToSheet({locale, filters}: AssistanceTypes.SaveFormsToSheetsBody) {
-    const google = await Models.Tools.findOne({ api: 'google' }).lean();
-    const LINK = 'https://docs.google.com/spreadsheets/d/';
-    filters.birth.from
-    if (!google) {
+  static async saveFormsToSheet({ locale, filters }: AssistanceTypes.SaveFormsToSheetsBody) {
+    const googleApi = await Models.Tools.findOne({ api: 'google' }).lean();
+
+    if (!googleApi) {
       throw ApiError.BadRequest(400, 'Integration not set');
     }
 
@@ -107,50 +106,61 @@ export default class AssistanceService {
       throw ApiError.NotFound();
     }
 
-    const doc = new GoogleSpreadsheet(google.settings.sheetId as string);
-
-    await doc.useServiceAccountAuth({
-      client_email: google.settings.serviceUser as string,
-      private_key: google.settings.servicePrivateKey as string,
-    });
-    await doc.loadInfo();
-
-    const sheet = doc.sheetsByIndex[0];
-    await sheet.clear();
-    await sheet.loadCells('A1:Y1');
-    // Head
     const allFields = Object.entries(locales[locale].assistance.fields) as Entries<
       (typeof locales)['en']['assistance']['fields']
     >;
-    allFields.forEach(([key, value], index) => {
-      const cell = sheet.getCell(0, index);
-      cell.value = value;
-    });
-    await sheet.saveUpdatedCells();
-    // Values
+    const head = allFields.map((item) => item[1]);
+    const rows = [head];
+
     for (const item of forms) {
-      const sheetObj = allFields.reduce((obj, [key, value]) => {
+      const row = allFields.map(([key]) => {
         if (key === 'district') {
-          obj[value] = locales[locale].assistance.districts[item[key]];
+          return locales[locale].assistance.districts[item[key]];
         } else if (key === 'street') {
-          obj[value] = locales[locale].assistance.streets[item.district][item[key]];
+          return locales[locale].assistance.streets[item.district][item[key]];
         } else if (Array.isArray(item[key])) {
-          obj[value] = (item[key] as string[])?.join(',');
+          return (item[key] as string[])?.join(',');
         } else if (typeof item[key] === 'boolean') {
-          obj[value] = item[key]
+          return item[key]
             ? locales[locale].assistance.checkboxes.yesNo.yes
             : locales[locale].assistance.checkboxes.yesNo.no;
         } else {
-          obj[value] = item[key];
+          return item[key];
         }
-        return obj;
-      }, {});
-      await sheet.addRow(sheetObj);
+      });
+      rows.push(row);
     }
 
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: googleApi.settings.serviceUser as string,
+        private_key: googleApi.settings.servicePrivateKey as string,
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheetsService = google.sheets({ version: 'v4', auth });
+    const metaData = await sheetsService.spreadsheets.get({
+      spreadsheetId: googleApi.settings.sheetId as string,
+    });
+    const listTitle = metaData.data.sheets?.at(0)?.properties?.title;
+
+    await sheetsService.spreadsheets.values.clear({
+      spreadsheetId: googleApi.settings.sheetId as string,
+      range: `${listTitle}!A:Y`,
+    });
+
+    await sheetsService.spreadsheets.values.append({
+      spreadsheetId: googleApi.settings.sheetId as string,
+      range: `${listTitle}!A:Y`,
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: rows,
+      },
+    });
     return {
       message: 'Successfully formed',
-      link: new URL(google.settings.sheetId as string, LINK).toString(),
+      link: `https://docs.google.com/spreadsheets/d/${googleApi.settings.sheetId}`,
     };
   }
 
