@@ -3792,6 +3792,12 @@
       "hints": {
          "upload": "Upload photo",
          "delete": "Delete selected"
+      },
+      "msgs": {
+         "noDescription": "No description"
+      },
+      "errors": {
+         "none": "Oops... No photos yet!"
       }
    },
    "restore": {

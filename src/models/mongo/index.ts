@@ -9,6 +9,7 @@ import GroupModel from './GroupModel.js';
 import AttachmentModel from './AttachmentModel.js';
 import TaskModel from './TaskModel.js';
 import SubtaskModel from './SubtaskModel.js';
+import MediaModel from './MediaModel.js';
 
 export default class Models {
   static readonly Assistance = AssistanceModel;
@@ -22,4 +23,5 @@ export default class Models {
   static readonly Attachment = AttachmentModel;
   static readonly Task = TaskModel;
   static readonly Subtask = SubtaskModel;
+  static readonly Media = MediaModel;
 }

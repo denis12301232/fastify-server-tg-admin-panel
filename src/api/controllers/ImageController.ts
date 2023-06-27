@@ -4,8 +4,7 @@ import { ImageService } from '@/api/services/index.js';
 
 export default class ImagesController {
   static async getImages(request: FastifyRequest<{ Querystring: ImageTypes.GetImagesQuery }>) {
-    const { pageToken } = request.query;
-    const result = await ImageService.getImages(pageToken);
+    const result = await ImageService.getImages(request.query);
     return result;
   }
 
@@ -18,6 +17,12 @@ export default class ImagesController {
   static async deleteImages(request: FastifyRequest<{ Body: ImageTypes.DeleteImagesBody }>) {
     const ids = request.body;
     const result = await ImageService.deleteImages(ids);
+    return result;
+  }
+
+  static async updateDescription(request: FastifyRequest<{ Body: ImageTypes.UpdateDescriptionBody }>) {
+    const { id, description } = request.body;
+    const result = await ImageService.updateDescription(id, description);
     return result;
   }
 }

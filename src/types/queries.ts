@@ -97,7 +97,15 @@ export namespace MeetTypes {
 
 export namespace ImageTypes {
   export interface GetImagesQuery {
-    pageToken: string;
+    limit: number;
+    sort: string;
+    descending: boolean;
+    skip: number;
+  }
+
+  export interface UpdateDescriptionBody {
+    id: string;
+    description: string;
   }
 
   export type DeleteImagesBody = string[];

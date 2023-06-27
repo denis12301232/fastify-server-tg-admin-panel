@@ -121,3 +121,9 @@ export interface IUser {
   createdAt: NativeDate;
   updatedAt: NativeDate;
 }
+
+export interface IMedia {
+  link: string;
+  description: string;
+  fileId: string;
+}

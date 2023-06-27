@@ -1,4 +1,5 @@
 import type { MultipartFile } from '@fastify/multipart';
+import { ImageTypes } from '@/types/queries.js';
 import { google } from 'googleapis';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
@@ -7,33 +8,16 @@ import { fileTypeFromBuffer } from 'file-type';
 import { Readable } from 'stream';
 
 export default class ImageService {
-  static async getImages(pageToken: string) {
-    const googleApi = await Models.Tools.findOne({ api: 'google' }).lean();
+  static async getImages({ limit, descending, sort, skip }: ImageTypes.GetImagesQuery) {
+    const images = await Models.Media.find({}, { __v: 0 })
+      .sort({ [sort]: descending ? -1 : 1 })
+      .lean();
+    const count = images.length;
 
-    if (!googleApi) {
-      throw ApiError.BadRequest(400, 'Integration not set');
-    }
+    images.splice(0, skip);
+    images.length > limit && (images.length = limit);
 
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: googleApi.settings.serviceUser as string,
-        private_key: googleApi.settings.servicePrivateKey as string,
-      },
-      scopes: ['https://www.googleapis.com/auth/drive'],
-    });
-    const driveService = google.drive({ version: 'v3', auth });
-    const list = await driveService.files.list({
-      q: `'${googleApi.settings.folderId}' in parents and trashed=false 
-      and (mimeType contains 'image/')`,
-      pageSize: 20,
-      pageToken,
-    });
-    const nextPageToken = list?.data?.nextPageToken || undefined;
-    const images = list.data.files?.map((item) => {
-      return { link: `https://drive.google.com/uc?export=view&id=${item.id}`, fileId: item.id };
-    });
-
-    return { images: images || [], pageToken: nextPageToken };
+    return { images, count };
   }
 
   static async uploadImages(parts: AsyncIterableIterator<MultipartFile>) {
@@ -79,7 +63,8 @@ export default class ImageService {
       });
     }
 
-    return images;
+    const result = await Promise.all(images.map((img) => Models.Media.create({ link: img.link, fileId: img.fileId })));
+    return result;
   }
 
   static async deleteImages(ids: string[]) {
@@ -100,10 +85,15 @@ export default class ImageService {
     const removed: string[] = [];
 
     for (const id of ids) {
-      await driveService.files.delete({ fileId: id });
+      await Promise.all([driveService.files.delete({ fileId: id }), Models.Media.deleteOne({ fileId: id })]);
       removed.push(id);
     }
 
     return removed;
+  }
+
+  static async updateDescription(id: string, description: string) {
+    const result = await Models.Media.updateOne({ _id: id }, { description }).lean();
+    return result;
   }
 }
