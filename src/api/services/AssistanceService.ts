@@ -1,12 +1,15 @@
 import type { AssistanceTypes, Entries, IAssistance } from '@/types/index.js';
 import type { FilterQuery } from 'mongoose';
+import type { MultipartFile } from '@fastify/multipart';
 import { google } from 'googleapis';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 import { locales } from '@/i18n/index.js';
 import Excel from 'exceljs';
 import { Readable } from 'stream';
-
+import { parse } from 'csv-parse';
+import AssistanceSchemas from '@/api/schemas/AssistanceSchemas.js';
+import type { ValidationError } from 'joi';
 
 export default class AssistanceService {
   static async saveForm(form: IAssistance) {
@@ -261,5 +264,36 @@ export default class AssistanceService {
     }
     const buffer = type === 'xlsx' ? await workbook.xlsx.writeBuffer() : await workbook.csv.writeBuffer();
     return Readable.from(Buffer.from(buffer));
+  }
+
+  static async uploadListCSV(data: MultipartFile) {
+    const parser = data.file.pipe(parse({ delimiter: ';' }));
+    const errors: { message: string; row: number }[] = [];
+    const forms: IAssistance[] = [];
+    let index = 0;
+
+    for await (const record of parser) {
+      index++;
+      const column = Object.keys(locales.en.assistance.fields) as Array<keyof IAssistance>;
+      const row: string[] = record;
+      const result = column.reduce<any>((form, item, index) => {
+        if (item === 'people_fio' || item === 'kids_age') {
+          form[item] = row[index] ? row[index].split(',') : undefined;
+        } else {
+          form[item] = row[index] ? row[index] : undefined;
+        }
+        return form;
+      }, {});
+      const { error } = AssistanceSchemas.saveFormBody.validate(result);
+      if (error) {
+        errors.push({ message: 'Error in row', row: index });
+      } else {
+        forms.push(result);
+      }
+      await new Promise((resolve) => resolve(true));
+    }
+
+    const created = await Promise.all(forms.map((form) => Models.Assistance.create(form)));
+    return { created: created.length, errors };
   }
 }

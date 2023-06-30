@@ -30,4 +30,8 @@ export default class Util {
     const dirname = fileURLToPath(new URL('.', import.meta.url));
     return unlink(resolve(dirname, path));
   }
+
+  static getKeyByValue(object: object, value: string){
+    return Object.keys(object).find(key => object[key] === value);
+  }
 }

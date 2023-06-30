@@ -3438,9 +3438,10 @@
       "layout": {
          "title": "Settings",
          "tabs": {
+            "roles": "Set up roles",
             "google": "Google Integration",
             "sheets": "Upload tickets",
-            "roles": "Set up roles"
+            "forms": "Upload applications"
          }
       },
       "google": {
@@ -3500,6 +3501,14 @@
          },
          "msgs": {
             "update": "Updated!"
+         }
+      },
+      "forms": {
+         "title": "Import applications from the file",
+         "msgs": {
+            "success": "Imported",
+            "help": "How to fill",
+            "how": "The order of the columns must correspond to the example below. The district and street are indicated by a number. Yes-no is indicated in the form of true-false. Empty fields are left empty."
          }
       }
    },

@@ -1,6 +1,7 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import type { AssistanceTypes, IAssistance } from '@/types/index.js';
+import type { AssistanceTypes, IAssistance, Langs } from '@/types/index.js';
 import { AssistanceService } from '@/api/services/index.js';
+import ApiError from '@/exceptions/ApiError.js';
 
 export default class AssistanceController {
   static async saveForm(request: FastifyRequest<{ Body: IAssistance }>) {
@@ -53,10 +54,19 @@ export default class AssistanceController {
     return result;
   }
 
-  static async getReport(
-    request: FastifyRequest<{ Body: AssistanceTypes.CreateReportBody }>, reply: FastifyReply
-  ) {
+  static async getReport(request: FastifyRequest<{ Body: AssistanceTypes.CreateReportBody }>, reply: FastifyReply) {
     const result = await AssistanceService.createReport(request.body);
     return reply.header('Content-Type', 'application/octet-stream').send(result);
+  }
+
+  static async uploadListCSV(request: FastifyRequest) {
+    const file = await request.file();
+
+    if (!file) {
+      throw ApiError.BadRequest(400, 'Wrong query');
+    }
+
+    const result = await AssistanceService.uploadListCSV(file);
+    return result;
   }
 }

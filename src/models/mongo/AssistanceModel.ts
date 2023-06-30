@@ -45,7 +45,7 @@ const AssistanceSchema = new Schema<IAssistance>(
     },
     people_fio: {
       type: [String],
-      default: ['-'],
+      default: [],
     },
     invalids: {
       type: Boolean,
@@ -57,7 +57,7 @@ const AssistanceSchema = new Schema<IAssistance>(
     },
     kids_age: {
       type: [String],
-      default: ['-'],
+      default: [],
     },
     food: {
       type: Boolean,

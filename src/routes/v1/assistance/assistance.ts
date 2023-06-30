@@ -67,4 +67,6 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
     { onRequest: [useAuthGuard, useRoleGuard(['admin'])], schema: { body: AssistanceSchemas.createReportBody } },
     AssistanceController.getReport
   );
+
+  app.post('/list', { onRequest: [useAuthGuard] }, AssistanceController.uploadListCSV);
 }

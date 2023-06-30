@@ -8,7 +8,7 @@ export default class AssistanceSchemas {
       name: Joi.string().required().max(50),
       surname: Joi.string().required().max(50),
       patronymic: Joi.string().required().max(50),
-      phone: Joi.string().required(),
+      phone: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
       birth: Joi.string()
         .required()
         .custom((value: string, helper) => {
