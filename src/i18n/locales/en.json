@@ -3803,7 +3803,9 @@
          "delete": "Delete selected"
       },
       "msgs": {
-         "noDescription": "No description"
+         "noDescription": "No description",
+         "upload": "Select images to upload",
+          "imgs": "Images"
       },
       "errors": {
          "none": "Oops... No photos yet!"
