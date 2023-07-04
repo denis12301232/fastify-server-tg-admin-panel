@@ -1,4 +1,4 @@
-import type { FastifyRequest, FastifyReply, HookHandlerDoneFunction, RouteGenericInterface } from 'fastify';
+import type { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from 'fastify';
 import { TokenService } from '@/api/services/index.js';
 import { UserDto } from '@/dto/index.js';
 import ApiError from '@/exceptions/ApiError.js';
