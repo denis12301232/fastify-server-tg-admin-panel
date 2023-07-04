@@ -15,7 +15,7 @@ export default class TaskService {
 
     const newSubtasks = await Models.Subtask.create(subtasks);
     const subtasksIds = newSubtasks.map((item) => item._id);
-    const task = await  Models.Task.create({ title, tags, subtasks: subtasksIds });
+    const task = await Models.Task.create({ title, tags, subtasks: subtasksIds });
     return task;
   }
 
@@ -67,13 +67,13 @@ export default class TaskService {
   }
 
   static async moveSubtask({ subtask_id, task_id, new_task_id }: TaskTypes.MoveSubtaskBody) {
-    await  Models.Task.updateOne({ _id: task_id }, { $pull: { subtasks: { $eq: subtask_id } } }).lean();
-    const result = await  Models.Task.updateOne({ _id: new_task_id }, { $addToSet: { subtasks: subtask_id } }).lean();
+    await Models.Task.updateOne({ _id: task_id }, { $pull: { subtasks: { $eq: subtask_id } } }).lean();
+    const result = await Models.Task.updateOne({ _id: new_task_id }, { $addToSet: { subtasks: subtask_id } }).lean();
     return result;
   }
 
   static async createTaskCsv(task_id: string) {
-    const task = await  Models.Task.findById(task_id, { title: 1 })
+    const task = await Models.Task.findById(task_id, { title: 1 })
       .populate<ISubtask>({ path: 'subtasks', select: { __v: 0, _id: 0, updatedAt: 0 } })
       .lean();
     if (!task?.subtasks) {

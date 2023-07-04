@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import AuthController from '@/api/controllers/AuthController.js';
 import AuthSchemas from '@/api/schemas/AuthSchemas.js';
 
-export default async function AuthRoutes (app: FastifyInstance) {
+export default async function AuthRoutes(app: FastifyInstance) {
   app.post('/registration', { schema: { body: AuthSchemas.userRegistrationBody } }, AuthController.registration);
   app.post('/login', { schema: { body: AuthSchemas.userLoginBody } }, AuthController.login);
   app.get('/logout', AuthController.logout);

@@ -24,7 +24,7 @@ export default class ChatDto {
 
   constructor(model: Model, user_id: string) {
     this._id = String(model._id);
-    this.messages = model.messages.length ? [model.messages.at(-1)] as IMessage[] : [] as IMessage[];
+    this.messages = model.messages.length ? ([model.messages.at(-1)] as IMessage[]) : ([] as IMessage[]);
     this.users = model.users;
     this.total = model.messages.length;
     this.updatedAt = model.updatedAt;

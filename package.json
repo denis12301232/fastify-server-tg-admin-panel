@@ -9,7 +9,7 @@
     "build": "rimraf ./dist && npx tsc && tsc-alias",
     "start": "npm run build && node dist/main",
     "lint": "npx eslint ./src",
-    "format": "npx eslint ./src --fix"
+    "format": "npx prettier --write src/"
   },
   "keywords": [],
   "author": "",

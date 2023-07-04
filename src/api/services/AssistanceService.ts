@@ -9,7 +9,6 @@ import Excel from 'exceljs';
 import { Readable } from 'stream';
 import { parse } from 'csv-parse';
 import AssistanceSchemas from '@/api/schemas/AssistanceSchemas.js';
-import type { ValidationError } from 'joi';
 
 export default class AssistanceService {
   static async saveForm(form: IAssistance) {

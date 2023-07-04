@@ -3,7 +3,6 @@ import { useChatEvents, useMeetEvents, useWebRtcEvents } from '@/api/io/events/i
 import { socketAuthGuard, joinUserChats } from '@/api/io/middlewares/index.js';
 import { ChatService } from '@/api/services/index.js';
 
-
 export default class SocketEvents {
   private readonly io: ServerTyped;
 

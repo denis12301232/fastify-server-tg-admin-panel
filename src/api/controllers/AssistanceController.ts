@@ -1,5 +1,5 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import type { AssistanceTypes, IAssistance, Langs } from '@/types/index.js';
+import type { AssistanceTypes, IAssistance } from '@/types/index.js';
 import { AssistanceService } from '@/api/services/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 

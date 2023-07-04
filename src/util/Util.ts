@@ -31,7 +31,7 @@ export default class Util {
     return unlink(resolve(dirname, path));
   }
 
-  static getKeyByValue(object: object, value: string){
-    return Object.keys(object).find(key => object[key] === value);
+  static getKeyByValue(object: object, value: string) {
+    return Object.keys(object).find((key) => object[key] === value);
   }
 }

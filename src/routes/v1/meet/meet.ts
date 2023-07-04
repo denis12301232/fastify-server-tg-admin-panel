@@ -4,8 +4,12 @@ import MeetSchemas from '@/api/schemas/MeetSchemas.js';
 import { useAuthGuard } from '@/hooks/index.js';
 
 export default async function MeetRoutes(app: FastifyInstance) {
-  app.get('/info', {
+  app.get(
+    '/info',
+    {
       preHandler: useAuthGuard,
       schema: { querystring: MeetSchemas.getMeetInfoQuery },
-  }, MeetController.getMeetInfo);
+    },
+    MeetController.getMeetInfo
+  );
 }
