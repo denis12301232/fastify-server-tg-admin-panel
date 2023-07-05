@@ -3479,7 +3479,14 @@
       "msgs": {
         "success": "Imported",
         "help": "How to fill",
-        "how": "The order of the columns must correspond to the example below. The district and street are indicated by a number. Yes-no is indicated in the form of true-false. Empty fields are left empty."
+        "how": [
+          "The order of the columns should correspond to the example below",
+          "District and street are indicated by a number",
+          "Yes-no is specified as true-false",
+          "Empty fields are left blank"
+        ],
+        "uploaded": "Uploaded",
+        "errors": "Errors"
       }
     }
   },
