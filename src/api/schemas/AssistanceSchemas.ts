@@ -57,16 +57,6 @@ export default class AssistanceSchemas {
     })
     .required();
 
-  static readonly getHumansListQuery = Joi.object<AssistanceTypes.GetHumansListQuery>()
-    .keys({
-      limit: Joi.number().required(),
-      page: Joi.number().required(),
-      filter: Joi.string().allow(''),
-      sort: Joi.string().allow('').valid('fio'),
-      descending: Joi.boolean().required(),
-    })
-    .required();
-
   static readonly deleteFormsBody = Joi.array<AssistanceTypes.DeleteFormsBody>().required().items(Joi.string());
 
   static readonly modifyFormBody = Joi.object<AssistanceTypes.ModifyFormBody>()
