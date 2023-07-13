@@ -30,6 +30,7 @@ export interface IAssistance {
   photo_agreement: boolean;
   createdAt: NativeDate;
   updatedAt: NativeDate;
+  sector: string;
 }
 
 export interface IAttachment {

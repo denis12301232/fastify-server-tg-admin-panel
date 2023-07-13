@@ -207,15 +207,16 @@
   "list": {
     "title": "Full List",
     "hints": {
-      "delete": "Delete",
-      "copy": "Copy full name"
+      "delete": "Delete"
+    },
+    "msgs":{
+      "import": "Import",
+      "export": "Export"
     },
     "table": {
-      "search": "Search",
+      "show": "Columns",
       "columns": {
-        "number": "Number",
-        "fio": "Full name",
-        "actions": "Actions"
+        "number": "Number"
       }
     }
   },
@@ -267,7 +268,8 @@
       "pampers_info": "Specify pampers",
       "diet": "Diet specifics",
       "pers_data_agreement": "Consent to the processing of personal data",
-      "photo_agreement": "Photo/Video Consent"
+      "photo_agreement": "Photo/Video Consent",
+      "sector": "Sector"
     },
     "districts": {
       "1": "Industrial",

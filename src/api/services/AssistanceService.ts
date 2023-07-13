@@ -17,27 +17,13 @@ export default class AssistanceService {
     return saved;
   }
 
-  static async getForms({
-    limit,
-    page,
-    sort,
-    descending,
-  }: {
-    limit: number;
-    page: number;
-    descending: boolean;
-    sort: string;
-  }) {
+  static async getForms({ limit, page, sort, descending }: AssistanceTypes.GetFormsQuery) {
     const skip = (page - 1) * limit;
     const forms = await Models.Assistance.find({}, { __v: 0, createdAt: 0, updatedAt: 0 })
       .sort({ [sort]: descending ? -1 : 1 })
       .skip(skip)
       .limit(limit)
       .lean();
-
-    if (!forms.length) {
-      throw ApiError.BadRequest(400, `Nothing was found`);
-    }
 
     const total = await Models.Assistance.count();
     return { forms, total };
@@ -297,7 +283,7 @@ export default class AssistanceService {
           item === 'pampers' ||
           item === 'pers_data_agreement' ||
           item === 'photo_agreement'
-        ) {
+        ) {         
           form[item] =
             Util.getKeyByValue(locales[locale].assistance.checkboxes.yesNo, row[index]) === 'yes' ? true : false;
         } else {
@@ -306,6 +292,7 @@ export default class AssistanceService {
         return form;
       }, {} as { [key in keyof Omit<IAssistance, '_id'>]: unknown });
       const { error } = AssistanceSchemas.saveFormBody.validate(result);
+      
       if (error) {
         errors.push({ message: 'Error in row', row: index });
       } else {

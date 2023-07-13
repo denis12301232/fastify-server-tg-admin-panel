@@ -103,6 +103,10 @@ const AssistanceSchema = new Schema<IAssistance>(
       type: Boolean,
       required: true,
     },
+    sector: {
+      type: String,
+      default: '',
+    },
   },
   { timestamps: true }
 );

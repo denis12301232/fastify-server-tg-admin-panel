@@ -9,16 +9,16 @@ export default class AssistanceController {
     return { message: 'Успешно сохранено!', saved };
   }
 
-  static async getForms(
-    request: FastifyRequest<{ Querystring: { limit: number; page: number; descending: boolean; sort: string } }>,
-    reply: FastifyReply
-  ) {
+  static async getForms(request: FastifyRequest<{ Querystring: AssistanceTypes.GetFormsQuery }>, reply: FastifyReply) {
     const { forms, total } = await AssistanceService.getForms(request.query);
     reply.header('X-Total-Count', total);
     return forms;
   }
 
-  static async findForms(request: FastifyRequest<{ Querystring: AssistanceTypes.FindFormsQuery }>, reply: FastifyReply) {
+  static async findForms(
+    request: FastifyRequest<{ Querystring: AssistanceTypes.FindFormsQuery }>,
+    reply: FastifyReply
+  ) {
     const { nameOrSurname, limit, page } = request.query;
     const { forms, count } = await AssistanceService.findForms(nameOrSurname, limit, page);
     reply.header('X-Total-Count', count);
