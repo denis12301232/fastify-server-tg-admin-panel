@@ -1,4 +1,4 @@
-import type { AssistanceTypes, Entries, IAssistance } from '@/types/index.js';
+import type { AssistanceTypes, Entries, IAssistance, Langs } from '@/types/index.js';
 import type { FilterQuery } from 'mongoose';
 import type { MultipartFile } from '@fastify/multipart';
 import { google } from 'googleapis';
@@ -9,6 +9,7 @@ import Excel from 'exceljs';
 import { Readable } from 'stream';
 import { parse } from 'csv-parse';
 import AssistanceSchemas from '@/api/schemas/AssistanceSchemas.js';
+import Util from '@/util/Util.js';
 
 export default class AssistanceService {
   static async saveForm(form: IAssistance) {
@@ -16,7 +17,33 @@ export default class AssistanceService {
     return saved;
   }
 
-  static async getForms(nameOrSurname: string, limit: number, page: number) {
+  static async getForms({
+    limit,
+    page,
+    sort,
+    descending,
+  }: {
+    limit: number;
+    page: number;
+    descending: boolean;
+    sort: string;
+  }) {
+    const skip = (page - 1) * limit;
+    const forms = await Models.Assistance.find({}, { __v: 0, createdAt: 0, updatedAt: 0 })
+      .sort({ [sort]: descending ? -1 : 1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    if (!forms.length) {
+      throw ApiError.BadRequest(400, `Nothing was found`);
+    }
+
+    const total = await Models.Assistance.count();
+    return { forms, total };
+  }
+
+  static async findForms(nameOrSurname: string, limit: number, page: number) {
     const skip = (page - 1) * limit;
     const forms = await Models.Assistance.find(
       {
@@ -34,32 +61,6 @@ export default class AssistanceService {
     forms.splice(0, skip);
     forms.length ? (forms.length = limit) : '';
     return { forms, count };
-  }
-
-  static async getHumansList({ limit, page, filter, sort, descending }: AssistanceTypes.GetHumansListQuery) {
-    const query = filter
-      ? {
-          $or: [
-            { surname: { $regex: filter, $options: 'i' } },
-            { name: { $regex: filter, $options: 'i' } },
-            { patronymic: { $regex: filter, $options: 'i' } },
-          ],
-        }
-      : {};
-
-    const skip = (page - 1) * limit;
-    const humansList = await Models.Assistance.find(query, {
-      fio: { $concat: ['$surname', ' ', '$name', ' ', '$patronymic'] },
-    })
-      .sort({ surname: descending ? -1 : 1, name: descending ? -1 : 1, patronymic: descending ? -1 : 1 })
-      .collation({ numericOrdering: true, caseLevel: false, locale: 'ru' })
-      .lean();
-
-    const count = humansList.length;
-    humansList.splice(0, skip);
-    humansList.length > limit && (humansList.length = limit);
-
-    return { humansList, count };
   }
 
   static async deleteForms(ids: string[]) {
@@ -265,24 +266,45 @@ export default class AssistanceService {
     return Readable.from(Buffer.from(buffer));
   }
 
-  static async uploadListCSV(data: MultipartFile) {
+  static async uploadListCSV(data: MultipartFile, locale: Langs) {
     const parser = data.file.pipe(parse({ delimiter: ';' }));
     const errors: { message: string; row: number }[] = [];
-    const forms: IAssistance[] = [];
+    const forms: { [key in keyof Omit<IAssistance, '_id' | 'createdAt' | 'updatedAt'>]: unknown }[] = [];
     let index = 0;
 
     for await (const record of parser) {
       index++;
-      const column = Object.keys(locales.en.assistance.fields) as Array<keyof IAssistance>;
+      const column = Object.keys(locales.en.assistance.fields) as Array<
+        keyof Omit<IAssistance, '_id' | 'createdAt' | 'updatedAt'>
+      >;
       const row: string[] = record;
-      const result = column.reduce<any>((form, item, index) => {
+      const result = column.reduce((form, item, index) => {
         if (item === 'people_fio' || item === 'kids_age') {
           form[item] = row[index] ? row[index].split(',') : undefined;
+        } else if (item === 'district') {
+          form[item] = Util.getKeyByValue(locales[locale].assistance.districts, row[index]);
+        } else if (item === 'street') {
+          form.district
+            ? (form[item] = Util.getKeyByValue(locales[locale].assistance.streets[form.district as string], row[index]))
+            : (form[item] = undefined);
+        } else if (
+          item === 'invalids' ||
+          item === 'kids' ||
+          item === 'food' ||
+          item === 'water' ||
+          item === 'hygiene' ||
+          item === 'medicines' ||
+          item === 'pampers' ||
+          item === 'pers_data_agreement' ||
+          item === 'photo_agreement'
+        ) {
+          form[item] =
+            Util.getKeyByValue(locales[locale].assistance.checkboxes.yesNo, row[index]) === 'yes' ? true : false;
         } else {
           form[item] = row[index] ? row[index] : undefined;
         }
         return form;
-      }, {});
+      }, {} as { [key in keyof Omit<IAssistance, '_id'>]: unknown });
       const { error } = AssistanceSchemas.saveFormBody.validate(result);
       if (error) {
         errors.push({ message: 'Error in row', row: index });

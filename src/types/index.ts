@@ -7,4 +7,6 @@ export type Entries<T> = {
   [K in keyof T]: [K, T[K]];
 }[keyof T][];
 
+export type ValuesOf<T extends unknown[]> = T[number];
+
 export type Langs = 'ru' | 'uk' | 'en';

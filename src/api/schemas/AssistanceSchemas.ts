@@ -40,11 +40,20 @@ export default class AssistanceSchemas {
     })
     .required();
 
-  static readonly getFormsQuery = Joi.object<AssistanceTypes.GetFormsQuery>()
+  static readonly findFormsQuery = Joi.object<AssistanceTypes.FindFormsQuery>()
     .keys({
       nameOrSurname: Joi.string().required(),
       limit: Joi.number().required().min(1).max(100),
       page: Joi.number().required(),
+    })
+    .required();
+
+  static readonly getFormsQuery = Joi.object<AssistanceTypes.GetFormsQuery>()
+    .keys({
+      limit: Joi.number().required(),
+      page: Joi.number().required(),
+      sort: Joi.string().required(),
+      descending: Joi.boolean().required(),
     })
     .required();
 

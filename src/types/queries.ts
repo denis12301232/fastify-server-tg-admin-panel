@@ -140,17 +140,15 @@ export namespace AuthTypes {
 
 export namespace AssistanceTypes {
   export interface GetFormsQuery {
+    limit: number;
+    page: number;
+    descending: boolean;
+    sort: string;
+  }
+  export interface FindFormsQuery {
     nameOrSurname: string;
     limit: number;
     page: number;
-  }
-
-  export interface GetHumansListQuery {
-    limit: number;
-    page: number;
-    filter: string;
-    sort: string;
-    descending: boolean;
   }
 
   export type DeleteFormsBody = string[];
@@ -186,6 +184,10 @@ export namespace AssistanceTypes {
       birth: { from: string; to: string };
       street?: string;
     };
+  }
+
+  export interface UploadListCSVQuery {
+    locale: Langs;
   }
 }
 

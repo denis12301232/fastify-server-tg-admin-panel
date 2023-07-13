@@ -9,20 +9,20 @@ export default class AssistanceController {
     return { message: 'Успешно сохранено!', saved };
   }
 
-  static async getForms(request: FastifyRequest<{ Querystring: AssistanceTypes.GetFormsQuery }>, reply: FastifyReply) {
-    const { nameOrSurname, limit, page } = request.query;
-    const { forms, count } = await AssistanceService.getForms(nameOrSurname, limit, page);
-    reply.header('X-Total-Count', count);
+  static async getForms(
+    request: FastifyRequest<{ Querystring: { limit: number; page: number; descending: boolean; sort: string } }>,
+    reply: FastifyReply
+  ) {
+    const { forms, total } = await AssistanceService.getForms(request.query);
+    reply.header('X-Total-Count', total);
     return forms;
   }
 
-  static async getHumansList(
-    request: FastifyRequest<{ Querystring: AssistanceTypes.GetHumansListQuery }>,
-    reply: FastifyReply
-  ) {
-    const { humansList, count } = await AssistanceService.getHumansList(request.query);
+  static async findForms(request: FastifyRequest<{ Querystring: AssistanceTypes.FindFormsQuery }>, reply: FastifyReply) {
+    const { nameOrSurname, limit, page } = request.query;
+    const { forms, count } = await AssistanceService.findForms(nameOrSurname, limit, page);
     reply.header('X-Total-Count', count);
-    return humansList;
+    return forms;
   }
 
   static async deleteForms(request: FastifyRequest<{ Body: AssistanceTypes.DeleteFormsBody }>) {
@@ -59,14 +59,14 @@ export default class AssistanceController {
     return reply.header('Content-Type', 'application/octet-stream').send(result);
   }
 
-  static async uploadListCSV(request: FastifyRequest) {
+  static async uploadListCSV(request: FastifyRequest<{ Querystring: AssistanceTypes.UploadListCSVQuery }>) {
     const file = await request.file();
 
     if (!file) {
       throw ApiError.BadRequest(400, 'Wrong query');
     }
 
-    const result = await AssistanceService.uploadListCSV(file);
+    const result = await AssistanceService.uploadListCSV(file, request.query.locale);
     return result;
   }
 }

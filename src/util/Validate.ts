@@ -21,10 +21,6 @@ export default class Validate {
     return /^0([0-9]{9})$/.test(value);
   }
 
-  static isValidDistrict(value: string) {
-    return Constants.districts.includes(value);
-  }
-
   static isYearInterval(value: string) {
     return /^\d{4}-\d{4}$/.test(value);
   }

@@ -5,21 +5,14 @@ import { useAuthGuard, useRoleGuard } from '@/hooks/index.js';
 
 export default async function AssistanceRoutes(app: FastifyInstance) {
   app.post('/', { schema: { body: AssistanceSchemas.saveFormBody } }, AssistanceController.saveForm);
+  app.get('/forms', { schema: { querystring: AssistanceSchemas.getFormsQuery } }, AssistanceController.getForms);
   app.get(
     '/',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { querystring: AssistanceSchemas.getFormsQuery },
+      schema: { querystring: AssistanceSchemas.findFormsQuery },
     },
-    AssistanceController.getForms
-  );
-  app.get(
-    '/list',
-    {
-      onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { querystring: AssistanceSchemas.getHumansListQuery },
-    },
-    AssistanceController.getHumansList
+    AssistanceController.findForms
   );
   app.delete(
     '/forms',
@@ -68,5 +61,11 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
     AssistanceController.getReport
   );
 
-  app.post('/list', { onRequest: [useAuthGuard] }, AssistanceController.uploadListCSV);
+  app.post(
+    '/list',
+    {
+      // onRequest: [useAuthGuard]
+    },
+    AssistanceController.uploadListCSV
+  );
 }
