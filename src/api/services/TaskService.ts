@@ -1,4 +1,5 @@
-import type { TaskTypes, ISubtask, IUser } from '@/types/index.js';
+import type { TaskTypes, ISubtask, IUser, ITask } from '@/types/index.js';
+import type { FilterQuery } from 'mongoose';
 import Models from '@/models/mongo/index.js';
 import { stringify } from 'csv-stringify';
 import ApiError from '@/exceptions/ApiError.js';
@@ -20,15 +21,16 @@ export default class TaskService {
   }
 
   static async getTasks({ page, limit, sort, descending, filter }: TaskTypes.GetTasksQuery, user_id: string) {
-    const query = filter === 'my' ? { user: user_id } : {};
+    const query: FilterQuery<ITask> = filter === 'my' ? { user: user_id } : {};
     const skip = (page - 1) * limit;
-    const tasks = await Models.Task.find(query)
-      .sort({ [sort]: descending ? -1 : 1 })
-      .lean();
-
-    const count = tasks.length;
-    tasks.splice(0, skip);
-    tasks.length > limit && (tasks.length = limit);
+    const [tasks, count] = await Promise.all([
+      Models.Task.find(query)
+        .sort({ [sort]: descending ? -1 : 1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Models.Task.count(),
+    ]);
 
     return { tasks, count };
   }

@@ -9,13 +9,14 @@ import { Readable } from 'stream';
 
 export default class ImageService {
   static async getImages({ limit, descending, sort, skip }: ImageTypes.GetImagesQuery) {
-    const images = await Models.Media.find({}, { __v: 0 })
-      .sort({ [sort]: descending ? -1 : 1 })
-      .lean();
-    const count = images.length;
-
-    images.splice(0, skip);
-    images.length > limit && (images.length = limit);
+    const [images, count] = await Promise.all([
+      Models.Media.find({}, { __v: 0 })
+        .sort({ [sort]: descending ? -1 : 1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Models.Media.count(),
+    ]);
 
     return { images, count };
   }

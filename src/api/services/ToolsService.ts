@@ -1,4 +1,5 @@
-import type { ToolsTypes } from '@/types/index.js';
+import type { IUser, ToolsTypes } from '@/types/index.js';
+import type { FilterQuery } from 'mongoose';
 import ApiError from '@/exceptions/ApiError.js';
 import Models from '@/models/mongo/index.js';
 import { UserDto } from '@/dto/index.js';
@@ -64,20 +65,20 @@ export default class ToolsService {
   }
 
   static async getUsers(_id: string, limit: number, page: number, filter: string) {
-    const query = filter
+    const query: FilterQuery<IUser> = filter
       ? {
           $or: [{ login: { $regex: filter, $options: 'i' } }, { name: { $regex: filter, $options: 'i' } }],
         }
       : {};
     const skip = (page - 1) * limit;
-    const users = await Models.User.find(
-      { _id: { $ne: _id }, login: { $ne: 'root' }, ...query },
-      { _id: 1, login: 1, name: 1, roles: 1 }
-    ).lean();
+    const [users, count] = await Promise.all([
+      Models.User.find({ _id: { $ne: _id }, login: { $ne: 'root' }, ...query }, { _id: 1, login: 1, name: 1, roles: 1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Models.User.count(),
+    ]);
 
-    const count = users.length;
-    users.splice(0, skip);
-    users.length > limit && (users.length = limit);
     return { users, count };
   }
 

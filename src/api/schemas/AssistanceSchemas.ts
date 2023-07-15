@@ -5,9 +5,9 @@ import { Validate } from '@/util/index.js';
 export default class AssistanceSchemas {
   static readonly saveFormBody = Joi.object<IAssistance>()
     .keys({
-      name: Joi.string().required().max(50),
-      surname: Joi.string().required().max(50),
-      patronymic: Joi.string().required().max(50),
+      name: Joi.string().required().max(100),
+      surname: Joi.string().required().max(100),
+      patronymic: Joi.string().required().max(100),
       phone: Joi.string()
         .length(10)
         .pattern(/^[0-9]+$/)
@@ -22,19 +22,19 @@ export default class AssistanceSchemas {
       house: Joi.string().required().max(50),
       flat: Joi.string().max(50).pattern(/^\d+$/).required(),
       people_num: Joi.number().min(1).max(10).required(),
-      people_fio: Joi.array(),
+      people_fio: Joi.array().items(Joi.string().max(100)).empty(Joi.array().length(0)),
       invalids: Joi.boolean(),
       kids: Joi.boolean(),
       kids_age: Joi.array().items(Joi.string().valid('0-1', '1-3', '3-9', '9-18')).empty(Joi.array().length(0)),
       food: Joi.boolean(),
       water: Joi.boolean(),
       medicines: Joi.boolean(),
-      medicines_info: Joi.string().max(100).allow('', null),
+      medicines_info: Joi.string().max(500).allow('', null),
       hygiene: Joi.boolean(),
-      hygiene_info: Joi.string().max(100).allow('', null),
+      hygiene_info: Joi.string().max(500).allow('', null),
       pampers: Joi.boolean(),
-      pampers_info: Joi.string().max(100).allow('', null),
-      diet: Joi.string().max(100).allow(''),
+      pampers_info: Joi.string().max(500).allow('', null),
+      diet: Joi.string().max(500).allow('', null),
       pers_data_agreement: Joi.boolean().required().valid(true),
       photo_agreement: Joi.boolean().required().valid(true),
       sector: Joi.string()
@@ -66,9 +66,9 @@ export default class AssistanceSchemas {
       form: Joi.object()
         .keys({
           _id: Joi.string(),
-          name: Joi.string().required().max(50),
-          surname: Joi.string().required().max(50),
-          patronymic: Joi.string().required().max(50),
+          name: Joi.string().required().max(100),
+          surname: Joi.string().required().max(100),
+          patronymic: Joi.string().required().max(100),
           phone: Joi.string()
             .length(10)
             .pattern(/^[0-9]+$/)
@@ -83,19 +83,19 @@ export default class AssistanceSchemas {
           house: Joi.string().required().max(50),
           flat: Joi.number().required(),
           people_num: Joi.number().min(1).max(10).required(),
-          people_fio: Joi.array(),
+          people_fio: Joi.array().items(Joi.string().max(100)).empty(Joi.array().length(0)),
           invalids: Joi.boolean(),
           kids: Joi.boolean(),
           kids_age: Joi.array().items(Joi.string().valid('0-1', '1-3', '3-9', '9-18')).empty(Joi.array().length(0)),
           food: Joi.boolean(),
           water: Joi.boolean(),
           medicines: Joi.boolean(),
-          medicines_info: Joi.string().max(100).allow('', null),
+          medicines_info: Joi.string().max(500).allow('', null),
           hygiene: Joi.boolean(),
-          hygiene_info: Joi.string().max(100).allow('', null),
+          hygiene_info: Joi.string().max(500).allow('', null),
           pampers: Joi.boolean(),
-          pampers_info: Joi.string().max(100).allow('', null),
-          diet: Joi.string().max(100).allow(''),
+          pampers_info: Joi.string().max(500).allow('', null),
+          diet: Joi.string().max(500).allow('', null),
           pers_data_agreement: Joi.boolean().required().valid(true),
           photo_agreement: Joi.boolean().required().valid(true),
           sector: Joi.string(),

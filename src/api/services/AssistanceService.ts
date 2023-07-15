@@ -19,33 +19,27 @@ export default class AssistanceService {
 
   static async getForms({ limit, page, sort, descending }: AssistanceTypes.GetFormsQuery) {
     const skip = (page - 1) * limit;
-    const forms = await Models.Assistance.find({}, { __v: 0, createdAt: 0, updatedAt: 0 })
-      .sort({ [sort]: descending ? -1 : 1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    const total = await Models.Assistance.count();
+    const [forms, total] = await Promise.all([
+      Models.Assistance.find({}, { __v: 0, createdAt: 0, updatedAt: 0 })
+        .sort({ [sort]: descending ? -1 : 1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Models.Assistance.count(),
+    ]);
     return { forms, total };
   }
 
   static async findForms(nameOrSurname: string, limit: number, page: number) {
     const skip = (page - 1) * limit;
-    const forms = await Models.Assistance.find(
-      {
-        $or: [
-          { name: { $regex: nameOrSurname, $options: 'i' } },
-          { surname: { $regex: nameOrSurname, $options: 'i' } },
-        ],
-      },
-      { __v: 0, createdAt: 0, updatedAt: 0 }
-    ).lean();
-    if (!forms.length) {
-      throw ApiError.BadRequest(400, `Nothing was found at query ${nameOrSurname}`);
-    }
-    const count = forms.length;
-    forms.splice(0, skip);
-    forms.length ? (forms.length = limit) : '';
+    const query: FilterQuery<IAssistance> = {
+      $or: [{ name: { $regex: nameOrSurname, $options: 'i' } }, { surname: { $regex: nameOrSurname, $options: 'i' } }],
+    };
+    const [forms, count] = await Promise.all([
+      Models.Assistance.find(query, { __v: 0, createdAt: 0, updatedAt: 0 }).skip(skip).limit(limit).lean(),
+      Models.Assistance.count(query),
+    ]);
+
     return { forms, count };
   }
 
@@ -283,7 +277,7 @@ export default class AssistanceService {
           item === 'pampers' ||
           item === 'pers_data_agreement' ||
           item === 'photo_agreement'
-        ) {         
+        ) {
           form[item] =
             Util.getKeyByValue(locales[locale].assistance.checkboxes.yesNo, row[index]) === 'yes' ? true : false;
         } else {
@@ -292,7 +286,7 @@ export default class AssistanceService {
         return form;
       }, {} as { [key in keyof Omit<IAssistance, '_id'>]: unknown });
       const { error } = AssistanceSchemas.saveFormBody.validate(result);
-      
+
       if (error) {
         errors.push({ message: 'Error in row', row: index });
       } else {
