@@ -7,7 +7,6 @@ import ApiError from '@/exceptions/ApiError.js';
 import { locales } from '@/i18n/index.js';
 import Excel from 'exceljs';
 import { Readable } from 'stream';
-import { parse } from 'csv-parse';
 import AssistanceSchemas from '@/api/schemas/AssistanceSchemas.js';
 import Util from '@/util/Util.js';
 
@@ -247,25 +246,32 @@ export default class AssistanceService {
   }
 
   static async uploadListCSV(data: MultipartFile, locale: Langs) {
-    const parser = data.file.pipe(parse({ delimiter: ';' }));
-    const errors: { message: string; row: number }[] = [];
+    const column = Object.keys(locales.en.assistance.fields) as Array<
+      keyof Omit<IAssistance, '_id' | 'createdAt' | 'updatedAt'>
+    >;
     const forms: { [key in keyof Omit<IAssistance, '_id' | 'createdAt' | 'updatedAt'>]: unknown }[] = [];
-    let index = 0;
+    const errors: { message: string; row: number }[] = [];
+    const workbook = new Excel.Workbook();
+    const sheet = await workbook.csv.read(data.file, {
+      parserOptions: { delimiter: ';', skipLines: 1 },
+      map(value) {
+        return value;
+      },
+    });
 
-    for await (const record of parser) {
-      index++;
-      const column = Object.keys(locales.en.assistance.fields) as Array<
-        keyof Omit<IAssistance, '_id' | 'createdAt' | 'updatedAt'>
-      >;
-      const row: string[] = record;
-      const result = column.reduce((form, item, index) => {
+    sheet.eachRow((row, number) => {
+      const values = row.model?.cells?.map((cell) => String(cell.value)) || [];
+      const form = column.reduce((form, item, index) => {
         if (item === 'people_fio' || item === 'kids_age') {
-          form[item] = row[index] ? row[index].split(',') : undefined;
+          form[item] = values[index] ? values[index].split(',') : undefined;
         } else if (item === 'district') {
-          form[item] = Util.getKeyByValue(locales[locale].assistance.districts, row[index]);
+          form[item] = Util.getKeyByValue(locales[locale].assistance.districts, values[index]);
         } else if (item === 'street') {
           form.district
-            ? (form[item] = Util.getKeyByValue(locales[locale].assistance.streets[form.district as string], row[index]))
+            ? (form[item] = Util.getKeyByValue(
+                locales[locale].assistance.streets[form.district as string],
+                values[index]
+              ))
             : (form[item] = undefined);
         } else if (
           item === 'invalids' ||
@@ -279,23 +285,23 @@ export default class AssistanceService {
           item === 'photo_agreement'
         ) {
           form[item] =
-            Util.getKeyByValue(locales[locale].assistance.checkboxes.yesNo, row[index]) === 'yes' ? true : false;
+            Util.getKeyByValue(locales[locale].assistance.checkboxes.yesNo, values[index]) === 'yes' ? true : false;
         } else {
-          form[item] = row[index] ? row[index] : undefined;
+          form[item] = values[index] ? values[index] : undefined;
         }
         return form;
       }, {} as { [key in keyof Omit<IAssistance, '_id'>]: unknown });
-      const { error } = AssistanceSchemas.saveForm.body.validate(result);
+
+      const { error } = AssistanceSchemas.saveForm.body.validate(form);
 
       if (error) {
-        errors.push({ message: 'Error in row', row: index });
+        errors.push({ message: 'Error in row', row: number });
       } else {
-        forms.push(result);
+        forms.push(form);
       }
-      await new Promise((resolve) => resolve(true));
-    }
-
+    });
     const created = await Promise.all(forms.map((form) => Models.Assistance.create(form)));
+
     return { created: created.length, errors };
   }
 }
