@@ -3,7 +3,7 @@ import type { AuthTypes } from '@/types/index.js';
 import { AuthService } from '@/api/services/index.js';
 
 export default class AuthController {
-  static async registration(request: FastifyRequest<{ Body: AuthTypes.UserRegistrationBody }>, reply: FastifyReply) {
+  static async registration(request: FastifyRequest<AuthTypes.UserRegistration>, reply: FastifyReply) {
     const user = request.body;
     const userData = await AuthService.registration(user);
 
@@ -16,7 +16,7 @@ export default class AuthController {
     return userData;
   }
 
-  static async login(request: FastifyRequest<{ Body: AuthTypes.UserLoginBody }>, reply: FastifyReply) {
+  static async login(request: FastifyRequest<AuthTypes.UserLogin>, reply: FastifyReply) {
     const user = request.body;
     const userData = await AuthService.login(user);
 
@@ -47,19 +47,19 @@ export default class AuthController {
     return userData;
   }
 
-  static async activate(request: FastifyRequest<{ Params: AuthTypes.UserActivateParams }>, reply: FastifyReply) {
+  static async activate(request: FastifyRequest<AuthTypes.UserActivate>, reply: FastifyReply) {
     const { link } = request.params;
     await AuthService.activate(link);
     return reply.redirect(process.env.CLIENT_DOMAIN.split(' ')[0]);
   }
 
-  static async restorePassword(request: FastifyRequest<{ Body: AuthTypes.UserPasswordRestoreBody }>) {
+  static async restorePassword(request: FastifyRequest<AuthTypes.UserPasswordRestore>) {
     const { email } = request.body;
     const message = await AuthService.restorePassword(email);
     return message;
   }
 
-  static async setNewRestoredPassword(request: FastifyRequest<{ Body: AuthTypes.UserNewRestoredPasswordBody }>) {
+  static async setNewRestoredPassword(request: FastifyRequest<AuthTypes.UserNewRestoredPassword>) {
     const { password, link } = request.body;
     const message = await AuthService.setNewRestoredPassword(password, link);
     return message;

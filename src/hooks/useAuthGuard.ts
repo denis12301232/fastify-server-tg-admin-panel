@@ -1,24 +1,15 @@
-import type { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from 'fastify';
+import type { FastifyRequest, FastifyReply, HookHandlerDoneFunction, RouteGenericInterface } from 'fastify';
+import type { UserDto } from '@/dto/index.js';
 import { TokenService } from '@/api/services/index.js';
-import { UserDto } from '@/dto/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 
-interface RequestGeneric {
-  Querystring: any;
-  Body: any;
-  Params: any;
-  Headers: {
-    authorization: string;
-  };
-  Reply: any;
-}
-
-export function useAuthGuard(
-  request: FastifyRequest<RequestGeneric>,
+export function useAuthGuard<T extends RouteGenericInterface>(
+  request: FastifyRequest<T>,
   reply: FastifyReply,
   done: HookHandlerDoneFunction
 ) {
   const authHeader = request.headers.authorization;
+
   if (!authHeader || !authHeader.split(' ')[1]) {
     throw ApiError.Unauthorized();
   }

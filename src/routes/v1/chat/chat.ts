@@ -7,7 +7,7 @@ export default async function ChatRoutes(app: FastifyInstance) {
   app.get(
     '/find_users',
     {
-      schema: { querystring: ChatSchemas.findUsersQuery },
+      schema: ChatSchemas.findUsers,
       preHandler: useAuthGuard,
     },
     ChatController.findUsers
@@ -15,7 +15,7 @@ export default async function ChatRoutes(app: FastifyInstance) {
   app.patch(
     '/add_user_to_group',
     {
-      schema: { body: ChatSchemas.addUserToGroupBody },
+      schema: ChatSchemas.addUserToGroup,
       preHandler: useAuthGuard,
     },
     ChatController.addUserToGroup
@@ -23,7 +23,7 @@ export default async function ChatRoutes(app: FastifyInstance) {
   app.patch(
     '/remove_user_from_group',
     {
-      schema: { body: ChatSchemas.removeUserFromGroupBody },
+      schema: ChatSchemas.removeUserFromGroup,
       preHandler: useAuthGuard,
     },
     ChatController.removeUserFromGroup
@@ -31,7 +31,7 @@ export default async function ChatRoutes(app: FastifyInstance) {
   app.get(
     '/get_users_list_in_chat',
     {
-      schema: { querystring: ChatSchemas.getUsersListInChatQuery },
+      schema: ChatSchemas.getUsersListInChat,
       preHandler: useAuthGuard,
     },
     ChatController.getUsersListInChat
@@ -46,7 +46,7 @@ export default async function ChatRoutes(app: FastifyInstance) {
   app.get(
     '/open_chat',
     {
-      schema: { querystring: ChatSchemas.openChatQuery },
+      schema: ChatSchemas.openChat,
       preHandler: useAuthGuard,
     },
     ChatController.openChat
@@ -54,7 +54,7 @@ export default async function ChatRoutes(app: FastifyInstance) {
   app.patch(
     '/delete_chat',
     {
-      schema: { body: ChatSchemas.deleteChatBody },
+      schema: ChatSchemas.deleteChat,
       preHandler: useAuthGuard,
     },
     ChatController.deleteChat
@@ -62,7 +62,7 @@ export default async function ChatRoutes(app: FastifyInstance) {
   app.patch(
     '/update_read',
     {
-      schema: { body: ChatSchemas.updateReadBody },
+      schema: ChatSchemas.updateRead,
       preHandler: useAuthGuard,
     },
     ChatController.updateRead
@@ -70,7 +70,7 @@ export default async function ChatRoutes(app: FastifyInstance) {
   app.patch(
     '/update_roles_in_group',
     {
-      schema: { body: ChatSchemas.updateRolesInGroupBody },
+      schema: ChatSchemas.updateRolesInGroup,
       preHandler: useAuthGuard,
     },
     ChatController.updateRolesInGroup
@@ -78,7 +78,7 @@ export default async function ChatRoutes(app: FastifyInstance) {
   app.patch(
     '/update_group',
     {
-      schema: { querystring: ChatSchemas.updateGroupQuery },
+      schema: ChatSchemas.updateGroup,
       preHandler: useAuthGuard,
     },
     ChatController.updateGroup
@@ -86,7 +86,7 @@ export default async function ChatRoutes(app: FastifyInstance) {
   app.get(
     '/get_user_chat_by_id',
     {
-      schema: { querystring: ChatSchemas.getUserChatByIdQuery },
+      schema: ChatSchemas.getUserChatById,
       preHandler: useAuthGuard,
     },
     ChatController.getUserChatById

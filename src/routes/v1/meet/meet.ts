@@ -8,7 +8,7 @@ export default async function MeetRoutes(app: FastifyInstance) {
     '/info',
     {
       preHandler: useAuthGuard,
-      schema: { querystring: MeetSchemas.getMeetInfoQuery },
+      schema: MeetSchemas.getMeetInfo,
     },
     MeetController.getMeetInfo
   );

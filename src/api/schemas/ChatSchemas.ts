@@ -40,99 +40,117 @@ export default class ChatSchemas {
     type: Joi.string().required().valid('image', 'audio').allow(null),
   }).required();
 
-  static readonly findUsersQuery = Joi.object<ChatTypes.FindUsersQuery>()
-    .keys({
-      loginOrName: Joi.string().required(),
-    })
-    .required();
+  static readonly findUsers = {
+    querystring: Joi.object<ChatTypes.FindUsers['Querystring']>()
+      .keys({
+        loginOrName: Joi.string().required(),
+      })
+      .required(),
+  };
 
-  static readonly createChatBody = Joi.object<ChatTypes.CreateChatBody>()
-    .keys({
-      users: Joi.array().required().min(2),
-    })
-    .required();
+  static readonly createChat = {
+    body: Joi.object<ChatTypes.CreateChat['Body']>()
+      .keys({
+        users: Joi.array().required().min(2),
+      })
+      .required(),
+  };
 
-  static readonly createGroupQuery = Joi.object<ChatTypes.CreateGroupQuery>()
-    .keys({
-      ['users[]']: Joi.array().required().min(1),
-      title: Joi.string().required(),
-      about: Joi.string(),
-    })
-    .required();
+  static readonly addUserToGroup = {
+    body: Joi.object<ChatTypes.AddUserToGroup['Body']>()
+      .keys({
+        user_id: Joi.string().required(),
+        chat_id: Joi.string().required(),
+      })
+      .required(),
+  };
 
-  static readonly addUserToGroupBody = Joi.object<ChatTypes.AddUserToGroupBody>()
-    .keys({
-      user_id: Joi.string().required(),
-      chat_id: Joi.string().required(),
-    })
-    .required();
+  static readonly removeUserFromGroup = {
+    body: Joi.object<ChatTypes.RemoveUserFromGroup['Body']>()
+      .keys({
+        user_id: Joi.string().required(),
+        chat_id: Joi.string().required(),
+      })
+      .required(),
+  };
 
-  static readonly removeUserFromGroupBody = Joi.object<ChatTypes.RemoveUserFromGroupBody>()
-    .keys({
-      user_id: Joi.string().required(),
-      chat_id: Joi.string().required(),
-    })
-    .required();
+  static readonly getUsersListInChat = {
+    querystring: Joi.object<ChatTypes.GetUsersListInChat['Querystring']>()
+      .keys({
+        chat_id: Joi.string().required(),
+      })
+      .required(),
+  };
 
-  static readonly getUsersListInChatQuery = Joi.object<ChatTypes.GetUsersListInChatQuery>()
-    .keys({
-      chat_id: Joi.string().required(),
-    })
-    .required();
+  static readonly saveMessage = {
+    body: Joi.object<ChatTypes.SaveMessage['Body']>()
+      .keys({
+        chat_id: Joi.string().required(),
+        text: Joi.string().required(),
+      })
+      .required(),
+  };
 
-  static readonly saveMessageBody = Joi.object<ChatTypes.SaveMessageBody>()
-    .keys({
-      chat_id: Joi.string().required(),
-      text: Joi.string().required(),
-    })
-    .required();
+  static readonly openChat = {
+    querystring: Joi.object<ChatTypes.OpenChat['Querystring']>()
+      .keys({
+        chat_id: Joi.string().required(),
+        limit: Joi.number().required().allow('Infinity'),
+        page: Joi.number().required(),
+      })
+      .required(),
+  };
 
-  static readonly openChatQuery = Joi.object<ChatTypes.OpenChatQuery>()
-    .keys({
-      chat_id: Joi.string().required(),
-      limit: Joi.number().required().allow('Infinity'),
-      page: Joi.number().required(),
-    })
-    .required();
+  static readonly deleteChat = {
+    body: Joi.object<ChatTypes.DeleteChat['Body']>()
+      .keys({
+        chat_id: Joi.string().required(),
+      })
+      .required(),
+  };
 
-  static readonly deleteChatBody = Joi.object<ChatTypes.DeleteChatBody>()
-    .keys({
-      chat_id: Joi.string().required(),
-    })
-    .required();
+  static readonly updateRead = {
+    body: Joi.object<ChatTypes.UpdateRead['Body']>()
+      .keys({
+        chat_id: Joi.string().required(),
+      })
+      .required(),
+  };
 
-  static readonly updateReadBody = Joi.object<ChatTypes.UpdateReadBody>()
-    .keys({
-      chat_id: Joi.string().required(),
-    })
-    .required();
+  static readonly saveMediaMessage = {
+    querystring: Joi.object<ChatTypes.SaveMediaMessage['Querystring']>()
+      .keys({
+        chat_id: Joi.string().required(),
+        type: Joi.string().required().valid('audio', 'image'),
+      })
+      .required(),
+  };
 
-  static readonly saveMediaMessageQuery = Joi.object<ChatTypes.SaveMediaMessageQuery>()
-    .keys({
-      chat_id: Joi.string().required(),
-      type: Joi.string().required().valid('audio', 'image'),
-    })
-    .required();
+  static readonly updateRolesInGroup = {
+    body: Joi.object<ChatTypes.UpdateRolesInGroup['Body']>()
+      .keys({
+        group_id: Joi.string().required(),
+        role: Joi.string().required().valid('admin'),
+        users: Joi.array().required(),
+      })
+      .required(),
+  };
 
-  static readonly updateRolesInGroupBody = Joi.object<ChatTypes.UpdateRolesInGroupBody>()
-    .keys({
-      group_id: Joi.string().required(),
-      role: Joi.string().required().valid('admin'),
-      users: Joi.array().required(),
-    })
-    .required();
+  static readonly updateGroup = {
+    querystring: Joi.object<ChatTypes.UpdateGroup['Querystring']>()
+      .keys({
+        group_id: Joi.string().required(),
+        title: Joi.string().allow(''),
+        about: Joi.string().allow(''),
+      })
+      .required(),
+  };
 
-  static readonly updateGroupQuery = Joi.object<ChatTypes.UpdateGroupQuery>()
-    .keys({
-      group_id: Joi.string().required(),
-      title: Joi.string().allow(''),
-      about: Joi.string().allow(''),
-    })
-    .required();
-
-  static readonly getUserChatByIdQuery = Joi.object<ChatTypes.GetUserChatByIdQuery>()
-    .keys({
-      chat_id: Joi.string().required(),
-    })
-    .required();
+  static readonly getUserChatById = {
+    querystring: Joi.object<ChatTypes.GetUserChatById['Querystring']>()
+      .keys({
+        chat_id: Joi.string().required(),
+      })
+      .required(),
+  };
 }

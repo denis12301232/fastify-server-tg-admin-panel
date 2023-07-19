@@ -7,7 +7,7 @@ import { MailService, TokenService } from '@/api/services/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 
 export default class AuthService {
-  static async registration(user: AuthTypes.UserRegistrationBody) {
+  static async registration(user: AuthTypes.UserRegistration['Body']) {
     const { login, name, email, password } = user;
     const candidate = await Models.User.findOne({
       $or: [{ email: email.toLowerCase() }, { login: login.toLowerCase() }],
@@ -38,7 +38,7 @@ export default class AuthService {
     return { ...tokens, user: userDto };
   }
 
-  static async login(user: AuthTypes.UserLoginBody) {
+  static async login(user: AuthTypes.UserLogin['Body']) {
     const { loginOrEmail, password } = user;
     const userFromDb = await Models.User.findOne({
       $or: [{ email: loginOrEmail.toLowerCase() }, { login: loginOrEmail.toLowerCase() }],

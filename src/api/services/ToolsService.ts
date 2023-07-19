@@ -38,7 +38,7 @@ export default class ToolsService {
     return { user: new UserDto(user) };
   }
 
-  static async setGoogleServiceAccountSettings(settings: ToolsTypes.SetGoogleServiceAccountSettingsBody) {
+  static async setGoogleServiceAccountSettings(settings: ToolsTypes.SetGoogleServiceAccountSettings['Body']) {
     const { serviceUser, servicePrivateKey, sheetId, folderId } = settings;
     const google = await Models.Tools.findOne({ api: 'google' });
 

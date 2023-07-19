@@ -17,7 +17,7 @@ export default class AssistanceService {
     return saved;
   }
 
-  static async getForms({ limit, page, sort, descending }: AssistanceTypes.GetFormsQuery) {
+  static async getForms({ limit, page, sort, descending }: AssistanceTypes.GetForms['Querystring']) {
     const skip = (page - 1) * limit;
     const [forms, total] = await Promise.all([
       Models.Assistance.find({}, { __v: 0, createdAt: 0, updatedAt: 0 })
@@ -58,7 +58,7 @@ export default class AssistanceService {
     return form;
   }
 
-  static async saveFormsToSheet({ locale, filters }: AssistanceTypes.SaveFormsToSheetsBody) {
+  static async saveFormsToSheet({ locale, filters }: AssistanceTypes.SaveFormsToSheets['Body']) {
     const googleApi = await Models.Tools.findOne({ api: 'google' }).lean();
 
     if (!googleApi) {
@@ -73,7 +73,7 @@ export default class AssistanceService {
           ? {
               $expr: {
                 $function: {
-                  body: `${function (birth: string, filters: AssistanceTypes.SaveFormsToSheetsBody['filters']) {
+                  body: `${function (birth: string, filters: AssistanceTypes.SaveFormsToSheets['Body']['filters']) {
                     return +birth.split('/')[0] >= +filters.birth.from && +birth.split('/')[0] <= +filters.birth.to;
                   }}`,
                   args: ['$birth', filters],
@@ -147,7 +147,7 @@ export default class AssistanceService {
     };
   }
 
-  static async getStats(filters: AssistanceTypes.GetStatsQuery) {
+  static async getStats(filters: AssistanceTypes.GetStats['Querystring']) {
     const date = new Date(filters.timestamp);
     const list = new Map();
 
@@ -194,7 +194,7 @@ export default class AssistanceService {
     return Object.fromEntries(list.entries());
   }
 
-  static async createReport({ type, locale, filters }: AssistanceTypes.CreateReportBody) {
+  static async createReport({ type, locale, filters }: AssistanceTypes.CreateReport['Body']) {
     const allFields = Object.entries(locales[locale].assistance.fields) as Entries<
       (typeof locales)['en']['assistance']['fields']
     >;
@@ -206,7 +206,7 @@ export default class AssistanceService {
           ? {
               $expr: {
                 $function: {
-                  body: `${function (birth: string, filters: AssistanceTypes.CreateReportBody['filters']) {
+                  body: `${function (birth: string, filters: AssistanceTypes.CreateReport['Body']['filters']) {
                     return +birth.split('/')[0] >= +filters.birth.from && +birth.split('/')[0] <= +filters.birth.to;
                   }}`,
                   args: ['$birth', filters],

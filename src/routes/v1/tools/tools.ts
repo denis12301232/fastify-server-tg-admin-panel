@@ -8,7 +8,7 @@ export default async function ToolsRoutes(app: FastifyInstance) {
     '/name',
     {
       onRequest: useAuthGuard,
-      schema: { body: ToolsSchemas.setNewNameBody },
+      schema: ToolsSchemas.setNewName,
     },
     ToolsController.setNewName
   );
@@ -16,7 +16,7 @@ export default async function ToolsRoutes(app: FastifyInstance) {
     '/email',
     {
       onRequest: useAuthGuard,
-      schema: { body: ToolsSchemas.setNewEmailBody },
+      schema: ToolsSchemas.setNewEmail,
     },
     ToolsController.setNewEmail
   );
@@ -24,7 +24,7 @@ export default async function ToolsRoutes(app: FastifyInstance) {
     '/password',
     {
       onRequest: useAuthGuard,
-      schema: { body: ToolsSchemas.setNewPasswordBody },
+      schema: ToolsSchemas.setNewPassword,
     },
     ToolsController.setNewPassword
   );
@@ -32,7 +32,7 @@ export default async function ToolsRoutes(app: FastifyInstance) {
     '/google/service',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { body: ToolsSchemas.setGoogleServiceAccountSettingsBody },
+      schema: ToolsSchemas.setGoogleServiceAccountSettings,
     },
     ToolsController.setGoogleServiceAccountSettings
   );
@@ -40,7 +40,7 @@ export default async function ToolsRoutes(app: FastifyInstance) {
     '/users',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { querystring: ToolsSchemas.getUsersQuery },
+      schema: ToolsSchemas.getUsers,
     },
     ToolsController.getUsers
   );
@@ -48,7 +48,7 @@ export default async function ToolsRoutes(app: FastifyInstance) {
     '/setroles',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { body: ToolsSchemas.updateRolesBody },
+      schema: ToolsSchemas.updateRoles,
     },
     ToolsController.updateRoles
   );
@@ -60,5 +60,5 @@ export default async function ToolsRoutes(app: FastifyInstance) {
     ToolsController.setAvatar
   );
 
-  app.get('/locale', { schema: { querystring: ToolsSchemas.getLocaleQuery } }, ToolsController.getLocale);
+  app.get('/locale', { schema: ToolsSchemas.getLocale }, ToolsController.getLocale);
 }

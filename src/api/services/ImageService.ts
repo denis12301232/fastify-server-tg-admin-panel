@@ -8,7 +8,7 @@ import { fileTypeFromBuffer } from 'file-type';
 import { Readable } from 'stream';
 
 export default class ImageService {
-  static async getImages({ limit, descending, sort, skip }: ImageTypes.GetImagesQuery) {
+  static async getImages({ limit, descending, sort, skip }: ImageTypes.GetImages['Querystring']) {
     const [images, count] = await Promise.all([
       Models.Media.find({}, { __v: 0 })
         .sort({ [sort]: descending ? -1 : 1 })

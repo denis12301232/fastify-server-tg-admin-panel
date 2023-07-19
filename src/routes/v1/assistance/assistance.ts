@@ -4,13 +4,13 @@ import AssistanceSchemas from '@/api/schemas/AssistanceSchemas.js';
 import { useAuthGuard, useRoleGuard } from '@/hooks/index.js';
 
 export default async function AssistanceRoutes(app: FastifyInstance) {
-  app.post('/', { schema: { body: AssistanceSchemas.saveFormBody } }, AssistanceController.saveForm);
-  app.get('/forms', { schema: { querystring: AssistanceSchemas.getFormsQuery } }, AssistanceController.getForms);
+  app.post('/', { schema: AssistanceSchemas.saveForm }, AssistanceController.saveForm);
+  app.get('/forms', { schema: AssistanceSchemas.getForms }, AssistanceController.getForms);
   app.get(
     '/',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { querystring: AssistanceSchemas.findFormsQuery },
+      schema: AssistanceSchemas.findForms,
     },
     AssistanceController.findForms
   );
@@ -18,7 +18,7 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
     '/forms',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { body: AssistanceSchemas.deleteFormsBody },
+      schema: AssistanceSchemas.deleteForms,
     },
     AssistanceController.deleteForms
   );
@@ -26,7 +26,7 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
     '/',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { body: AssistanceSchemas.modifyFormBody },
+      schema: AssistanceSchemas.modifyForm,
     },
     AssistanceController.modifyForm
   );
@@ -34,7 +34,7 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
     '/id',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { querystring: AssistanceSchemas.getFormByIdQuery },
+      schema: AssistanceSchemas.getFormById,
     },
     AssistanceController.getFormById
   );
@@ -42,7 +42,7 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
     '/sheet',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { body: AssistanceSchemas.saveFormsToGoogleSheetsBody },
+      schema: AssistanceSchemas.saveFormsToGoogleSheets,
     },
     AssistanceController.saveFormsToGoogleSheets
   );
@@ -50,14 +50,14 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
     '/stats',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: { querystring: AssistanceSchemas.getStatsQuery },
+      schema: AssistanceSchemas.getStats,
     },
     AssistanceController.getStats
   );
 
   app.post(
     '/report',
-    { onRequest: [useAuthGuard, useRoleGuard(['admin'])], schema: { body: AssistanceSchemas.createReportBody } },
+    { onRequest: [useAuthGuard, useRoleGuard(['admin'])], schema: AssistanceSchemas.createReport },
     AssistanceController.getReport
   );
 

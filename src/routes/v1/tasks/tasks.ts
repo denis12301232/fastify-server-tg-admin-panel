@@ -7,7 +7,7 @@ export default async function MessangerRoutes(app: FastifyInstance) {
   app.post(
     '/',
     {
-      schema: { body: TaskSchemas.createTaskBody },
+      schema: TaskSchemas.createTask,
       preHandler: [useAuthGuard, useRoleGuard(['admin'])],
     },
     TaskController.createTask
@@ -15,7 +15,7 @@ export default async function MessangerRoutes(app: FastifyInstance) {
   app.get(
     '/',
     {
-      schema: { querystring: TaskSchemas.getTasksQuery },
+      schema: TaskSchemas.getTasks,
       preHandler: useAuthGuard,
     },
     TaskController.getTasks
@@ -23,7 +23,7 @@ export default async function MessangerRoutes(app: FastifyInstance) {
   app.patch(
     '/update_task_status',
     {
-      schema: { body: TaskSchemas.updateTaskStatusBody },
+      schema: TaskSchemas.updateTaskStatus,
       preHandler: useAuthGuard,
     },
     TaskController.updateTaskStatus
@@ -31,7 +31,7 @@ export default async function MessangerRoutes(app: FastifyInstance) {
   app.get(
     '/get_task_by_id',
     {
-      schema: { querystring: TaskSchemas.getTaskByIdQuery },
+      schema: TaskSchemas.getTaskById,
       preHandler: useAuthGuard,
     },
     TaskController.getTaskById
@@ -39,7 +39,7 @@ export default async function MessangerRoutes(app: FastifyInstance) {
   app.patch(
     '/set_user_for_task',
     {
-      schema: { body: TaskSchemas.setUserForTaskBody },
+      schema: TaskSchemas.setUserForTask,
       preHandler: useAuthGuard,
     },
     TaskController.setUserForTask
@@ -47,7 +47,7 @@ export default async function MessangerRoutes(app: FastifyInstance) {
   app.patch(
     '/update_subtask',
     {
-      schema: { body: TaskSchemas.updateSubtaskBody },
+      schema: TaskSchemas.updateSubtask,
       preHandler: useAuthGuard,
     },
     TaskController.updateSubtask
@@ -55,7 +55,7 @@ export default async function MessangerRoutes(app: FastifyInstance) {
   app.delete(
     '/delete_subtask',
     {
-      schema: { querystring: TaskSchemas.deleteSubtaskQuery },
+      schema: TaskSchemas.deleteSubtask,
       preHandler: useAuthGuard,
     },
     TaskController.deleteSubtask
@@ -63,7 +63,7 @@ export default async function MessangerRoutes(app: FastifyInstance) {
   app.patch(
     '/move_subtask',
     {
-      schema: { body: TaskSchemas.moveSubtaskBody },
+      schema: TaskSchemas.moveSubtask,
       preHandler: useAuthGuard,
     },
     TaskController.moveSubtask
@@ -71,7 +71,7 @@ export default async function MessangerRoutes(app: FastifyInstance) {
   app.get(
     '/create_task_csv',
     {
-      schema: { querystring: TaskSchemas.createTaskCsvQuery },
+      schema: TaskSchemas.createTaskCsv,
       preHandler: useAuthGuard,
       onResponse: useDeleteTempFile('subtasksCsv'),
     },

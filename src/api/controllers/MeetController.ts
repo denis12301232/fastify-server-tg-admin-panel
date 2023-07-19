@@ -3,7 +3,7 @@ import type { MeetTypes } from '@/types/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 
 export default class MeetController {
-  static async getMeetInfo(this: FastifyInstance, request: FastifyRequest<{ Querystring: MeetTypes.GetInfoQuery }>) {
+  static async getMeetInfo(this: FastifyInstance, request: FastifyRequest<MeetTypes.GetInfo>) {
     const { redis } = this;
     const info = await redis.json.get('meets', { path: [`.${request.query.meetId}`] });
 

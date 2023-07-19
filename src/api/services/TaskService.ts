@@ -6,7 +6,7 @@ import ApiError from '@/exceptions/ApiError.js';
 import { Util } from '@/util/index.js';
 
 export default class TaskService {
-  static async createTask(data: TaskTypes.CreateTaskBody) {
+  static async createTask(data: TaskTypes.CreateTask['Body']) {
     const { title, tags, subtasks } = data;
 
     if (!subtasks.length) {
@@ -20,7 +20,7 @@ export default class TaskService {
     return task;
   }
 
-  static async getTasks({ page, limit, sort, descending, filter }: TaskTypes.GetTasksQuery, user_id: string) {
+  static async getTasks({ page, limit, sort, descending, filter }: TaskTypes.GetTasks['Querystring'], user_id: string) {
     const query: FilterQuery<ITask> = filter === 'my' ? { user: user_id } : {};
     const skip = (page - 1) * limit;
     const [tasks, count] = await Promise.all([
@@ -68,7 +68,7 @@ export default class TaskService {
     return updated;
   }
 
-  static async moveSubtask({ subtask_id, task_id, new_task_id }: TaskTypes.MoveSubtaskBody) {
+  static async moveSubtask({ subtask_id, task_id, new_task_id }: TaskTypes.MoveSubtask['Body']) {
     await Models.Task.updateOne({ _id: task_id }, { $pull: { subtasks: { $eq: subtask_id } } }).lean();
     const result = await Models.Task.updateOne({ _id: new_task_id }, { $addToSet: { subtasks: subtask_id } }).lean();
     return result;

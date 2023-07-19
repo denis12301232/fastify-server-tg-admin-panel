@@ -7,7 +7,7 @@ export default async function ImageRoutes(app: FastifyInstance) {
   app.get(
     '/',
     {
-      schema: { querystring: ImageSchemas.getImagesQuery },
+      schema: ImageSchemas.getImages,
     },
     ImagesController.getImages
   );
@@ -15,7 +15,7 @@ export default async function ImageRoutes(app: FastifyInstance) {
   app.delete(
     '/delete',
     {
-      schema: { body: ImageSchemas.deleteImagesBody },
+      schema: ImageSchemas.deleteImages,
       preHandler: [useAuthGuard, useRoleGuard(['admin'])],
     },
     ImagesController.deleteImages
@@ -24,7 +24,7 @@ export default async function ImageRoutes(app: FastifyInstance) {
   app.patch(
     '/description',
     {
-      schema: { body: ImageSchemas.updateDescriptionBody },
+      schema: ImageSchemas.updateDescription,
       preHandler: [useAuthGuard, useRoleGuard(['admin'])],
     },
     ImagesController.updateDescription
