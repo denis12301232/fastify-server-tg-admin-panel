@@ -1,9 +1,9 @@
 import type { TaskTypes, ISubtask, IUser, ITask } from '@/types/index.js';
 import type { FilterQuery } from 'mongoose';
 import Models from '@/models/mongo/index.js';
-import { stringify } from 'csv-stringify';
 import ApiError from '@/exceptions/ApiError.js';
-import { Util } from '@/util/index.js';
+import Excel from 'exceljs';
+import { Readable } from 'stream';
 
 export default class TaskService {
   static async createTask(data: TaskTypes.CreateTask['Body']) {
@@ -76,25 +76,18 @@ export default class TaskService {
 
   static async createTaskCsv(task_id: string) {
     const task = await Models.Task.findById(task_id, { title: 1 })
-      .populate<ISubtask>({ path: 'subtasks', select: { __v: 0, _id: 0, updatedAt: 0 } })
+      .populate<{ subtasks: ISubtask[] }>({ path: 'subtasks', select: { __v: 0, _id: 0, updatedAt: 0, createdAt: 0 } })
       .lean();
     if (!task?.subtasks) {
       throw ApiError.BadRequest(400, 'No data');
     }
-    const file = await Util.pipeStreamAsync(
-      stringify(task.subtasks, {
-        header: true,
-        columns: {
-          title: 'Название',
-          description: 'Описание',
-          status: 'Статус',
-          cause: 'Причина',
-        },
-      }),
-      '../../static/temp/',
-      String(task._id) + '.csv'
-    );
-
-    return file;
+    const header = { title: 'Название', description: 'Описание', status: 'Статус', cause: 'Причина' };
+    const workbook = new Excel.Workbook();
+    const sheet = workbook.addWorksheet('Subtasks');
+    sheet.columns = Object.entries(header).map(([key, value]) => ({ header: value, key, width: 10 }));
+    sheet.addRows(task.subtasks);
+    const buffer = await workbook.csv.writeBuffer();
+    
+    return Readable.from(Buffer.from(buffer));
   }
 }

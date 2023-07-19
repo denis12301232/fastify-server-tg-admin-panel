@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import TaskSchemas from '@/api/schemas/TaskSchemas.js';
 import TaskController from '@/api/controllers/TaskController.js';
-import { useAuthGuard, useRoleGuard, useDeleteTempFile } from '@/hooks/index.js';
+import { useAuthGuard, useRoleGuard } from '@/hooks/index.js';
 
 export default async function MessangerRoutes(app: FastifyInstance) {
   app.post(
@@ -73,7 +73,6 @@ export default async function MessangerRoutes(app: FastifyInstance) {
     {
       schema: TaskSchemas.createTaskCsv,
       preHandler: useAuthGuard,
-      onResponse: useDeleteTempFile('subtasksCsv'),
     },
     TaskController.createTaskCsv
   );

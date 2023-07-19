@@ -285,7 +285,7 @@ export default class AssistanceService {
         }
         return form;
       }, {} as { [key in keyof Omit<IAssistance, '_id'>]: unknown });
-      const { error } = AssistanceSchemas.saveFormBody.validate(result);
+      const { error } = AssistanceSchemas.saveForm.body.validate(result);
 
       if (error) {
         errors.push({ message: 'Error in row', row: index });

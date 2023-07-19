@@ -1,7 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { TaskTypes } from '@/types/index.js';
 import { TaskService } from '@/api/services/index.js';
-import { createReadStream } from 'fs';
 
 export default class TaskController {
   static async createTask(request: FastifyRequest<TaskTypes.CreateTask>) {
@@ -55,9 +54,7 @@ export default class TaskController {
 
   static async createTaskCsv(request: FastifyRequest<TaskTypes.CreateTaskCsv>, reply: FastifyReply) {
     const { task_id } = request.query;
-    const file = await TaskService.createTaskCsv(task_id);
-    const stream = createReadStream(file, 'utf-8');
-    reply.temp = { subtasksCsv: file };
+    const stream = await TaskService.createTaskCsv(task_id);
     return reply.header('Content-Type', 'application/octet-stream').send(stream);
   }
 }

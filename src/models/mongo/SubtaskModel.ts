@@ -17,6 +17,7 @@ const SubtaskSchema = new Schema<ISubtask>(
     },
     cause: {
       type: String,
+      default: ''
     },
   },
   { timestamps: true }
