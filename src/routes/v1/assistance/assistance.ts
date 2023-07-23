@@ -5,7 +5,7 @@ import { useAuthGuard, useRoleGuard } from '@/hooks/index.js';
 
 export default async function AssistanceRoutes(app: FastifyInstance) {
   app.post('/', { schema: AssistanceSchemas.saveForm }, AssistanceController.saveForm);
-  app.get('/forms', { schema: AssistanceSchemas.getForms }, AssistanceController.getForms);
+  app.post('/forms', { schema: AssistanceSchemas.getForms }, AssistanceController.getForms);
   app.get(
     '/',
     {

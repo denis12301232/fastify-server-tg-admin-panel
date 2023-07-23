@@ -2,6 +2,7 @@ import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { AssistanceTypes } from '@/types/index.js';
 import { AssistanceService } from '@/api/services/index.js';
 import ApiError from '@/exceptions/ApiError.js';
+import Validate from '@/util/Validate.js';
 
 export default class AssistanceController {
   static async saveForm(request: FastifyRequest<AssistanceTypes.SaveForm>) {
@@ -10,7 +11,7 @@ export default class AssistanceController {
   }
 
   static async getForms(request: FastifyRequest<AssistanceTypes.GetForms>, reply: FastifyReply) {
-    const { forms, total } = await AssistanceService.getForms(request.query);
+    const { forms, total } = await AssistanceService.getForms(request.body);
     reply.header('X-Total-Count', total);
     return forms;
   }
@@ -59,11 +60,16 @@ export default class AssistanceController {
   static async uploadListCSV(request: FastifyRequest<AssistanceTypes.UploadListCSV>) {
     const file = await request.file();
 
-    if (!file) {
+    if (!file || Validate.isValidMime(['text/csv'])) {
       throw ApiError.BadRequest(400, 'Wrong query');
     }
 
     const result = await AssistanceService.uploadListCSV(file, request.query.locale);
     return result;
+  }
+
+  static async createReport(request: FastifyRequest<AssistanceTypes.CreateReport>) {
+    const rep = await AssistanceService.createReport(request.body);
+    return rep;
   }
 }

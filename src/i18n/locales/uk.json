@@ -236,11 +236,13 @@
   "list": {
     "title": "Повний список",
     "hints": {
-      "delete": "Видалити"
+      "delete": "Видалити",
+      "filter": "Фiльтр"
     },
     "msgs":{
       "import": "Імпорт",
-      "export": "Експорт"
+      "export": "Експорт",
+      "filter": "Фiльтр"
     },
     "table": {
       "show": "Стовпці",
@@ -3457,11 +3459,12 @@
       }
     },
     "sheets": {
-      "title": "Критерії вивантаження",
+      "title": "Критерії розвантаження",
       "checkbox": {
-        "district": "За районом",
+        "district": "По району",
         "year": "За роком",
-        "street": "За вулицею"
+        "street": "По вулиці",
+        "sector": "По сектору"
       },
       "district": {
         "title": "Виберіть район",
@@ -3470,12 +3473,15 @@
       "year": {
         "title": "Виберіть інтервал",
         "placeholders": {
-          "min": "З",
+          "min": "С",
           "max": "по"
         }
       },
       "street": {
         "placeholder": "Вулиця"
+      },
+      "sector": {
+        "placeholder": "Сектор"
       },
       "buttons": {
         "save": "Зберегти"

@@ -207,11 +207,13 @@
   "list": {
     "title": "Полный список",
     "hints": {
-      "delete": "Удалить"
+      "delete": "Удалить",
+      "filter": "Фильтр"
     },
     "msgs":{
       "import": "Импорт",
-      "export": "Экспорт"
+      "export": "Экспорт",
+      "filter": "Фильтр"
     },
     "table": {
       "show": "Столбцы",
@@ -3432,7 +3434,8 @@
       "checkbox": {
         "district": "По району",
         "year": "По году",
-        "street": "По улице"
+        "street": "По улице",
+        "sector": "По сектору"
       },
       "district": {
         "title": "Выберите район",
@@ -3447,6 +3450,9 @@
       },
       "street": {
         "placeholder": "Улица"
+      },
+      "sector": {
+        "placeholder": "Сектор"
       },
       "buttons": {
         "save": "Сохранить"

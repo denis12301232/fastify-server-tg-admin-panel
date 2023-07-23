@@ -194,11 +194,17 @@ export namespace AssistanceTypes {
     Body: IAssistance;
   }
   export interface GetForms extends RouteGenericInterface {
-    Querystring: {
+    Body: {
       limit: number;
       page: number;
       descending: boolean;
       sort: string;
+      filter?: {
+        district?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+        birth?: { min: number; max: number };
+        street?: string;
+        sector?: string;
+      };
     };
   }
   export interface FindForms extends RouteGenericInterface {
@@ -229,11 +235,7 @@ export namespace AssistanceTypes {
   export interface SaveFormsToSheets extends RouteGenericInterface {
     Body: {
       locale: Langs;
-      filters: {
-        district?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-        birth: { from: string; to: string };
-        street?: string;
-      };
+      ids: string[];
     };
   }
 
@@ -248,17 +250,22 @@ export namespace AssistanceTypes {
     Body: {
       locale: Langs;
       type: 'csv' | 'xlsx';
-      filters: {
-        district?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-        birth: { from: string; to: string };
-        street?: string;
-      };
+      ids: string[];
     };
   }
 
   export interface UploadListCSV extends RouteGenericInterface {
     Querystring: {
       locale: Langs;
+    };
+  }
+
+  export interface FilteredForms extends RouteGenericInterface {
+    Body: {
+      district?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+      birth?: { min: number; max: number };
+      street?: string;
+      sector?: string;
     };
   }
 }
@@ -313,7 +320,6 @@ export namespace ChatTypes {
       users: string[];
     };
   }
-
 
   export interface AddUserToGroup extends RouteGenericInterface {
     Body: {

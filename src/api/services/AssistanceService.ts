@@ -16,15 +16,33 @@ export default class AssistanceService {
     return saved;
   }
 
-  static async getForms({ limit, page, sort, descending }: AssistanceTypes.GetForms['Querystring']) {
+  static async getForms({ limit, page, sort, descending, filter }: AssistanceTypes.GetForms['Body']) {
+    const conditions: FilterQuery<IAssistance>[] = [
+      filter?.district ? { district: filter.district } : {},
+      filter?.street ? { street: filter.street } : {},
+      filter?.sector ? { sector: filter.sector } : {},
+      filter?.birth?.min && filter?.birth.max
+        ? {
+            $expr: {
+              $function: {
+                body: `${function (birth: string, filter: AssistanceTypes.GetForms['Body']['filter']) {
+                  return +birth.split('/')[0] >= filter!.birth!.min && +birth.split('/')[0] <= filter!.birth!.max;
+                }}`,
+                args: ['$birth', filter],
+                lang: 'js',
+              },
+            },
+          }
+        : {},
+    ];
     const skip = (page - 1) * limit;
     const [forms, total] = await Promise.all([
-      Models.Assistance.find({}, { __v: 0, createdAt: 0, updatedAt: 0 })
+      Models.Assistance.find({ $and: conditions }, { __v: 0, createdAt: 0, updatedAt: 0 })
         .sort({ [sort]: descending ? -1 : 1 })
         .skip(skip)
         .limit(limit)
         .lean(),
-      Models.Assistance.count(),
+      Models.Assistance.find({ $and: conditions }).count().lean(),
     ]);
     return { forms, total };
   }
@@ -57,32 +75,15 @@ export default class AssistanceService {
     return form;
   }
 
-  static async saveFormsToSheet({ locale, filters }: AssistanceTypes.SaveFormsToSheets['Body']) {
-    const googleApi = await Models.Tools.findOne({ api: 'google' }).lean();
+  static async saveFormsToSheet({ locale, ids }: AssistanceTypes.SaveFormsToSheets['Body']) {
+    const [googleApi, forms] = await Promise.all([
+      Models.Tools.findOne({ api: 'google' }).lean(),
+      Models.Assistance.find({ _id: { $in: ids } }).lean(),
+    ]);
 
     if (!googleApi) {
       throw ApiError.BadRequest(400, 'Integration not set');
     }
-
-    const conditions: { [name: string]: FilterQuery<IAssistance> } = {
-      disrtict: filters.district ? { district: filters.district } : {},
-      street: filters.street ? { street: filters.street } : {},
-      birth:
-        filters.birth?.from && filters.birth?.to
-          ? {
-              $expr: {
-                $function: {
-                  body: `${function (birth: string, filters: AssistanceTypes.SaveFormsToSheets['Body']['filters']) {
-                    return +birth.split('/')[0] >= +filters.birth.from && +birth.split('/')[0] <= +filters.birth.to;
-                  }}`,
-                  args: ['$birth', filters],
-                  lang: 'js',
-                },
-              },
-            }
-          : {},
-    };
-    const forms = await Models.Assistance.find({ $and: Object.values(conditions) }).lean();
 
     if (!forms.length) {
       throw ApiError.NotFound();
@@ -129,7 +130,7 @@ export default class AssistanceService {
 
     await sheetsService.spreadsheets.values.clear({
       spreadsheetId: googleApi.settings.sheetId as string,
-      range: `${listTitle}!A:Y`,
+      range: `${listTitle}!A:Z`,
     });
 
     await sheetsService.spreadsheets.values.append({
@@ -193,32 +194,16 @@ export default class AssistanceService {
     return Object.fromEntries(list.entries());
   }
 
-  static async createReport({ type, locale, filters }: AssistanceTypes.CreateReport['Body']) {
+  static async createReport({ type, locale, ids }: AssistanceTypes.CreateReport['Body']) {
+    const forms = await Models.Assistance.find({ _id: { $in: ids } }).lean();
     const allFields = Object.entries(locales[locale].assistance.fields) as Entries<
       (typeof locales)['en']['assistance']['fields']
     >;
-    const conditions: { [name: string]: FilterQuery<IAssistance> } = {
-      disrtict: filters.district ? { district: filters.district } : {},
-      street: filters.street ? { street: filters.street } : {},
-      birth:
-        filters.birth?.from && filters.birth?.to
-          ? {
-              $expr: {
-                $function: {
-                  body: `${function (birth: string, filters: AssistanceTypes.CreateReport['Body']['filters']) {
-                    return +birth.split('/')[0] >= +filters.birth.from && +birth.split('/')[0] <= +filters.birth.to;
-                  }}`,
-                  args: ['$birth', filters],
-                  lang: 'js',
-                },
-              },
-            }
-          : {},
-    };
-    const forms = await Models.Assistance.find({ $and: Object.values(conditions) }).lean();
+
     if (!forms.length) {
       throw ApiError.NotFound();
     }
+
     const workbook = new Excel.Workbook();
     const sheet = workbook.addWorksheet('Assistance');
     sheet.columns = allFields.map(([key, value]) => ({ header: value, key, width: 10 }));
@@ -259,7 +244,10 @@ export default class AssistanceService {
       },
     });
 
-    sheet.eachRow((row, number) => {
+    sheet.eachRow(onEachRow);
+    const created = await Promise.all(forms.map((form) => Models.Assistance.create(form)));
+
+    function onEachRow(row: Excel.Row, number: number) {
       const values = row.model?.cells?.map((cell) => String(cell.value)) || [];
       const form = column.reduce((form, item, index) => {
         if (item === 'people_fio' || item === 'kids_age') {
@@ -299,8 +287,7 @@ export default class AssistanceService {
       } else {
         forms.push(form);
       }
-    });
-    const created = await Promise.all(forms.map((form) => Models.Assistance.create(form)));
+    }
 
     return { created: created.length, errors };
   }

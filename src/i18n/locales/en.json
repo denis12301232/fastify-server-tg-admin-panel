@@ -207,11 +207,13 @@
   "list": {
     "title": "Full List",
     "hints": {
-      "delete": "Delete"
+      "delete": "Delete",
+      "filter": "Filter"
     },
     "msgs":{
       "import": "Import",
-      "export": "Export"
+      "export": "Export",
+      "filter": "Filter"
     },
     "table": {
       "show": "Columns",
@@ -3432,7 +3434,8 @@
       "checkbox": {
         "district": "By district",
         "year": "By year",
-        "street": "By street"
+        "street": "On the street",
+        "sector": "By sector"
       },
       "district": {
         "title": "Select an area",
@@ -3441,12 +3444,15 @@
       "year": {
         "title": "Select Interval",
         "placeholders": {
-          "min": "from",
-          "max": "to"
+          "min": "C",
+          "max": "by"
         }
       },
       "street": {
         "placeholder": "Street"
+      },
+      "sector": {
+        "placeholder": "Sector"
       },
       "buttons": {
         "save": "Save"
@@ -3454,8 +3460,8 @@
       "link": "Link to uploaded orders",
       "type": "Upload type",
       "msgs": {
-        "success": "Formed",
-        "error": "No results found for your search!"
+        "success": "Generated",
+        "error": "Nothing found for your query!"
       }
     },
     "roles": {

@@ -2,6 +2,8 @@ import type { AssistanceTypes, IAssistance } from '@/types/index.js';
 import Joi from 'joi';
 import { Validate } from '@/util/index.js';
 
+const year = new Date().getFullYear();
+
 export default class AssistanceSchemas {
   static readonly saveForm = {
     body: Joi.object<IAssistance>()
@@ -54,12 +56,21 @@ export default class AssistanceSchemas {
   };
 
   static readonly getForms = {
-    querystring: Joi.object<AssistanceTypes.GetForms['Querystring']>()
+    body: Joi.object<AssistanceTypes.GetForms['Body']>()
       .keys({
         limit: Joi.number().required(),
         page: Joi.number().required(),
         sort: Joi.string().required(),
         descending: Joi.boolean().required(),
+        filter: Joi.object<AssistanceTypes.GetForms['Body']['filter']>().keys({
+          district: Joi.number().allow('').valid(1, 2, 3, 4, 5, 6, 7, 8, 9),
+          birth: Joi.object<{ min: number; max: number }>().keys({
+            min: Joi.number().required().min(1920).max(year),
+            max: Joi.number().required().min(1920).max(year),
+          }),
+          street: Joi.string().allow(''),
+          sector: Joi.string().allow(''),
+        }),
       })
       .required(),
   };
@@ -126,14 +137,7 @@ export default class AssistanceSchemas {
     body: Joi.object<AssistanceTypes.SaveFormsToSheets['Body']>()
       .keys({
         locale: Joi.string().required().valid('ru', 'uk', 'en'),
-        filters: Joi.object<AssistanceTypes.SaveFormsToSheets['Body']['filters']>({
-          district: Joi.number().allow('').valid(1, 2, 3, 4, 5, 6, 7, 8, 9),
-          birth: Joi.object<{ from: string; to: string }>().keys({
-            from: Joi.number().required().min(1920).max(2022),
-            to: Joi.number().required().min(1920).max(2022),
-          }),
-          street: Joi.string().allow(''),
-        }),
+        ids: Joi.array().items(Joi.string()).required(),
       })
       .required(),
   };
@@ -150,14 +154,7 @@ export default class AssistanceSchemas {
       .keys({
         locale: Joi.string().required().valid('ru', 'uk', 'en'),
         type: Joi.string().required().valid('xlsx', 'csv'),
-        filters: Joi.object<AssistanceTypes.SaveFormsToSheets['Body']['filters']>({
-          district: Joi.number().allow('').valid(1, 2, 3, 4, 5, 6, 7, 8, 9),
-          birth: Joi.object<{ from: string; to: string }>().keys({
-            from: Joi.number().required().min(1920).max(2022),
-            to: Joi.number().required().min(1920).max(2022),
-          }),
-          street: Joi.string().allow(''),
-        }),
+        ids: Joi.array().items(Joi.string()).required(),
       })
       .required(),
   };
