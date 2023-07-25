@@ -237,7 +237,8 @@
     "title": "Повний список",
     "hints": {
       "delete": "Видалити",
-      "filter": "Фiльтр"
+      "filter": "Фiльтр",
+      "columns": "Стовпці"
     },
     "msgs":{
       "import": "Імпорт",

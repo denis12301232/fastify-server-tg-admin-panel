@@ -208,7 +208,8 @@
     "title": "Full List",
     "hints": {
       "delete": "Delete",
-      "filter": "Filter"
+      "filter": "Filter",
+      "columns": "Columns"
     },
     "msgs":{
       "import": "Import",
