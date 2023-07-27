@@ -29,7 +29,7 @@ export default class TaskService {
         .skip(skip)
         .limit(limit)
         .lean(),
-      Models.Task.count(),
+      Models.Task.count(query),
     ]);
 
     return { tasks, count };
@@ -87,7 +87,7 @@ export default class TaskService {
     sheet.columns = Object.entries(header).map(([key, value]) => ({ header: value, key, width: 10 }));
     sheet.addRows(task.subtasks);
     const buffer = await workbook.csv.writeBuffer();
-    
+
     return Readable.from(Buffer.from(buffer));
   }
 }

@@ -72,11 +72,14 @@ export default class ToolsService {
       : {};
     const skip = (page - 1) * limit;
     const [users, count] = await Promise.all([
-      Models.User.find({ _id: { $ne: _id }, login: { $ne: 'root' }, ...query }, { _id: 1, login: 1, name: 1, roles: 1 })
+      Models.User.find(
+        { $and: [{ _id: { $ne: _id }, login: { $ne: 'root' } }, query] },
+        { _id: 1, login: 1, name: 1, roles: 1 }
+      )
         .skip(skip)
         .limit(limit)
         .lean(),
-      Models.User.count(),
+      Models.User.count({ $and: [{ _id: { $ne: _id }, login: { $ne: 'root' } }, query] }),
     ]);
 
     return { users, count };
