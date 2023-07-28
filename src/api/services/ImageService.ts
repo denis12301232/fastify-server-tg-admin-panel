@@ -1,11 +1,13 @@
 import type { MultipartFile } from '@fastify/multipart';
-import { ImageTypes } from '@/types/queries.js';
+import type { ImageTypes, IMedia } from '@/types/index.js';
 import { google } from 'googleapis';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 import { v4 } from 'uuid';
 import { fileTypeFromBuffer } from 'file-type';
 import { Readable } from 'stream';
+import { S3Service } from '@/api/services/index.js';
+import { join } from 'path';
 
 export default class ImageService {
   static async getImages({ limit, descending, sort, skip }: ImageTypes.GetImages['Querystring']) {
@@ -19,6 +21,47 @@ export default class ImageService {
     ]);
 
     return { images, count };
+  }
+
+  static async uploadToS3(parts: AsyncIterableIterator<MultipartFile>) {
+    const images: Omit<IMedia, '_id'>[] = [];
+
+    for await (const part of parts) {
+      const buffer = await part.toBuffer();
+
+      if (!buffer) {
+        throw ApiError.BadRequest(400, 'File required');
+      }
+
+      const validateResult = await fileTypeFromBuffer(buffer);
+
+      if (!validateResult?.mime.includes('image/')) {
+        throw ApiError.BadRequest(400, 'Wrong file type');
+      }
+
+      const ext = part.filename.split('.').at(-1);
+      const fileName = `${v4()}.${ext}`;
+      await S3Service.uploadFile(buffer, S3Service.IMAGE_FOLDER, fileName);
+
+      images.push({
+        link: join(S3Service.URL, S3Service.IMAGE_FOLDER, fileName),
+        fileName: fileName.split('.').at(0) || '',
+        mimeType: part.mimetype,
+        ext: ext || '',
+      });
+    }
+
+    const result = await Promise.all(images.map((img) => Models.Media.create(img)));
+    return result;
+  }
+
+  static async deleteFromS3(ids: string[]) {
+    const images = await Models.Media.find({ _id: { $in: ids } }).lean();
+    const objects = images.map((img) => ({ Key: join(S3Service.IMAGE_FOLDER, `${img.fileName}.${img.ext}`) }));
+
+    await Promise.all([S3Service.deleteFiles(objects), Models.Media.deleteMany({ _id: { $in: ids } })]);
+
+    return images.map((img) => img._id);
   }
 
   static async uploadImages(parts: AsyncIterableIterator<MultipartFile>) {

@@ -1,6 +1,5 @@
 import type { FastifyInstance } from 'fastify';
 import type { ObjectSchema } from 'joi';
-import fastifyEnv from '@fastify/env';
 import fastifyCors from '@fastify/cors';
 import fastifyCookie from '@fastify/cookie';
 import fastifyMultipart from '@fastify/multipart';
@@ -14,29 +13,19 @@ import Plugins from '@/plugins/Plugins.js';
 export default async function factory(app: FastifyInstance) {
   const dirname = fileURLToPath(new URL('.', import.meta.url));
 
-  await app.register(fastifyEnv, {
-    schema: { type: 'object' },
-    dotenv: { path: `.env`, debug: true },
-  });
   app.register(fastifyCors, {
     origin: process.env.CLIENT_DOMAIN.split(' '),
     credentials: true,
     exposedHeaders: ['X-Total-Count'],
   });
   app.register(fastifyCookie, { hook: 'onRequest' });
-  app.register(fastifyMultipart, { limits: { fileSize: 100000000, files: 10 } });
+  app.register(fastifyMultipart, { limits: { fileSize: 1e9, files: 10 } });
   app.register(fastifyAutoload, {
     dir: join(dirname, 'routes'),
     options: { prefix: '/api' },
     forceESM: true,
   });
-  app.register(Plugins.staticFolders, [
-    '../../static/audio',
-    '../../static/images/avatars',
-    '../../static/media',
-    '../../public',
-    '../../static/temp',
-  ]);
+  app.register(Plugins.staticFolders, ['../../static/audio', '../../static/images/avatars', '../../static/media']);
   app.register(Plugins.io, {
     cors: {
       origin: process.env.CLIENT_DOMAIN.split(' '),

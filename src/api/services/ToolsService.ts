@@ -1,11 +1,14 @@
 import type { IUser, ToolsTypes } from '@/types/index.js';
+import type { MultipartFile } from '@fastify/multipart';
 import type { FilterQuery } from 'mongoose';
 import ApiError from '@/exceptions/ApiError.js';
 import Models from '@/models/mongo/index.js';
 import { UserDto } from '@/dto/index.js';
 import bcrypt from 'bcrypt';
-import { Util } from '@/util/index.js';
 import { v4 } from 'uuid';
+import { fileTypeFromBuffer } from 'file-type';
+import { S3Service } from '@/api/services/index.js';
+import { join } from 'path';
 
 export default class ToolsService {
   static async setNewName(id: string, name: string) {
@@ -90,22 +93,31 @@ export default class ToolsService {
     return updated;
   }
 
-  static async setAvatar(user_id: string, { buffer, ext }: { buffer?: Buffer; ext?: string }) {
-    let fileName = '';
-    if (buffer && ext) {
-      fileName = `${v4()}.${ext}`;
-      await Util.createAsyncWriteStream(buffer, '../../static/images/avatars/', fileName);
+  static async setAvatar(userId: string, file: MultipartFile) {
+    const buffer = await file.toBuffer();
+    const validateResult = await fileTypeFromBuffer(buffer);
+
+    if (!validateResult?.mime.includes('image/')) {
+      throw ApiError.BadRequest(400, 'Wrong file type');
     }
-    const user = await Models.User.findOneAndUpdate(
-      { _id: user_id },
-      { avatar: fileName },
-      { avatar: 1, _id: 0 }
-    ).lean();
+
+    const ext = file.filename.split('.').at(-1);
+    const fileName = `${v4()}.${ext}`;
+
+    const [user] = await Promise.all([
+      Models.User.findOneAndUpdate(
+        { _id: userId },
+        { avatar: join(S3Service.URL, S3Service.IMAGE_FOLDER, fileName) },
+        { avatar: 1, _id: 0 }
+      ).lean(),
+      S3Service.uploadFile(buffer, S3Service.IMAGE_FOLDER, fileName),
+    ]);
 
     if (user?.avatar) {
-      await Util.removeFile(`../../static/images/avatars/${user.avatar}`);
+      const oldFile = user.avatar.split('/').at(-1) || '';
+      await S3Service.deleteFiles([{ Key: join(S3Service.IMAGE_FOLDER, oldFile) }]).catch((e) => console.log(e));
     }
 
-    return { avatar: fileName };
+    return { avatar: join(S3Service.URL, S3Service.IMAGE_FOLDER, fileName) };
   }
 }

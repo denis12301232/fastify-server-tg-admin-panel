@@ -124,7 +124,10 @@ export interface IUser {
 }
 
 export interface IMedia {
+  _id: Types.ObjectId;
   link: string;
-  description: string;
-  fileId: string;
+  description?: string;
+  fileName: string;
+  mimeType: string;
+  ext: string;
 }

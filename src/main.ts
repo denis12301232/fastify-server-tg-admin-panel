@@ -1,3 +1,4 @@
+import './loadEnv.js';
 import fastify from 'fastify';
 import factory from '@/factory.js';
 import SocketEvents from '@/api/io/index.js';

@@ -5,6 +5,9 @@ import { Util } from '@/util/index.js';
 import { v4 } from 'uuid';
 import { fileTypeFromBuffer } from 'file-type';
 import ApiError from '@/exceptions/ApiError.js';
+import { MultipartFile } from '@fastify/multipart';
+import S3Service from './S3Service.js';
+import { join } from 'path';
 
 export default class ChatService {
   static async createChat(socket: SocketTyped, userId: string, users: string[]) {
@@ -270,27 +273,57 @@ export default class ChatService {
     return updated;
   }
 
-  static async updateGroup(
-    userId: string,
-    groupId: string,
-    { title, about, file }: { title?: string; about?: string; file: { buffer?: Buffer; ext?: string } }
-  ) {
-    const group = await Models.Group.findById(groupId).lean();
+  static async updateGroup(userId: string, info: ChatTypes.UpdateGroup['Querystring'], file?: MultipartFile) {
+    const group = await Models.Group.findById(info.group_id).lean();
     if (!group?.roles.admin?.includes(userId)) {
       throw ApiError.Forbidden();
     }
-    const fileName = file.ext && `${group._id}.${file.ext}`;
 
-    if (fileName && file.buffer) {
-      Util.createAsyncWriteStream(file.buffer, '../../static/images/avatars/', fileName);
+    if (file) {
+      const buffer = await file.toBuffer();
+      if (!buffer) {
+        throw ApiError.BadRequest(400, 'File required');
+      }
+
+      const validateResult = await fileTypeFromBuffer(buffer);
+
+      if (!validateResult?.mime.includes('image/')) {
+        throw ApiError.BadRequest(400, 'Wrong file type');
+      }
+      const ext = file.filename.split('.').at(-1);
+      const fileName = `${v4()}.${ext}`;
+
+      const [oldGroup, newGroup] = await Promise.all([
+        Models.Group.findOne({ _id: info.group_id }, { avatar: 1 }).lean(),
+        Models.Group.findOneAndUpdate(
+          { _id: info.group_id },
+          {
+            avatar: join(S3Service.URL, S3Service.IMAGE_FOLDER, fileName),
+            title: info.title,
+            about: info.about,
+          },
+          {
+            new: true,
+          }
+        ).lean(),
+        S3Service.uploadFile(buffer, S3Service.IMAGE_FOLDER, fileName),
+      ]);
+
+      if (oldGroup?.avatar) {
+        const oldFile = oldGroup.avatar.split('/').at(-1) || '';
+        S3Service.deleteFiles([{ Key: join(S3Service.IMAGE_FOLDER, oldFile) }]).catch((e) => console.log(e));
+      }
+
+      return newGroup;
+    } else {
+      const group = await Models.Group.findOneAndUpdate(
+        { _id: info.group_id },
+        { title: info.title, about: info.about },
+        { new: true }
+      ).lean();
+
+      return group;
     }
-
-    await Models.Group.updateOne(
-      { _id: groupId },
-      { avatar: fileName, title: title || undefined, about: about || undefined }
-    ).lean();
-
-    return { avatar: fileName, title: title || undefined, about: about || undefined };
   }
 
   static async getUserChatById(user_id: string, chat_id: string) {

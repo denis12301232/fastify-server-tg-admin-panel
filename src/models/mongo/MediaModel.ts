@@ -11,7 +11,16 @@ const MediaSchema = new Schema<IMedia>(
       type: String,
       default: '',
     },
-    fileId: {
+    fileName: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    mimeType: {
+      type: String,
+      required: true,
+    },
+    ext: {
       type: String,
       required: true,
     },

@@ -6,3 +6,4 @@ export { default as TokenService } from './TokenService.js';
 export { default as ToolsService } from './ToolsService.js';
 export { default as TaskService } from './TaskService.js';
 export { default as ChatService } from './ChatService.js';
+export { default as S3Service } from './S3Service.js';
