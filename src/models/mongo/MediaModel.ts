@@ -3,10 +3,6 @@ import { Schema, model } from 'mongoose';
 
 const MediaSchema = new Schema<IMedia>(
   {
-    link: {
-      type: String,
-      required: true,
-    },
     description: {
       type: String,
       default: '',

@@ -13,13 +13,13 @@ export default class MailService {
   }
 
   public static sendActivationMail(to: string, link: string) {
-    const subject = `Активация аккаунта на сайте ${process.env.SERVER_URL}`;
+    const subject = `Активация аккаунта на сайте ${process.env.CLIENT_DOMAIN}`;
     const html = `<div><h1>Для активации перейдите по ссылке:</h1><a href="${link}">${link}</a></div>`;
     return this.sendMail(to, subject, html);
   }
 
   public static sendRestoreMail(to: string, link: string) {
-    const subject = `Восстановление пароля на сайте ${process.env.SERVER_URL}`;
+    const subject = `Восстановление пароля на сайте ${process.env.CLIENT_DOMAIN}`;
     const html = `<div><h1>Для восстановления перейдите по ссылке:</h1><a href="${link}">${link}</a></div>`;
     return this.sendMail(to, subject, html);
   }

@@ -38,7 +38,6 @@ export interface IAttachment {
   name: string;
   ext: string;
   mime: string;
-  type: 'audio' | 'image';
   createdAt: NativeDate;
   updatedAt: NativeDate;
 }
@@ -125,7 +124,6 @@ export interface IUser {
 
 export interface IMedia {
   _id: Types.ObjectId;
-  link: string;
   description?: string;
   fileName: string;
   mimeType: string;

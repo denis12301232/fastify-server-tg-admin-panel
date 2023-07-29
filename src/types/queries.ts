@@ -306,7 +306,6 @@ export namespace ChatTypes {
     chatId: string;
     text: string;
     attachments?: Buffer[];
-    type: 'audio' | 'image';
   }
 
   export interface FindUsers extends RouteGenericInterface {
@@ -400,6 +399,12 @@ export namespace ChatTypes {
   export interface GetUserChatById extends RouteGenericInterface {
     Querystring: {
       chat_id: string;
+    };
+  }
+
+  export interface GetFileFromS3 extends RouteGenericInterface {
+    Querystring: {
+      filename: string;
     };
   }
 }

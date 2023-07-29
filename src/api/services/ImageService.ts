@@ -1,12 +1,11 @@
 import type { MultipartFile } from '@fastify/multipart';
 import type { ImageTypes, IMedia } from '@/types/index.js';
-import { google } from 'googleapis';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 import { v4 } from 'uuid';
 import { fileTypeFromBuffer } from 'file-type';
 import { Readable } from 'stream';
-import { S3Service } from '@/api/services/index.js';
+import { S3Service, GoogleService } from '@/api/services/index.js';
 import { join } from 'path';
 
 export default class ImageService {
@@ -44,7 +43,6 @@ export default class ImageService {
       await S3Service.uploadFile(buffer, S3Service.IMAGE_FOLDER, fileName);
 
       images.push({
-        link: join(S3Service.URL, S3Service.IMAGE_FOLDER, fileName),
         fileName: fileName.split('.').at(0) || '',
         mimeType: part.mimetype,
         ext: ext || '',
@@ -71,15 +69,8 @@ export default class ImageService {
       throw ApiError.BadRequest(400, 'Integration not set');
     }
 
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: googleApi.settings.serviceUser as string,
-        private_key: googleApi.settings.servicePrivateKey as string,
-      },
-      scopes: ['https://www.googleapis.com/auth/drive'],
-    });
-
-    const driveService = google.drive({ version: 'v3', auth });
+    const auth = await GoogleService.auth(['https://www.googleapis.com/auth/drive']);
+    const driveService = GoogleService.drive(auth);
     const images: { link: string; fileId: string }[] = [];
 
     for await (const part of parts) {
@@ -102,7 +93,7 @@ export default class ImageService {
         media: { mimeType: part.mimetype, body: Readable.from(buffer) },
       });
       images.push({
-        link: `https://drive.google.com/uc?export=view&id=${response.data.id}`,
+        link: GoogleService.exportUrl(String(response.data.id)),
         fileId: response.data.id || '',
       });
     }
@@ -118,14 +109,8 @@ export default class ImageService {
       throw ApiError.BadRequest(400, 'Integration not set');
     }
 
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: googleApi.settings.serviceUser as string,
-        private_key: googleApi.settings.servicePrivateKey as string,
-      },
-      scopes: ['https://www.googleapis.com/auth/drive'],
-    });
-    const driveService = google.drive({ version: 'v3', auth });
+    const auth = await GoogleService.auth(['https://www.googleapis.com/auth/drive']);
+    const driveService = GoogleService.drive(auth);
     const removed: string[] = [];
 
     for (const id of ids) {

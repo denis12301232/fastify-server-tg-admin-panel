@@ -91,4 +91,6 @@ export default async function ChatRoutes(app: FastifyInstance) {
     },
     ChatController.getUserChatById
   );
+
+  app.get('/get_file_from_s3', { preHandler: useAuthGuard }, ChatController.getFileFromS3);
 }

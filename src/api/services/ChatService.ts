@@ -6,7 +6,7 @@ import { v4 } from 'uuid';
 import { fileTypeFromBuffer } from 'file-type';
 import ApiError from '@/exceptions/ApiError.js';
 import { MultipartFile } from '@fastify/multipart';
-import S3Service from './S3Service.js';
+import { S3Service } from '@/api/services/index.js';
 import { join } from 'path';
 
 export default class ChatService {
@@ -65,18 +65,18 @@ export default class ChatService {
     createdGroup && socket.emit('chat:create-group', new ChatDto(createdGroup, socket.data.user?._id as string));
   }
 
-  static async saveMessage(socket: SocketTyped, { text, chatId, attachments, type }: ChatTypes.Message) {
+  static async saveMessage(socket: SocketTyped, { text, chatId, attachments }: ChatTypes.Message) {
     const chat = await Models.Chat.findOne({ _id: chatId, users: { $in: [socket.data.user?._id] } });
 
     if (!chat) {
       throw new Error('Chat not found');
     }
 
-    if (chat.type === 'group' && chat.deleted.includes(socket.data.user?._id as string)) {
+    if (chat.type === 'group' && chat.deleted.includes(socket.data.user?._id || '')) {
       throw new Error('Forbidden');
     }
 
-    const ids = attachments ? await this.saveAttachments(type, attachments) : [];
+    const ids = attachments ? await ChatService.saveAttachmentsToS3(attachments) : [];
     const message = await Models.Message.create({
       chat_id: chatId,
       author: socket.data.user?._id,
@@ -89,12 +89,39 @@ export default class ChatService {
     chat.type === 'dialog' && (chat.deleted = []);
     await chat.save();
 
-    const result = attachments?.length
-      ? await message.populate({ path: 'attachments', select: { name: 1, type: 1 } })
-      : message;
+    const result = attachments?.length ? await message.populate({ path: 'attachments' }) : message;
 
     socket.emit('chat:message', result);
     socket.to(chatId).emit('chat:message', result);
+  }
+
+  static async saveAttachmentsToS3(attachments: Buffer[]) {
+    const validMimes = ['image/', 'audio/', 'video/'];
+    const ids: string[] = [];
+    for (const attachment of attachments) {
+      const validateResult = await fileTypeFromBuffer(attachment);
+      const fileName = v4();
+      let valid = false;
+
+      for (const mime of validMimes) {
+        if (validateResult?.mime.includes(mime)) {
+          valid = true;
+          break;
+        }
+      }
+
+      if (!valid) {
+        throw ApiError.BadRequest(400, 'Wrong file type');
+      }
+      const [newAttachment] = await Promise.all([
+        Models.Attachment.create({ name: fileName, ext: validateResult?.ext, mime: validateResult?.mime }),
+        S3Service.uploadFile(attachment, S3Service.MEDIA_FOLDER, `${fileName}.${validateResult?.ext}`),
+      ]);
+
+      ids.push(newAttachment._id.toString());
+    }
+
+    return ids;
   }
 
   static async saveAttachments(type: 'audio' | 'image', attachments: Buffer[]) {
@@ -157,7 +184,7 @@ export default class ChatService {
     const chats = await Models.Chat.find({ users: { $in: [user_id] }, deleted: { $nin: [user_id] } })
       .populate<{ messages: IMessage[] }>({
         path: 'messages',
-        populate: { path: 'attachments', select: { type: 1, name: 1 } },
+        populate: { path: 'attachments' },
       })
       .populate<{ users: IUser[] }>({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
       .populate<{ group: IGroup }>({ path: 'group', select: { title: 1, avatar: 1, roles: 1, about: 1, _id: 1 } })
@@ -174,7 +201,7 @@ export default class ChatService {
     }
     const skip = (page - 1) * limit;
     const messages = await Models.Message.find({ chat_id })
-      .populate({ path: 'attachments', select: { type: 1, name: 1 } })
+      .populate({ path: 'attachments' })
       .sort({ _id: -1 })
       .skip(skip)
       .limit(limit)

@@ -1,6 +1,6 @@
-import type { FastifyRequest, FastifyInstance } from 'fastify';
+import type { FastifyRequest, FastifyInstance, FastifyReply } from 'fastify';
 import type { ChatTypes } from '@/types/index.js';
-import { ChatService } from '@/api/services/index.js';
+import { ChatService, S3Service } from '@/api/services/index.js';
 
 export default class MessangerController {
   static async getUserChats(request: FastifyRequest) {
@@ -76,5 +76,11 @@ export default class MessangerController {
     const { chat_id } = request.query;
     const chat = await ChatService.getUserChatById(_id, chat_id);
     return chat;
+  }
+
+  static async getFileFromS3(request: FastifyRequest<ChatTypes.GetFileFromS3>, reply: FastifyReply) {
+    const result = await S3Service.getFile(S3Service.MEDIA_FOLDER, request.query.filename);
+    const stream = result.Body;
+    return reply.header('Content-Type', 'application/octet-stream').send(stream);
   }
 }

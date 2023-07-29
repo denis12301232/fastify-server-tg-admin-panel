@@ -1,7 +1,6 @@
 import type { AssistanceTypes, Entries, IAssistance, Langs } from '@/types/index.js';
 import type { FilterQuery } from 'mongoose';
 import type { MultipartFile } from '@fastify/multipart';
-import { google } from 'googleapis';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 import { locales } from '@/i18n/index.js';
@@ -9,6 +8,7 @@ import Excel from 'exceljs';
 import { Readable } from 'stream';
 import AssistanceSchemas from '@/api/schemas/AssistanceSchemas.js';
 import Util from '@/util/Util.js';
+import { GoogleService } from '@/api/services/index.js';
 
 export default class AssistanceService {
   static async saveForm(form: IAssistance) {
@@ -26,7 +26,10 @@ export default class AssistanceService {
             $expr: {
               $function: {
                 body: `${function (birth: string, filter: AssistanceTypes.GetForms['Body']['filter']) {
-                  return +birth.split('/')[0] >= filter!.birth!.min && +birth.split('/')[0] <= filter!.birth!.max;
+                  return (
+                    +birth.split('/')[0] >= Number(filter?.birth?.min) &&
+                    +birth.split('/')[0] <= Number(filter?.birth?.max)
+                  );
                 }}`,
                 args: ['$birth', filter],
                 lang: 'js',
@@ -113,16 +116,8 @@ export default class AssistanceService {
       });
       rows.push(row);
     }
-
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: googleApi.settings.serviceUser as string,
-        private_key: googleApi.settings.servicePrivateKey as string,
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-
-    const sheetsService = google.sheets({ version: 'v4', auth });
+    const auth = await GoogleService.auth(['https://www.googleapis.com/auth/spreadsheets']);
+    const sheetsService = GoogleService.sheets(auth);
     const metaData = await sheetsService.spreadsheets.get({
       spreadsheetId: googleApi.settings.sheetId as string,
     });
@@ -143,7 +138,7 @@ export default class AssistanceService {
     });
     return {
       message: 'Successfully formed',
-      link: `https://docs.google.com/spreadsheets/d/${googleApi.settings.sheetId}`,
+      link: GoogleService.sheetUrl(`${googleApi.settings.sheetId}`),
     };
   }
 

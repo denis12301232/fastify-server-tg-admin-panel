@@ -15,11 +15,6 @@ const AttachmentSchema = new Schema<IAttachment>(
       type: String,
       required: true,
     },
-    type: {
-      type: String,
-      required: true,
-      enum: ['audio', 'image'],
-    },
   },
   { timestamps: true }
 );

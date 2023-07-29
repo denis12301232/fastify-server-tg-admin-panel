@@ -1,19 +1,23 @@
-import { S3Client, PutObjectCommand, DeleteObjectsCommand, type ObjectIdentifier } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  type ObjectIdentifier,
+} from '@aws-sdk/client-s3';
 import { join } from 'path';
 
 export default class S3Service {
   public static readonly URL = process.env.AWS_BUCKET_URL;
   public static readonly IMAGE_FOLDER = 'images';
+  public static readonly MEDIA_FOLDER = 'media';
   private static readonly bucketName = process.env.AWS_BUCKET_NAME;
   private static readonly region = process.env.AWS_BUCKET_REGION;
   private static readonly accessKeyId = process.env.AWS_ACCESS_KEY_ID;
   private static readonly secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
   private static readonly S3 = new S3Client({
     region: this.region,
-    credentials: {
-      accessKeyId: this.accessKeyId,
-      secretAccessKey: this.secretAccessKey,
-    },
+    credentials: { accessKeyId: this.accessKeyId, secretAccessKey: this.secretAccessKey },
   });
 
   public static uploadFile(stream: ReadableStream | Buffer, path: string, filename: string) {
@@ -23,6 +27,11 @@ export default class S3Service {
 
   public static deleteFiles(Objects: ObjectIdentifier[]) {
     const command = new DeleteObjectsCommand({ Bucket: this.bucketName, Delete: { Objects } });
+    return this.S3.send(command);
+  }
+
+  public static getFile(path: string, filename: string) {
+    const command = new GetObjectCommand({ Bucket: this.bucketName, Key: join(path, filename) });
     return this.S3.send(command);
   }
 }

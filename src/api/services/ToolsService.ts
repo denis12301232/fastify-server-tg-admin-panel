@@ -105,19 +105,15 @@ export default class ToolsService {
     const fileName = `${v4()}.${ext}`;
 
     const [user] = await Promise.all([
-      Models.User.findOneAndUpdate(
-        { _id: userId },
-        { avatar: join(S3Service.URL, S3Service.IMAGE_FOLDER, fileName) },
-        { avatar: 1, _id: 0 }
-      ).lean(),
+      Models.User.findOneAndUpdate({ _id: userId }, { avatar: fileName }, { avatar: 1, _id: 0 }).lean(),
       S3Service.uploadFile(buffer, S3Service.IMAGE_FOLDER, fileName),
     ]);
 
     if (user?.avatar) {
       const oldFile = user.avatar.split('/').at(-1) || '';
-      await S3Service.deleteFiles([{ Key: join(S3Service.IMAGE_FOLDER, oldFile) }]).catch((e) => console.log(e));
+      S3Service.deleteFiles([{ Key: join(S3Service.IMAGE_FOLDER, oldFile) }]).catch((e) => console.log(e));
     }
 
-    return { avatar: join(S3Service.URL, S3Service.IMAGE_FOLDER, fileName) };
+    return { avatar: fileName };
   }
 }
