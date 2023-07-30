@@ -92,11 +92,11 @@ export default function useChatEvents(io: ServerTyped) {
   async function onChatMessage(this: SocketTyped, data: ChatTypes.Message) {
     try {
       const { error } = ChatSchemas.message.validate(data);
-      console.log(error);
 
       if (error) {
         throw error;
       }
+
       await ChatService.saveMessage(this, data);
     } catch (e) {
       return this.disconnect();

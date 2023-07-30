@@ -37,7 +37,6 @@ export default class ChatSchemas {
     text: Joi.string().required().allow(''),
     chatId: Joi.string().required(),
     attachments: Joi.array().items(Joi.binary()).allow(null),
-    type: Joi.string().required().valid('image', 'audio').allow(null),
   }).required();
 
   static readonly findUsers = {
