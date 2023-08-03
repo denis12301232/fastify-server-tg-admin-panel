@@ -1,6 +1,6 @@
 import type { Server, Socket, DisconnectReason } from 'socket.io';
 import type { UserDto, ChatDto } from '@/dto/index.js';
-import type { IMessage, ChatTypes } from './index.js';
+import type { ChatTypes } from './index.js';
 
 export type ServerTyped = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 export type SocketTyped = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -8,7 +8,7 @@ export type SocketTyped = Socket<ClientToServerEvents, ServerToClientEvents, Int
 interface ServerToClientEvents {
   'chat:typing': (chat_id: string, user_name: string, user_id: string) => void;
   'chat:user-status': (socketId: string, status: 'online' | 'offline') => void;
-  'chat:message': (msg: IMessage) => void;
+  'chat:message': (msg: unknown) => void;
   'chat:invite-to-group': (chat: ChatDto) => void;
   'chat:kick-from-group': (chat_id: string) => void;
   'chat:read-message': (chat_id: string, user_id: string) => void;

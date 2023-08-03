@@ -1,4 +1,4 @@
-import type { ServerTyped, SocketTyped, ChatTypes, IGroup, IUser, IMessage } from '@/types/index.js';
+import type { ServerTyped, SocketTyped, ChatTypes, IGroup, IUser, IMessage, IAttachment } from '@/types/index.js';
 import Models from '@/models/mongo/index.js';
 import { ChatDto } from '@/dto/index.js';
 import { Util } from '@/util/index.js';
@@ -87,9 +87,11 @@ export default class ChatService {
 
     chat.messages.push(message._id);
     chat.type === 'dialog' && (chat.deleted = []);
-    await chat.save();
 
-    const result = attachments?.length ? await message.populate({ path: 'attachments' }) : message;
+    const [result] = await Promise.all([
+      Models.Message.findById(message._id).populate<{ attachments: IAttachment }>({ path: 'attachments' }).lean(),
+      chat.save(),
+    ]);
 
     socket.emit('chat:message', result);
     socket.to(chatId).emit('chat:message', result);
