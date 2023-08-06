@@ -20,26 +20,26 @@ export default class AssistanceSchemas {
           .custom((value: string, helper) => {
             return Validate.isYYYYMMDD(value) ? value : helper.error('any.invalid');
           }),
-        district: Joi.number().required().valid(1, 2, 3, 4, 5, 6, 7, 8, 9),
-        street: Joi.string().required().max(50),
+        district: Joi.number().required().valid(0, 1, 2, 3, 4, 5, 6, 7, 8),
+        street: Joi.number().required(),
         house: Joi.string().required().max(50),
         flat: Joi.string().max(50).pattern(/^\d+$/).required(),
-        people_num: Joi.number().min(1).max(10).required(),
-        people_fio: Joi.array().items(Joi.string().max(100)).empty(Joi.array().length(0)),
+        peopleCount: Joi.number().min(1).max(10).required(),
+        peopleFio: Joi.array().items(Joi.string().max(100)).empty(Joi.array().length(0)),
         invalids: Joi.boolean(),
         kids: Joi.boolean(),
-        kids_age: Joi.array().items(Joi.string().valid('0-1', '1-3', '3-9', '9-18')).empty(Joi.array().length(0)),
+        kidsAge: Joi.array().items(Joi.string().valid('0-1', '1-3', '3-9', '9-18')).empty(Joi.array().length(0)),
         food: Joi.boolean(),
         water: Joi.boolean(),
         medicines: Joi.boolean(),
-        medicines_info: Joi.string().max(500).allow('', null),
+        medicinesInfo: Joi.string().max(500).allow('', null),
         hygiene: Joi.boolean(),
-        hygiene_info: Joi.string().max(500).allow('', null),
+        hygieneInfo: Joi.string().max(500).allow('', null),
         pampers: Joi.boolean(),
-        pampers_info: Joi.string().max(500).allow('', null),
-        diet: Joi.string().max(500).allow('', null),
-        pers_data_agreement: Joi.boolean().required().valid(true),
-        photo_agreement: Joi.boolean().required().valid(true),
+        pampersInfo: Joi.string().max(500).allow('', null),
+        extraInfo: Joi.string().max(500).allow('', null),
+        personalDataAgreement: Joi.boolean().required().valid(true),
+        photoAgreement: Joi.boolean().required().valid(true),
         sector: Joi.string(),
       })
       .required(),
@@ -63,14 +63,14 @@ export default class AssistanceSchemas {
         sort: Joi.string().required(),
         descending: Joi.boolean().required(),
         filter: Joi.object<AssistanceTypes.GetForms['Body']['filter']>().keys({
-          district: Joi.number().allow('').valid(1, 2, 3, 4, 5, 6, 7, 8, 9),
+          district: Joi.number().allow('').valid(0, 1, 2, 3, 4, 5, 6, 7, 8),
           birth: Joi.object<{ min: number; max: number }>().keys({
             min: Joi.number().required().min(1920).max(year),
             max: Joi.number().required().min(1920).max(year),
           }),
           street: Joi.string().allow(''),
           sector: Joi.string().allow(''),
-        }),
+        }).allow('', null),
       })
       .required(),
   };
@@ -83,7 +83,7 @@ export default class AssistanceSchemas {
     body: Joi.object<AssistanceTypes.ModifyForm['Body']>()
       .keys({
         id: Joi.string().required(),
-        form: Joi.object()
+        form: Joi.object<AssistanceTypes.ModifyForm['Body']['form']>()
           .keys({
             _id: Joi.string(),
             name: Joi.string().required().max(100),
@@ -98,27 +98,27 @@ export default class AssistanceSchemas {
               .custom((value: string, helper) => {
                 return Validate.isYYYYMMDD(value) ? value : helper.error('any.invalid');
               }),
-            district: Joi.number().required().valid(1, 2, 3, 4, 5, 6, 7, 8, 9),
-            street: Joi.string().required().max(50),
+            district: Joi.number().required().valid(0, 1, 2, 3, 4, 5, 6, 7, 8),
+            street: Joi.number().required().max(50),
             house: Joi.string().required().max(50),
             flat: Joi.number().required(),
-            people_num: Joi.number().min(1).max(10).required(),
-            people_fio: Joi.array().items(Joi.string().max(100)).empty(Joi.array().length(0)),
+            peopleCount: Joi.number().min(1).max(10).required(),
+            peopleFio: Joi.array().items(Joi.string().max(100)).empty(Joi.array().length(0)),
             invalids: Joi.boolean(),
             kids: Joi.boolean(),
-            kids_age: Joi.array().items(Joi.string().valid('0-1', '1-3', '3-9', '9-18')).empty(Joi.array().length(0)),
+            kidsAge: Joi.array().items(Joi.string().valid('0-1', '1-3', '3-9', '9-18')).empty(Joi.array().length(0)),
             food: Joi.boolean(),
             water: Joi.boolean(),
             medicines: Joi.boolean(),
-            medicines_info: Joi.string().max(500).allow('', null),
+            medicinesInfo: Joi.string().max(500).allow('', null),
             hygiene: Joi.boolean(),
-            hygiene_info: Joi.string().max(500).allow('', null),
+            hygieneInfo: Joi.string().max(500).allow('', null),
             pampers: Joi.boolean(),
-            pampers_info: Joi.string().max(500).allow('', null),
-            diet: Joi.string().max(500).allow('', null),
-            pers_data_agreement: Joi.boolean().required().valid(true),
-            photo_agreement: Joi.boolean().required().valid(true),
-            sector: Joi.string(),
+            pampersInfo: Joi.string().max(500).allow('', null),
+            extraInfo: Joi.string().max(500).allow('', null),
+            personalDataAgreement: Joi.boolean().required().valid(true),
+            photoAgreement: Joi.boolean().required().valid(true),
+            sector: Joi.string().allow(''),
           })
           .required(),
       })

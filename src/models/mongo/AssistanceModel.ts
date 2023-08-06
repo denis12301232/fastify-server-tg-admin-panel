@@ -24,11 +24,11 @@ const AssistanceSchema = new Schema<IAssistance>(
       required: true,
     },
     district: {
-      type: String,
+      type: Number,
       required: true,
     },
     street: {
-      type: String,
+      type: Number,
       required: true,
     },
     house: {
@@ -39,11 +39,11 @@ const AssistanceSchema = new Schema<IAssistance>(
       type: Number,
       required: true,
     },
-    people_num: {
+    peopleCount: {
       type: Number,
       required: true,
     },
-    people_fio: {
+    peopleFio: {
       type: [String],
       default: [],
     },
@@ -55,7 +55,7 @@ const AssistanceSchema = new Schema<IAssistance>(
       type: Boolean,
       default: false,
     },
-    kids_age: {
+    kidsAge: {
       type: [String],
       default: [],
     },
@@ -71,7 +71,7 @@ const AssistanceSchema = new Schema<IAssistance>(
       type: Boolean,
       default: false,
     },
-    medicines_info: {
+    medicinesInfo: {
       type: String,
       default: '-',
     },
@@ -79,7 +79,7 @@ const AssistanceSchema = new Schema<IAssistance>(
       type: Boolean,
       default: false,
     },
-    hygiene_info: {
+    hygieneInfo: {
       type: String,
       default: '-',
     },
@@ -87,19 +87,19 @@ const AssistanceSchema = new Schema<IAssistance>(
       type: Boolean,
       default: false,
     },
-    pampers_info: {
+    pampersInfo: {
       type: String,
       default: '-',
     },
-    diet: {
+    extraInfo: {
       type: String,
       default: '-',
     },
-    pers_data_agreement: {
+    personalDataAgreement: {
       type: Boolean,
       required: true,
     },
-    photo_agreement: {
+    photoAgreement: {
       type: Boolean,
       required: true,
     },

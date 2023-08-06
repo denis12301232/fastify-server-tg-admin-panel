@@ -44,12 +44,6 @@ export namespace ToolsTypes {
       filter: string;
     };
   }
-
-  export interface GetLocale extends RouteGenericInterface {
-    Querystring: {
-      locale: Langs;
-    };
-  }
 }
 
 export namespace TaskTypes {

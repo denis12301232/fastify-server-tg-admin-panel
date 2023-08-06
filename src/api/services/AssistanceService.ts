@@ -3,7 +3,7 @@ import type { FilterQuery } from 'mongoose';
 import type { MultipartFile } from '@fastify/multipart';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
-import { locales } from '@/i18n/index.js';
+import locales from '@/i18n/index.js';
 import Excel from 'exceljs';
 import { Readable } from 'stream';
 import AssistanceSchemas from '@/api/schemas/AssistanceSchemas.js';
@@ -92,24 +92,23 @@ export default class AssistanceService {
       throw ApiError.NotFound();
     }
 
-    const allFields = Object.entries(locales[locale].assistance.fields) as Entries<
+    const fields = Object.entries(locales[locale].assistance.fields) as Entries<
       (typeof locales)['en']['assistance']['fields']
     >;
-    const head = allFields.map((item) => item[1]);
-    const rows = [head];
+    const rows: any[] = [fields.map((item) => item[1])];
 
     for (const item of forms) {
-      const row = allFields.map(([key]) => {
+      const row = fields.map(([key]) => {
         if (key === 'district') {
-          return locales[locale].assistance.districts[item[key]];
+          return locales[locale].districts[item[key]];
         } else if (key === 'street') {
-          return locales[locale].assistance.streets[item.district][item[key]];
+          return locales[locale].streets[item.district][item[key]];
         } else if (Array.isArray(item[key])) {
           return (item[key] as string[])?.join(',');
         } else if (typeof item[key] === 'boolean') {
           return item[key]
-            ? locales[locale].assistance.checkboxes.yesNo.yes
-            : locales[locale].assistance.checkboxes.yesNo.no;
+            ? locales[locale].assistance.checkboxes.yesNo[0]
+            : locales[locale].assistance.checkboxes.yesNo[1];
         } else {
           return item[key];
         }
@@ -205,15 +204,15 @@ export default class AssistanceService {
     for (const item of forms) {
       const sheetObj = allFields.reduce((obj, [key]) => {
         if (key === 'district') {
-          obj[key] = locales[locale].assistance.districts[item[key]];
+          obj[key] = locales[locale].districts[item[key]];
         } else if (key === 'street') {
-          obj[key] = locales[locale].assistance.streets[item.district][item[key]];
+          obj[key] = locales[locale].streets[item.district][item[key]];
         } else if (Array.isArray(item[key])) {
           obj[key] = (item[key] as string[])?.join(',');
         } else if (typeof item[key] === 'boolean') {
           obj[key] = item[key]
-            ? locales[locale].assistance.checkboxes.yesNo.yes
-            : locales[locale].assistance.checkboxes.yesNo.no;
+            ? locales[locale].assistance.checkboxes.yesNo[0]
+            : locales[locale].assistance.checkboxes.yesNo[1];
         } else {
           obj[key] = item[key];
         }
@@ -245,16 +244,13 @@ export default class AssistanceService {
     function onEachRow(row: Excel.Row, number: number) {
       const values = row.model?.cells?.map((cell) => String(cell.value)) || [];
       const form = column.reduce((form, item, index) => {
-        if (item === 'people_fio' || item === 'kids_age') {
+        if (item === 'peopleFio' || item === 'kidsAge') {
           form[item] = values[index] ? values[index].split(',') : undefined;
         } else if (item === 'district') {
-          form[item] = Util.getKeyByValue(locales[locale].assistance.districts, values[index]);
+          form[item] = Util.getKeyByValue(locales[locale].districts, values[index]);
         } else if (item === 'street') {
           form.district
-            ? (form[item] = Util.getKeyByValue(
-                locales[locale].assistance.streets[form.district as string],
-                values[index]
-              ))
+            ? (form[item] = Util.getKeyByValue(locales[locale].streets[form.district as string], values[index]))
             : (form[item] = undefined);
         } else if (
           item === 'invalids' ||
@@ -264,8 +260,8 @@ export default class AssistanceService {
           item === 'hygiene' ||
           item === 'medicines' ||
           item === 'pampers' ||
-          item === 'pers_data_agreement' ||
-          item === 'photo_agreement'
+          item === 'personalDataAgreement' ||
+          item === 'photoAgreement'
         ) {
           form[item] =
             Util.getKeyByValue(locales[locale].assistance.checkboxes.yesNo, values[index]) === 'yes' ? true : false;
