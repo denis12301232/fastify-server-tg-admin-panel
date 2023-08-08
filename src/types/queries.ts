@@ -348,6 +348,13 @@ export namespace ChatTypes {
       page: number;
     };
   }
+  export interface GetChatMessages extends RouteGenericInterface {
+    Querystring: {
+      chatId: string;
+      limit: number;
+      skip: number;
+    };
+  }
 
   export interface DeleteChat extends RouteGenericInterface {
     Body: {
@@ -400,5 +407,10 @@ export namespace ChatTypes {
     Querystring: {
       filename: string;
     };
+  }
+
+  export interface DeleteMessages {
+    msgIds: string[];
+    chatId: string;
   }
 }

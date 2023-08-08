@@ -196,20 +196,20 @@ export default class ChatService {
     return chats.map((chat) => new ChatDto(chat, user_id));
   }
 
-  static async openChat(user_id: string, chat_id: string, page: number, limit: number) {
-    const chat = await Models.Chat.findOne({ _id: chat_id, users: { $in: [user_id] } }, { _id: 1 }).lean();
+  static async getChatMessages(userId: string, { chatId, skip, limit }: ChatTypes.GetChatMessages['Querystring']) {
+    const chat = await Models.Chat.findOne({ _id: chatId, users: { $in: [userId] } }, { _id: 1 }).lean();
     if (!chat) {
       throw ApiError.Forbidden();
     }
-    const skip = (page - 1) * limit;
-    const messages = await Models.Message.find({ chat_id })
-      .populate({ path: 'attachments' })
+
+    const messages = await Models.Message.find({ chat_id: chatId })
+      .populate<{ attachments: IAttachment[] }>({ path: 'attachments' })
       .sort({ _id: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    return { messages: messages.reverse(), chat_id };
+    return messages.reverse();
   }
 
   static async findUsers(loginOrName: string, user_id: string) {
@@ -366,5 +366,15 @@ export default class ChatService {
       .lean();
 
     return chat ? new ChatDto(chat, user_id) : null;
+  }
+
+  static async deleteMessages(userId: string, { chatId, msgIds }: ChatTypes.DeleteMessages) {
+    const chat = await Models.Chat.findOne({ _id: chatId, users: { $in: [userId] } }).lean();
+
+    if (!chat) {
+      throw ApiError.BadRequest();
+    }
+
+    return Models.Message.deleteMany({ chat_id: chatId, _id: { $in: msgIds } }).lean();
   }
 }

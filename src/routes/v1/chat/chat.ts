@@ -43,14 +43,16 @@ export default async function ChatRoutes(app: FastifyInstance) {
     },
     ChatController.getUserChats
   );
+
   app.get(
-    '/open_chat',
+    '/messages',
     {
-      schema: ChatSchemas.openChat,
+      schema: ChatSchemas.getChatMessages,
       preHandler: useAuthGuard,
     },
-    ChatController.openChat
+    ChatController.getChatMessages
   );
+
   app.patch(
     '/delete_chat',
     {

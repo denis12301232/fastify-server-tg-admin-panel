@@ -9,10 +9,9 @@ export default class MessangerController {
     return chats;
   }
 
-  static async openChat(request: FastifyRequest<ChatTypes.OpenChat>) {
+  static async getChatMessages(request: FastifyRequest<ChatTypes.GetChatMessages>) {
     const _id = request.user._id;
-    const { chat_id, page, limit } = request.query;
-    const messages = await ChatService.openChat(_id, chat_id, page, limit);
+    const messages = await ChatService.getChatMessages(_id, request.query);
     return messages;
   }
 

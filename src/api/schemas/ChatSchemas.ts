@@ -90,12 +90,12 @@ export default class ChatSchemas {
       .required(),
   };
 
-  static readonly openChat = {
-    querystring: Joi.object<ChatTypes.OpenChat['Querystring']>()
+  static readonly getChatMessages = {
+    querystring: Joi.object<ChatTypes.GetChatMessages['Querystring']>()
       .keys({
-        chat_id: Joi.string().required(),
-        limit: Joi.number().required().allow('Infinity'),
-        page: Joi.number().required(),
+        chatId: Joi.string().required(),
+        limit: Joi.number().required(),
+        skip: Joi.number().required()
       })
       .required(),
   };
@@ -152,4 +152,11 @@ export default class ChatSchemas {
       })
       .required(),
   };
+
+  static readonly deleteMessages = Joi.object<ChatTypes.DeleteMessages>()
+    .keys({
+      chatId: Joi.string().required(),
+      msgIds: Joi.array().items(Joi.string()).required(),
+    })
+    .required();
 }
