@@ -1,7 +1,6 @@
 import type { ServerTyped, SocketTyped, ChatTypes, IGroup, IUser, IMessage, IAttachment } from '@/types/index.js';
 import Models from '@/models/mongo/index.js';
 import { ChatDto } from '@/dto/index.js';
-import { Util } from '@/util/index.js';
 import { v4 } from 'uuid';
 import { fileTypeFromBuffer } from 'file-type';
 import ApiError from '@/exceptions/ApiError.js';
@@ -38,31 +37,36 @@ export default class ChatService {
   }
 
   static async createGroup(socket: SocketTyped, { title, about, users, avatar }: ChatTypes.CreateGroup) {
-    let fileName;
+    let fileName: string | undefined;
     if (avatar) {
       const result = await fileTypeFromBuffer(avatar);
+
       if (!result?.mime.includes('image/')) {
         throw new Error('Wrong file type');
       }
       fileName = `${v4()}.${result.ext}`;
-      await Util.createAsyncWriteStream(avatar, '../../static/images/avatars/', fileName);
     }
+    const [group] = await Promise.all(
+      fileName
+        ? [
+            Models.Group.create({ title, about, roles: { admin: [socket.data.user?._id] }, avatar: fileName }),
+            S3Service.uploadFile(avatar, S3Service.IMAGE_FOLDER, fileName),
+          ]
+        : [Models.Group.create({ title, about, roles: { admin: [socket.data.user?._id] }, avatar: fileName })]
+    );
 
-    const group = await Models.Group.create({
-      title,
-      about,
-      roles: { admin: [socket.data.user?._id] },
-      avatar: fileName,
-    });
     const chat = await Models.Chat.create({ users, type: 'group', group: group._id });
     const createdGroup = await Models.Chat.findById(chat._id)
       .populate<{ messages: IMessage[] }>({ path: 'messages' })
-      .populate({ path: 'messages.attachments', select: { type: 1, name: 1 } })
+      .populate<{ 'messages.attachments': IAttachment[] }>({
+        path: 'messages.attachments',
+        select: { type: 1, name: 1 },
+      })
       .populate<{ users: IUser[] }>({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
       .populate<{ group: IGroup }>({ path: 'group', select: { title: 1, avatar: 1, roles: 1, _id: 1 } })
       .lean();
 
-    createdGroup && socket.emit('chat:create-group', new ChatDto(createdGroup, socket.data.user?._id as string));
+    createdGroup && socket.emit('chat:create-group', new ChatDto(createdGroup, socket.data.user?._id || ''));
   }
 
   static async saveMessage(socket: SocketTyped, { text, chatId, attachments }: ChatTypes.Message) {
@@ -124,44 +128,6 @@ export default class ChatService {
     }
 
     return ids;
-  }
-
-  static async saveAttachments(type: 'audio' | 'image', attachments: Buffer[]) {
-    const ids: string[] = [];
-    let path: string;
-
-    switch (type) {
-      case 'audio':
-        path = '../../static/audio/';
-        break;
-      case 'image':
-        path = '../../static/media/';
-        break;
-    }
-
-    for (const file of attachments) {
-      const result = await fileTypeFromBuffer(file);
-      if (type === 'audio') {
-        if (result?.ext !== 'webm') {
-          throw new Error('Wrong file type');
-        }
-      } else if (type === 'image') {
-        if (!result?.mime.includes(type)) {
-          throw new Error('Wrong file type');
-        }
-      }
-
-      const fileName = `${v4()}.${result?.ext}`;
-      const [attachment] = await Promise.allSettled([
-        Models.Attachment.create({ name: fileName, ext: result?.ext, type, mime: result?.mime }),
-        Util.createAsyncWriteStream(file, path, fileName),
-      ]);
-      if (attachment.status === 'fulfilled') {
-        ids.push(attachment.value._id.toString());
-      }
-
-      return ids;
-    }
   }
 
   static async updateUserStatus(socket: SocketTyped, user_id: string, status: 'online' | 'offline') {
