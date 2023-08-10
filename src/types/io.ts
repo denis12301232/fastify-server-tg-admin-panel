@@ -10,6 +10,7 @@ interface ServerToClientEvents {
   'chat:user-status': (socketId: string, status: 'online' | 'offline') => void;
   'chat:message': (msg: unknown) => void;
   'chat:messages-delete': (chatId: string, msgIds: string[]) => void;
+  'chat:message-reactions': (chatId: string, msgId: string, reactions: Map<string, string[]>) => void;
   'chat:invite-to-group': (chat: ChatDto) => void;
   'chat:kick-from-group': (chat_id: string) => void;
   'chat:read-message': (chat_id: string, user_id: string) => void;
@@ -36,6 +37,7 @@ interface ClientToServerEvents {
   'chat:typing': (this: SocketTyped, chat_id: string, user_name: string, user_id: string) => void;
   'chat:message': (this: SocketTyped, data: ChatTypes.Message) => void;
   'chat:messages-delete': (this: SocketTyped, data: ChatTypes.DeleteMessages) => void;
+  'chat:message-reactions': (this: SocketTyped, data: ChatTypes.MessageReaction) => void;
   'chat:call': (this: SocketTyped, chatId: string) => void;
   'chat:call-answer': (this: SocketTyped, chatId: string, answer: boolean) => void;
   'chat:call-cancel': (this: SocketTyped, chatId: string) => void;

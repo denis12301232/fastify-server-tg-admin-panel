@@ -343,4 +343,29 @@ export default class ChatService {
 
     return Models.Message.deleteMany({ chat_id: chatId, _id: { $in: msgIds } }).lean();
   }
+
+  static async messageReaction(userId: string, { msgId, reaction }: ChatTypes.MessageReaction) {
+    const message = await Models.Message.findById(msgId);
+
+    if (!message) {
+      throw ApiError.BadRequest();
+    }
+
+    for (const [rc, users] of message.reactions.entries()) {
+      if (rc === reaction) {
+        continue;
+      }
+      const filtered = users.filter((id) => id !== userId);
+      message.reactions.set(rc, filtered);
+    }
+    if (message?.reactions.get(reaction)?.includes(userId)) {
+      const filtered = message.reactions.get(reaction)?.filter((id) => userId != id);
+      message.reactions.set(reaction, filtered || []);
+    } else {
+      message.reactions.set(reaction, [...(message.reactions.get(reaction) || []), userId]);
+    }
+    await message.save();
+
+    return { reactions: message.reactions, chatId: message.chat_id.toString() };
+  }
 }

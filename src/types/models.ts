@@ -70,6 +70,7 @@ export interface IMessage {
   text: string;
   attachments: [];
   read: string[];
+  reactions: Map<string, Array<string>>;
   createdAt: NativeDate;
   updatedAt: NativeDate;
 }

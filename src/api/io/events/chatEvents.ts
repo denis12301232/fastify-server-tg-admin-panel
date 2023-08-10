@@ -12,6 +12,7 @@ export default function useChatEvents(io: ServerTyped) {
     'chat:create-group': onChatCreateGroup,
     'chat:message': onChatMessage,
     'chat:messages-delete': onChatMessagesDelete,
+    'chat:message-reactions': onChatMessageReactions
   };
 
   function onChatTyping(this: SocketTyped, chatId: string, userName: string, userId: string) {
@@ -116,6 +117,17 @@ export default function useChatEvents(io: ServerTyped) {
       await ChatService.deleteMessages(this.data.user?._id || '', data);
       this.emit('chat:messages-delete', data.chatId, data.msgIds);
       this.to(data.chatId).emit('chat:messages-delete', data.chatId, data.msgIds);
+    } catch (e) {
+      return this.disconnect();
+    }
+  }
+
+  async function onChatMessageReactions(this: SocketTyped, data: ChatTypes.MessageReaction) {
+    try {
+      const { reactions, chatId } = await ChatService.messageReaction(this.data.user?._id || '', data);
+
+      this.emit('chat:message-reactions', chatId, data.msgId, reactions);
+      this.to(chatId).emit('chat:message-reactions', chatId, data.msgId, reactions);
     } catch (e) {
       return this.disconnect();
     }

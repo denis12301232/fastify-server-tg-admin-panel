@@ -1,12 +1,4 @@
-import type { IMessage, IUser, IGroup, IChat } from '@/types/index.js';
-import type { FlattenMaps, Types } from 'mongoose';
-
-type Model = FlattenMaps<
-  Omit<Omit<Omit<IChat, 'messages'> & { messages: IMessage[] }, 'users'> & { users: IUser[] }, 'group'> & {
-    group: IGroup;
-  }
-> &
-  Required<{ _id: Types.ObjectId }>;
+import type { IMessage, IUser, IGroup } from '@/types/index.js';
 
 export default class ChatDto {
   readonly _id: string;
@@ -22,7 +14,7 @@ export default class ChatDto {
   readonly group: IGroup | undefined;
   readonly typing: object;
 
-  constructor(model: Model, user_id: string) {
+  constructor(model: any, user_id: string) {
     this._id = String(model._id);
     this.messages = model.messages.length ? ([model.messages.at(-1)] as IMessage[]) : ([] as IMessage[]);
     this.users = model.users;

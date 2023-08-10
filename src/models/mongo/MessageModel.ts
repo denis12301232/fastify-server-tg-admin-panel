@@ -31,6 +31,11 @@ const MessageSchema = new Schema<IMessage>(
         default: [],
       },
     ],
+    reactions: {
+      type: Schema.Types.Map,
+      of: [String],
+      default: new Map(Object.entries({ '👍': [], '👎': [], '😊': [], '😂': [], '❤️': [] })),
+    },
   },
   { timestamps: true }
 );

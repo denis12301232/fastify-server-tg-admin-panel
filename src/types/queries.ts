@@ -413,4 +413,9 @@ export namespace ChatTypes {
     msgIds: string[];
     chatId: string;
   }
+
+  export interface MessageReaction {
+    reaction: string;
+    msgId: string;
+  }
 }
