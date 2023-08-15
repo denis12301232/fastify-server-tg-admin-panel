@@ -4,6 +4,10 @@ import factory from '@/factory.js';
 import SocketEvents from '@/api/io/index.js';
 
 export const app = fastify({ logger: true });
+process.on('SIGTERM', onShutDown);
+process.on('SIGINT', onShutDown);
+
+main();
 
 async function main() {
   try {
@@ -17,4 +21,7 @@ async function main() {
   }
 }
 
-main();
+async function onShutDown() {
+  await app.close();
+  process.exit(0);
+}

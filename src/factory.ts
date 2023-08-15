@@ -4,8 +4,7 @@ import fastifyCors from '@fastify/cors';
 import fastifyCookie from '@fastify/cookie';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyAutoload from '@fastify/autoload';
-import fastifyStatic from '@fastify/static';
-import { join, resolve } from 'path';
+import { join } from 'path';
 import { fileURLToPath } from 'url';
 import apiErrorHandler from '@/exceptions/apiErrorHandler.js';
 import Plugins from '@/plugins/Plugins.js';
@@ -25,7 +24,6 @@ export default async function factory(app: FastifyInstance) {
     options: { prefix: '/api' },
     forceESM: true,
   });
-  app.register(Plugins.staticFolders, ['../../static/audio', '../../static/images/avatars', '../../static/media']);
   app.register(Plugins.io, {
     cors: {
       origin: process.env.CLIENT_DOMAIN.split(' '),
@@ -36,22 +34,6 @@ export default async function factory(app: FastifyInstance) {
   });
   app.register(Plugins.mongo, { url: process.env.MONGO_URL, opts: { dbName: process.env.MONGO_NAME } });
   app.register(Plugins.redis, { url: process.env.REDIS_URL });
-  app.register(fastifyStatic, { root: resolve(dirname, '../public') });
-  app.register(fastifyStatic, {
-    root: resolve(dirname, '../static/images/avatars'),
-    prefix: '/avatars',
-    decorateReply: false,
-  });
-  app.register(fastifyStatic, {
-    root: resolve(dirname, '../static/audio'),
-    prefix: '/audio',
-    decorateReply: false,
-  });
-  app.register(fastifyStatic, {
-    root: resolve(dirname, '../static/media'),
-    prefix: '/media',
-    decorateReply: false,
-  });
   app.setValidatorCompiler(
     ({ schema }: { schema: ObjectSchema }) =>
       (data) =>
