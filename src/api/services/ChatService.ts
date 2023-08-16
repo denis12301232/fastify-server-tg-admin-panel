@@ -293,7 +293,7 @@ export default class ChatService {
         Models.Group.findOneAndUpdate(
           { _id: info.group_id },
           {
-            avatar: join(S3Service.URL, S3Service.IMAGE_FOLDER, fileName),
+            avatar: fileName,
             title: info.title,
             about: info.about,
           },
