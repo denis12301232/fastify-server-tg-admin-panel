@@ -24,35 +24,35 @@ export default class MessangerController {
 
   static async addUserToGroup(this: FastifyInstance, request: FastifyRequest<ChatTypes.AddUserToGroup>) {
     const _id = request.user._id;
-    const { user_id, chat_id } = request.body;
-    const response = await ChatService.addUserToGroup(this.io, _id, chat_id, user_id);
+    const { user_id, chatId } = request.body;
+    const response = await ChatService.addUserToGroup(this.io, _id, chatId, user_id);
     return response;
   }
 
   static async removeUserFromGroup(this: FastifyInstance, request: FastifyRequest<ChatTypes.RemoveUserFromGroup>) {
     const _id = request.user._id;
-    const { user_id, chat_id } = request.body;
-    const response = await ChatService.removeUserFromGroup(this.io, _id, chat_id, user_id);
+    const { user_id, chatId } = request.body;
+    const response = await ChatService.removeUserFromGroup(this.io, _id, chatId, user_id);
     return response;
   }
 
   static async getUsersListInChat(request: FastifyRequest<ChatTypes.GetUsersListInChat>) {
-    const { chat_id } = request.query;
-    const response = await ChatService.getUsersListInChat(chat_id);
+    const { chatId } = request.query;
+    const response = await ChatService.getUsersListInChat(chatId);
     return response;
   }
 
   static async deleteChat(request: FastifyRequest<ChatTypes.DeleteChat>) {
     const _id = request.user._id;
-    const { chat_id } = request.body;
-    const result = await ChatService.deleteChat(_id, chat_id);
+    const { chatId } = request.body;
+    const result = await ChatService.deleteChat(_id, chatId);
     return result;
   }
 
   static async updateRead(this: FastifyInstance, request: FastifyRequest<ChatTypes.UpdateRead>) {
     const _id = request.user._id;
-    const { chat_id } = request.body;
-    const updated = await ChatService.updateRead(this.io, chat_id, _id);
+    const { chatId } = request.body;
+    const updated = await ChatService.updateRead(this.io, chatId, _id);
     return updated;
   }
 
@@ -72,8 +72,8 @@ export default class MessangerController {
 
   static async getUserChatById(request: FastifyRequest<ChatTypes.GetUserChatById>) {
     const _id = request.user._id;
-    const { chat_id } = request.query;
-    const chat = await ChatService.getUserChatById(_id, chat_id);
+    const { chatId } = request.query;
+    const chat = await ChatService.getUserChatById(_id, chatId);
     return chat;
   }
 

@@ -3,7 +3,7 @@ import { Schema, model } from 'mongoose';
 
 const MessageSchema = new Schema<IMessage>(
   {
-    chat_id: {
+    chatId: {
       type: Schema.Types.ObjectId,
       ref: 'chat',
       required: true,

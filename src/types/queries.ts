@@ -317,33 +317,33 @@ export namespace ChatTypes {
   export interface AddUserToGroup extends RouteGenericInterface {
     Body: {
       user_id: string;
-      chat_id: string;
+      chatId: string;
     };
   }
 
   export interface RemoveUserFromGroup extends RouteGenericInterface {
     Body: {
       user_id: string;
-      chat_id: string;
+      chatId: string;
     };
   }
 
   export interface GetUsersListInChat extends RouteGenericInterface {
     Querystring: {
-      chat_id: string;
+      chatId: string;
     };
   }
 
   export interface SaveMessage extends RouteGenericInterface {
     Body: {
-      chat_id: string;
+      chatId: string;
       text: string;
     };
   }
 
   export interface OpenChat extends RouteGenericInterface {
     Querystring: {
-      chat_id: string;
+      chatId: string;
       limit: number;
       page: number;
     };
@@ -358,25 +358,25 @@ export namespace ChatTypes {
 
   export interface DeleteChat extends RouteGenericInterface {
     Body: {
-      chat_id: string;
+      chatId: string;
     };
   }
 
   export interface SaveAudioMessage extends RouteGenericInterface {
     Querystring: {
-      chat_id: string;
+      chatId: string;
     };
   }
 
   export interface UpdateRead extends RouteGenericInterface {
     Body: {
-      chat_id: string;
+      chatId: string;
     };
   }
 
   export interface SaveMediaMessage extends RouteGenericInterface {
     Querystring: {
-      chat_id: string;
+      chatId: string;
       type: 'audio' | 'image';
     };
   }
@@ -399,7 +399,7 @@ export namespace ChatTypes {
 
   export interface GetUserChatById extends RouteGenericInterface {
     Querystring: {
-      chat_id: string;
+      chatId: string;
     };
   }
 

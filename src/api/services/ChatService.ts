@@ -82,7 +82,7 @@ export default class ChatService {
 
     const ids = attachments ? await ChatService.saveAttachmentsToS3(attachments) : [];
     const message = await Models.Message.create({
-      chat_id: chatId,
+      chatId: chatId,
       author: socket.data.user?._id,
       text,
       read: [socket.data.user?._id],
@@ -168,7 +168,7 @@ export default class ChatService {
       throw ApiError.Forbidden();
     }
 
-    const messages = await Models.Message.find({ chat_id: chatId })
+    const messages = await Models.Message.find({ chatId: chatId })
       .populate<{ attachments: IAttachment[] }>({ path: 'attachments' })
       .sort({ _id: -1 })
       .skip(skip)
@@ -186,8 +186,8 @@ export default class ChatService {
     return users;
   }
 
-  static async addUserToGroup(io: ServerTyped, my_id: string, chat_id: string, user_id: string) {
-    const chat = await Models.Chat.findById(chat_id, { _id: 1, deleted: 1, users: 1 })
+  static async addUserToGroup(io: ServerTyped, my_id: string, chatId: string, user_id: string) {
+    const chat = await Models.Chat.findById(chatId, { _id: 1, deleted: 1, users: 1 })
       .populate<{ group: IGroup }>({ path: 'group', select: { roles: 1 } })
       .lean();
 
@@ -199,10 +199,7 @@ export default class ChatService {
       throw ApiError.BadRequest(400, 'User already in group');
     }
 
-    await Models.Chat.updateOne(
-      { _id: chat_id },
-      { $addToSet: { users: user_id }, $pull: { deleted: user_id } }
-    ).lean();
+    await Models.Chat.updateOne({ _id: chatId }, { $addToSet: { users: user_id }, $pull: { deleted: user_id } }).lean();
 
     const result = await Models.Chat.findById(chat?._id)
       .populate<{ messages: IMessage[] }>({ path: 'messages' })
@@ -215,8 +212,8 @@ export default class ChatService {
     return { user: user_id };
   }
 
-  static async removeUserFromGroup(io: ServerTyped, my_id: string, chat_id: string, user_id: string) {
-    const chat = await Models.Chat.findById(chat_id, { group: 1 })
+  static async removeUserFromGroup(io: ServerTyped, my_id: string, chatId: string, user_id: string) {
+    const chat = await Models.Chat.findById(chatId, { group: 1 })
       .populate<{ group: IGroup }>({ path: 'group', select: { roles: 1 } })
       .lean();
 
@@ -226,33 +223,33 @@ export default class ChatService {
 
     const updated = await Models.Chat.updateOne({ _id: chat?._id }, { $addToSet: { deleted: user_id } }).lean();
 
-    io.to(user_id).emit('chat:kick-from-group', chat_id);
-    io.sockets.adapter.rooms.get(chat_id)?.delete(user_id);
+    io.to(user_id).emit('chat:kick-from-group', chatId);
+    io.sockets.adapter.rooms.get(chatId)?.delete(user_id);
 
     return updated;
   }
 
-  static async getUsersListInChat(chat_id: string) {
-    const users = await Models.Chat.findById(chat_id, { users: 1, deleted: 1, _id: 0 })
+  static async getUsersListInChat(chatId: string) {
+    const users = await Models.Chat.findById(chatId, { users: 1, deleted: 1, _id: 0 })
       .populate<IUser>({ path: 'users', select: { name: 1, _id: 1, login: 1, avatar: 1 } })
       .lean();
     return users?.users.filter((user) => !users.deleted.includes(user._id.toString()));
   }
 
-  static async deleteChat(my_id: string, chat_id: string) {
-    const result = await Models.Chat.updateOne({ _id: chat_id }, { $addToSet: { deleted: my_id } }).lean();
+  static async deleteChat(my_id: string, chatId: string) {
+    const result = await Models.Chat.updateOne({ _id: chatId }, { $addToSet: { deleted: my_id } }).lean();
     return result;
   }
 
-  static async updateRead(io: ServerTyped, chat_id: string, user_id: string) {
-    await Models.Chat.findById(chat_id, { users: 1 }).lean();
+  static async updateRead(io: ServerTyped, chatId: string, user_id: string) {
+    await Models.Chat.findById(chatId, { users: 1 }).lean();
     const updated = await Models.Message.updateMany(
-      { chat_id, read: { $nin: [user_id] } },
+      { chatId, read: { $nin: [user_id] } },
       { $addToSet: { read: user_id } }
     ).lean();
 
     if (updated.modifiedCount) {
-      io.to(String(chat_id)).emit('chat:read-message', chat_id, user_id);
+      io.to(String(chatId)).emit('chat:read-message', chatId, user_id);
     }
     return updated;
   }
@@ -321,8 +318,8 @@ export default class ChatService {
     }
   }
 
-  static async getUserChatById(user_id: string, chat_id: string) {
-    const chat = await Models.Chat.findOne({ _id: chat_id, users: { $in: [user_id] } })
+  static async getUserChatById(user_id: string, chatId: string) {
+    const chat = await Models.Chat.findOne({ _id: chatId, users: { $in: [user_id] } })
       .populate<{ messages: IMessage[] }>({
         path: 'messages',
         populate: { path: 'attachments', select: { type: 1, name: 1 } },
@@ -341,7 +338,7 @@ export default class ChatService {
       throw ApiError.BadRequest();
     }
 
-    return Models.Message.deleteMany({ chat_id: chatId, _id: { $in: msgIds } }).lean();
+    return Models.Message.deleteMany({ chatId: chatId, _id: { $in: msgIds } }).lean();
   }
 
   static async messageReaction(userId: string, { msgId, reaction }: ChatTypes.MessageReaction) {
@@ -366,6 +363,6 @@ export default class ChatService {
     }
     await message.save();
 
-    return { reactions: message.reactions, chatId: message.chat_id.toString() };
+    return { reactions: message.reactions, chatId: message.chatId.toString() };
   }
 }

@@ -65,7 +65,7 @@ export interface IGroup {
 
 export interface IMessage {
   _id: Types.ObjectId;
-  chat_id: Types.ObjectId;
+  chatId: Types.ObjectId;
   author: Types.ObjectId;
   text: string;
   attachments: [];

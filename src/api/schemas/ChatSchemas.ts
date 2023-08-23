@@ -59,7 +59,7 @@ export default class ChatSchemas {
     body: Joi.object<ChatTypes.AddUserToGroup['Body']>()
       .keys({
         user_id: Joi.string().required(),
-        chat_id: Joi.string().required(),
+        chatId: Joi.string().required(),
       })
       .required(),
   };
@@ -68,7 +68,7 @@ export default class ChatSchemas {
     body: Joi.object<ChatTypes.RemoveUserFromGroup['Body']>()
       .keys({
         user_id: Joi.string().required(),
-        chat_id: Joi.string().required(),
+        chatId: Joi.string().required(),
       })
       .required(),
   };
@@ -76,7 +76,7 @@ export default class ChatSchemas {
   static readonly getUsersListInChat = {
     querystring: Joi.object<ChatTypes.GetUsersListInChat['Querystring']>()
       .keys({
-        chat_id: Joi.string().required(),
+        chatId: Joi.string().required(),
       })
       .required(),
   };
@@ -84,7 +84,7 @@ export default class ChatSchemas {
   static readonly saveMessage = {
     body: Joi.object<ChatTypes.SaveMessage['Body']>()
       .keys({
-        chat_id: Joi.string().required(),
+        chatId: Joi.string().required(),
         text: Joi.string().required(),
       })
       .required(),
@@ -95,7 +95,7 @@ export default class ChatSchemas {
       .keys({
         chatId: Joi.string().required(),
         limit: Joi.number().required(),
-        skip: Joi.number().required()
+        skip: Joi.number().required(),
       })
       .required(),
   };
@@ -103,7 +103,7 @@ export default class ChatSchemas {
   static readonly deleteChat = {
     body: Joi.object<ChatTypes.DeleteChat['Body']>()
       .keys({
-        chat_id: Joi.string().required(),
+        chatId: Joi.string().required(),
       })
       .required(),
   };
@@ -111,7 +111,7 @@ export default class ChatSchemas {
   static readonly updateRead = {
     body: Joi.object<ChatTypes.UpdateRead['Body']>()
       .keys({
-        chat_id: Joi.string().required(),
+        chatId: Joi.string().required(),
       })
       .required(),
   };
@@ -119,7 +119,7 @@ export default class ChatSchemas {
   static readonly saveMediaMessage = {
     querystring: Joi.object<ChatTypes.SaveMediaMessage['Querystring']>()
       .keys({
-        chat_id: Joi.string().required(),
+        chatId: Joi.string().required(),
         type: Joi.string().required().valid('audio', 'image'),
       })
       .required(),
@@ -148,7 +148,7 @@ export default class ChatSchemas {
   static readonly getUserChatById = {
     querystring: Joi.object<ChatTypes.GetUserChatById['Querystring']>()
       .keys({
-        chat_id: Joi.string().required(),
+        chatId: Joi.string().required(),
       })
       .required(),
   };
