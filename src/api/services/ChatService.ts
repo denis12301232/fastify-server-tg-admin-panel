@@ -9,31 +9,25 @@ import { S3Service } from '@/api/services/index.js';
 import { join } from 'path';
 
 export default class ChatService {
-  static async createChat(socket: SocketTyped, userId: string, users: string[]) {
-    const chat = await Models.Chat.findOneAndUpdate(
+  static async createChat(userId: string, users: string[]) {
+    let chat = await Models.Chat.findOneAndUpdate(
       { users: { $all: users }, type: 'dialog' },
       { $pull: { deleted: userId } },
-      { _id: 1 }
+      { fields: { _id: 1 } }
     ).lean();
 
-    let chatId = chat?._id ? String(chat?._id) : undefined;
-
-    if (!chatId) {
-      const newChat = await Models.Chat.create({ users, deleted: users.filter((user) => user !== userId) });
-      chatId = String(newChat._id);
-      socket.join(chatId);
+    if (!chat?._id) {
+      chat = await Models.Chat.create({ users, deleted: users.filter((user) => user !== userId) });
     }
 
-    const createdChat = await Models.Chat.findById(chatId)
+    const created = await Models.Chat.findById(chat._id)
       .populate<{ messages: IMessage[] }>({ path: 'messages' })
       .populate({ path: 'messages.attachments', select: { type: 1, name: 1 } })
       .populate<{ users: IUser[] }>({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
       .populate<{ group: IGroup }>({ path: 'group', select: { title: 1, avatar: 1, roles: 1, _id: 1 } })
       .lean();
 
-    createdChat && socket.emit('chat:create', new ChatDto(createdChat, userId));
-
-    return chatId;
+    return new ChatDto(created, userId);
   }
 
   static async createGroup(socket: SocketTyped, { title, about, users, avatar }: ChatTypes.CreateGroup) {
@@ -69,36 +63,33 @@ export default class ChatService {
     createdGroup && socket.emit('chat:create-group', new ChatDto(createdGroup, socket.data.user?._id || ''));
   }
 
-  static async saveMessage(socket: SocketTyped, { text, chatId, attachments }: ChatTypes.Message) {
-    const chat = await Models.Chat.findOne({ _id: chatId, users: { $in: [socket.data.user?._id] } });
+  static async saveMessage(userId: string, { text, chatId, attachments }: ChatTypes.Message) {
+    const chat = await Models.Chat.findOne({ _id: chatId, users: { $in: [userId] } });
 
     if (!chat) {
       throw new Error('Chat not found');
     }
 
-    if (chat.type === 'group' && chat.deleted.includes(socket.data.user?._id || '')) {
+    if (chat.type === 'group' && chat.deleted.includes(userId)) {
       throw new Error('Forbidden');
     }
 
     const ids = attachments ? await ChatService.saveAttachmentsToS3(attachments) : [];
     const message = await Models.Message.create({
       chatId: chatId,
-      author: socket.data.user?._id,
+      author: userId,
       text,
-      read: [socket.data.user?._id],
+      read: [userId],
       attachments: ids,
     });
 
+    const usersToJoin = chat.deleted;
     chat.messages.push(message._id);
     chat.type === 'dialog' && (chat.deleted = []);
 
-    const [result] = await Promise.all([
-      Models.Message.findById(message._id).populate<{ attachments: IAttachment }>({ path: 'attachments' }).lean(),
-      chat.save(),
-    ]);
+    const [result] = await Promise.all([message.populate({ path: 'attachments' }), chat.save()]);
 
-    socket.emit('chat:message', result);
-    socket.to(chatId).emit('chat:message', result);
+    return { message: result, usersToJoin };
   }
 
   static async saveAttachmentsToS3(attachments: Buffer[]) {

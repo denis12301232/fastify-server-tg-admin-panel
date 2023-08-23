@@ -68,7 +68,7 @@ export interface IMessage {
   chatId: Types.ObjectId;
   author: Types.ObjectId;
   text: string;
-  attachments: [];
+  attachments: Types.ObjectId[];
   read: string[];
   reactions: Map<string, Array<string>>;
   createdAt: NativeDate;

@@ -12,7 +12,7 @@ export default function useChatEvents(io: ServerTyped) {
     'chat:create-group': onChatCreateGroup,
     'chat:message': onChatMessage,
     'chat:messages-delete': onChatMessagesDelete,
-    'chat:message-reactions': onChatMessageReactions
+    'chat:message-reactions': onChatMessageReactions,
   };
 
   function onChatTyping(this: SocketTyped, chatId: string, userName: string, userId: string) {
@@ -62,18 +62,13 @@ export default function useChatEvents(io: ServerTyped) {
       if (error) {
         throw error;
       }
-      const chatId = await ChatService.createChat(this, userId, users).catch((e) => console.log(e));
 
-      if (chatId) {
-        users
-          .filter((user) => user !== userId)
-          .forEach((user) => {
-            const socket = Array.from(io.sockets.sockets.values()).find(
-              (socket: SocketTyped) => socket.data.user?._id === user
-            );
-            socket?.join(chatId.toString());
-          });
+      const chat = await ChatService.createChat(userId, users);
+
+      for (const socket of io.sockets.sockets.values()) {
+        users.includes(socket.data.user?._id || '') && socket.join(chat._id);
       }
+      this.emit('chat:create', chat);
     } catch (e) {
       return this.disconnect(true);
     }
@@ -95,11 +90,18 @@ export default function useChatEvents(io: ServerTyped) {
     try {
       const { error } = ChatSchemas.message.validate(data);
 
-      if (error) {
+      if (error || !this.data.user) {
         throw error;
       }
 
-      await ChatService.saveMessage(this, data);
+      const { message, usersToJoin } = await ChatService.saveMessage(this.data.user._id, data);
+
+      for (const socket of io.sockets.sockets.values()) {
+        usersToJoin.includes(socket.data.user?._id || '') && socket.join(data.chatId);
+      }
+
+      this.emit('chat:message', message);
+      this.to(data.chatId).emit('chat:message', message);
     } catch (e) {
       return this.disconnect();
     }
@@ -108,7 +110,6 @@ export default function useChatEvents(io: ServerTyped) {
   async function onChatMessagesDelete(this: SocketTyped, data: ChatTypes.DeleteMessages) {
     try {
       const { error } = ChatSchemas.deleteMessages.validate(data);
-      console.log(error);
 
       if (error) {
         throw error;

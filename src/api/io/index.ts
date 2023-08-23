@@ -22,12 +22,20 @@ export default class SocketEvents {
   }
 
   private onConnection(socket: SocketTyped) {
-    ChatService.updateUserStatus(socket, socket.data.user?._id as string, 'online');
+    if (!socket.data.user) {
+      return;
+    }
+
+    ChatService.updateUserStatus(socket, socket.data.user._id, 'online');
     socket.on('disconnect', this.onDisconnect);
     this.setEvents(socket);
   }
 
   private onDisconnect(this: SocketTyped) {
-    ChatService.updateUserStatus(this, this.data.user?._id as string, 'offline');
+    if (!this.data.user) {
+      return;
+    }
+
+    ChatService.updateUserStatus(this, this.data.user._id, 'offline');
   }
 }
