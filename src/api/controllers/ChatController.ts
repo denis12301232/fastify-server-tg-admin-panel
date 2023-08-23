@@ -25,8 +25,12 @@ export default class MessangerController {
   static async addUserToGroup(this: FastifyInstance, request: FastifyRequest<ChatTypes.AddUserToGroup>) {
     const _id = request.user._id;
     const { user_id, chatId } = request.body;
-    const response = await ChatService.addUserToGroup(this.io, _id, chatId, user_id);
-    return response;
+    const chat = await ChatService.addUserToGroup(_id, chatId, user_id);
+    Array.from(this.io.sockets.sockets.values())
+      .find((socket) => socket.data.user?._id === user_id)
+      ?.join(chat._id);
+
+    return chat;
   }
 
   static async removeUserFromGroup(this: FastifyInstance, request: FastifyRequest<ChatTypes.RemoveUserFromGroup>) {

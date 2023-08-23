@@ -177,20 +177,20 @@ export default class ChatService {
     return users;
   }
 
-  static async addUserToGroup(io: ServerTyped, my_id: string, chatId: string, user_id: string) {
+  static async addUserToGroup(myId: string, chatId: string, userId: string) {
     const chat = await Models.Chat.findById(chatId, { _id: 1, deleted: 1, users: 1 })
       .populate<{ group: IGroup }>({ path: 'group', select: { roles: 1 } })
       .lean();
 
-    if (!chat?.group.roles?.admin?.includes(my_id)) {
+    if (!chat?.group.roles?.admin?.includes(myId)) {
       throw ApiError.BadRequest(403, 'Not enough rights');
     }
 
-    if (chat?.users.map((user) => user.toString()).includes(user_id) && !chat?.deleted.includes(user_id)) {
+    if (chat?.users.map((user) => user.toString()).includes(userId) && !chat?.deleted.includes(userId)) {
       throw ApiError.BadRequest(400, 'User already in group');
     }
 
-    await Models.Chat.updateOne({ _id: chatId }, { $addToSet: { users: user_id }, $pull: { deleted: user_id } }).lean();
+    await Models.Chat.updateOne({ _id: chatId }, { $addToSet: { users: userId }, $pull: { deleted: userId } }).lean();
 
     const result = await Models.Chat.findById(chat?._id)
       .populate<{ messages: IMessage[] }>({ path: 'messages' })
@@ -199,8 +199,7 @@ export default class ChatService {
       .populate<{ group: IGroup }>({ path: 'group', select: { title: 1, avatar: 1, roles: 1, _id: 1 } })
       .lean();
 
-    result && io.to(user_id).emit('chat:invite-to-group', new ChatDto(result, user_id));
-    return { user: user_id };
+    return new ChatDto(result, userId);
   }
 
   static async removeUserFromGroup(io: ServerTyped, my_id: string, chatId: string, user_id: string) {
