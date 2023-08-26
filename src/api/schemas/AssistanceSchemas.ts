@@ -126,11 +126,12 @@ export default class AssistanceSchemas {
   };
 
   static readonly getFormById = {
-    querystring: Joi.object<AssistanceTypes.GetFormById['Querystring']>()
+    params: Joi.object<AssistanceTypes.GetFormById['Querystring']>()
       .keys({
         id: Joi.string().required(),
       })
       .required(),
+      
   };
 
   static readonly saveFormsToGoogleSheets = {

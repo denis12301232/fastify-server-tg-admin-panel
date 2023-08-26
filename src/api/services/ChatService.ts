@@ -1,4 +1,4 @@
-import type { ServerTyped, SocketTyped, ChatTypes, IGroup, IUser, IMessage, IAttachment } from '@/types/index.js';
+import type { ChatTypes, IGroup, IUser, IMessage, IAttachment } from '@/types/index.js';
 import Models from '@/models/mongo/index.js';
 import { ChatDto } from '@/dto/index.js';
 import { v4 } from 'uuid';
@@ -30,7 +30,7 @@ export default class ChatService {
     return new ChatDto(created, userId);
   }
 
-  static async createGroup(socket: SocketTyped, { title, about, users, avatar }: ChatTypes.CreateGroup) {
+  static async createGroup(userId: string, { title, about, users, avatar }: ChatTypes.CreateGroup) {
     let fileName: string | undefined;
     if (avatar) {
       const result = await fileTypeFromBuffer(avatar);
@@ -43,10 +43,10 @@ export default class ChatService {
     const [group] = await Promise.all(
       fileName
         ? [
-            Models.Group.create({ title, about, roles: { admin: [socket.data.user?._id] }, avatar: fileName }),
+            Models.Group.create({ title, about, roles: { admin: [userId] }, avatar: fileName }),
             S3Service.uploadFile(avatar, S3Service.IMAGE_FOLDER, fileName),
           ]
-        : [Models.Group.create({ title, about, roles: { admin: [socket.data.user?._id] }, avatar: fileName })]
+        : [Models.Group.create({ title, about, roles: { admin: [userId] }, avatar: fileName })]
     );
 
     const chat = await Models.Chat.create({ users, type: 'group', group: group._id });
@@ -60,7 +60,7 @@ export default class ChatService {
       .populate<{ group: IGroup }>({ path: 'group', select: { title: 1, avatar: 1, roles: 1, _id: 1 } })
       .lean();
 
-    createdGroup && socket.emit('chat:create-group', new ChatDto(createdGroup, socket.data.user?._id || ''));
+    return new ChatDto(createdGroup, userId);
   }
 
   static async saveMessage(userId: string, { text, chatId, attachments }: ChatTypes.Message) {
@@ -121,7 +121,7 @@ export default class ChatService {
     return ids;
   }
 
-  static async updateUserStatus(socket: SocketTyped, user_id: string, status: 'online' | 'offline') {
+  static async updateUserStatus(user_id: string, status: 'online' | 'offline') {
     await Models.User.updateOne({ _id: user_id }, { status }).lean();
     const chats = await Models.Chat.find({ users: { $in: [user_id] } }, { messages: 0 }).lean();
 
@@ -131,7 +131,7 @@ export default class ChatService {
         return unique;
       }, new Set<string>())
     );
-    socket.to(uniqueUsers).emit('chat:user-status', user_id, status);
+    return uniqueUsers;
   }
 
   static async getUserChatsId(user_id: string) {
@@ -202,7 +202,7 @@ export default class ChatService {
     return new ChatDto(result, userId);
   }
 
-  static async removeUserFromGroup(io: ServerTyped, my_id: string, chatId: string, user_id: string) {
+  static async removeUserFromGroup(my_id: string, chatId: string, userId: string) {
     const chat = await Models.Chat.findById(chatId, { group: 1 })
       .populate<{ group: IGroup }>({ path: 'group', select: { roles: 1 } })
       .lean();
@@ -211,10 +211,7 @@ export default class ChatService {
       throw ApiError.BadRequest(403, 'Not enough rights');
     }
 
-    const updated = await Models.Chat.updateOne({ _id: chat?._id }, { $addToSet: { deleted: user_id } }).lean();
-
-    io.to(user_id).emit('chat:kick-from-group', chatId);
-    io.sockets.adapter.rooms.get(chatId)?.delete(user_id);
+    const updated = await Models.Chat.updateOne({ _id: chat?._id }, { $addToSet: { deleted: userId } }).lean();
 
     return updated;
   }
@@ -231,16 +228,13 @@ export default class ChatService {
     return result;
   }
 
-  static async updateRead(io: ServerTyped, chatId: string, user_id: string) {
+  static async updateRead(chatId: string, userId: string) {
     await Models.Chat.findById(chatId, { users: 1 }).lean();
     const updated = await Models.Message.updateMany(
-      { chatId, read: { $nin: [user_id] } },
-      { $addToSet: { read: user_id } }
+      { chatId, read: { $nin: [userId] } },
+      { $addToSet: { read: userId } }
     ).lean();
 
-    if (updated.modifiedCount) {
-      io.to(String(chatId)).emit('chat:read-message', chatId, user_id);
-    }
     return updated;
   }
 

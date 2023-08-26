@@ -26,7 +26,7 @@ export default class AuthService {
       activationLink,
       name,
     });
-    MailService.sendActivationMail(email, `${process.env.SERVER_URL}/api/auth/activate/${activationLink}`).catch(
+    MailService.sendActivationMail(email, `${process.env.CLIENT_DOMAIN}/api/auth/activate/${activationLink}`).catch(
       (e: Error) => console.log(e.message)
     );
 
@@ -119,18 +119,19 @@ export default class AuthService {
       await Models.Restore.create({ user: user._id, restoreLink: link, createdAt: dateNow });
     }
 
-    await MailService.sendRestoreMail(email, `${process.env.SERVER_URL}/restore?link=${link}`).catch((e) => {
+    await MailService.sendRestoreMail(email, `${process.env.CLIENT_DOMAIN}/restore?link=${link}`).catch((e) => {
       throw ApiError.BadRequest(400, `Message sending error`, [e]);
     });
 
     return { message: `Link was sent to email` };
   }
 
-  static async setNewRestoredPassword(password: string, link: string) {
+  static async setNewPassword(password: string, link: string) {
+    const LINK_LIFETIME = 6048e5;
     const restoreData = await Models.Restore.findOne({ restoreLink: link });
     const date = new Date();
 
-    if (!restoreData || +date - +restoreData.createdAt > 6048e5) {
+    if (!restoreData || +date - +restoreData.createdAt > LINK_LIFETIME) {
       throw ApiError.BadRequest(400, 'Link expired');
     }
 

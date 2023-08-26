@@ -42,8 +42,8 @@ export default class TaskService {
     return { message: 'Updated', taskId };
   }
 
-  static async getTaskById(task_id: string) {
-    const task = await Models.Task.findById(task_id)
+  static async getTaskById(taskId: string) {
+    const task = await Models.Task.findById(taskId)
       .populate<ISubtask>({ path: 'subtasks', select: { __v: 0 } })
       .populate<IUser>({ path: 'user', select: { login: 1, email: 1, name: 1 } })
       .lean();
@@ -62,20 +62,20 @@ export default class TaskService {
     return updated;
   }
 
-  static async deleteSubtask(subtask_id: string, task_id: string) {
-    await Models.Task.updateOne({ _id: task_id }, { $pull: { subtasks: { $eq: subtask_id } } }).lean();
-    const updated = await Models.Subtask.deleteOne({ _id: task_id }).lean();
+  static async deleteSubtask(subtask_id: string, taskId: string) {
+    await Models.Task.updateOne({ _id: taskId }, { $pull: { subtasks: { $eq: subtask_id } } }).lean();
+    const updated = await Models.Subtask.deleteOne({ _id: taskId }).lean();
     return updated;
   }
 
-  static async moveSubtask({ subtask_id, task_id, new_task_id }: TaskTypes.MoveSubtask['Body']) {
-    await Models.Task.updateOne({ _id: task_id }, { $pull: { subtasks: { $eq: subtask_id } } }).lean();
+  static async moveSubtask({ subtask_id, taskId, new_task_id }: TaskTypes.MoveSubtask['Body']) {
+    await Models.Task.updateOne({ _id: taskId }, { $pull: { subtasks: { $eq: subtask_id } } }).lean();
     const result = await Models.Task.updateOne({ _id: new_task_id }, { $addToSet: { subtasks: subtask_id } }).lean();
     return result;
   }
 
-  static async createTaskCsv(task_id: string) {
-    const task = await Models.Task.findById(task_id, { title: 1 })
+  static async createTaskCsv(taskId: string) {
+    const task = await Models.Task.findById(taskId, { title: 1 })
       .populate<{ subtasks: ISubtask[] }>({ path: 'subtasks', select: { __v: 0, _id: 0, updatedAt: 0, createdAt: 0 } })
       .lean();
     if (!task?.subtasks) {

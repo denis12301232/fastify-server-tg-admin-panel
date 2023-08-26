@@ -4,23 +4,23 @@ import AssistanceSchemas from '@/api/schemas/AssistanceSchemas.js';
 import { useAuthGuard, useRoleGuard } from '@/hooks/index.js';
 
 export default async function AssistanceRoutes(app: FastifyInstance) {
-  app.post('/', { schema: AssistanceSchemas.saveForm }, AssistanceController.saveForm);
+  app.post('/', { schema: AssistanceSchemas.saveForm }, AssistanceController.store);
   app.post('/forms', { schema: AssistanceSchemas.getForms }, AssistanceController.getForms);
   app.get(
-    '/',
+    '/search',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
       schema: AssistanceSchemas.findForms,
     },
-    AssistanceController.findForms
+    AssistanceController.search
   );
   app.delete(
-    '/forms',
+    '/',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
       schema: AssistanceSchemas.deleteForms,
     },
-    AssistanceController.deleteForms
+    AssistanceController.destroy
   );
   app.patch(
     '/',
@@ -28,15 +28,15 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
       schema: AssistanceSchemas.modifyForm,
     },
-    AssistanceController.modifyForm
+    AssistanceController.update
   );
   app.get(
-    '/id',
+    '/:id',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
       schema: AssistanceSchemas.getFormById,
     },
-    AssistanceController.getFormById
+    AssistanceController.show
   );
   app.post(
     '/sheet',
@@ -64,7 +64,7 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
   app.post(
     '/list',
     {
-      // onRequest: [useAuthGuard]
+      onRequest: [useAuthGuard]
     },
     AssistanceController.uploadListCSV
   );

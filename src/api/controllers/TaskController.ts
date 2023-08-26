@@ -1,11 +1,16 @@
-import type { FastifyRequest, FastifyReply } from 'fastify';
+import type { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
 import type { TaskTypes } from '@/types/index.js';
 import { TaskService } from '@/api/services/index.js';
 
 export default class TaskController {
-  static async createTask(request: FastifyRequest<TaskTypes.CreateTask>) {
+  static async createTask(this: FastifyInstance, request: FastifyRequest<TaskTypes.CreateTask>) {
     const { title, tags, subtasks } = request.body;
     const task = await TaskService.createTask({ title, tags, subtasks });
+
+    for (const socket of this.io.sockets.sockets.values()) {
+      socket.data.user?._id !== request.user._id && socket.emit('task:create', task);
+    }
+
     return task;
   }
 
@@ -17,21 +22,21 @@ export default class TaskController {
   }
 
   static async updateTaskStatus(request: FastifyRequest<TaskTypes.UpdateTaskStatus>) {
-    const { task_id, status } = request.body;
-    const updated = await TaskService.updateTaskStatus(task_id, status);
+    const { taskId, status } = request.body;
+    const updated = await TaskService.updateTaskStatus(taskId, status);
     return updated;
   }
 
   static async getTaskById(request: FastifyRequest<TaskTypes.GetTaskById>) {
-    const { task_id } = request.query;
-    const task = await TaskService.getTaskById(task_id);
+    const { id } = request.params;
+    const task = await TaskService.getTaskById(id);
     return task;
   }
 
   static async setUserForTask(request: FastifyRequest<TaskTypes.SetUserForTask>) {
     const _id = request.user._id;
-    const { task_id } = request.body;
-    const updated = await TaskService.setUserForTask(_id, task_id);
+    const { taskId } = request.body;
+    const updated = await TaskService.setUserForTask(_id, taskId);
     return updated;
   }
 
@@ -42,8 +47,8 @@ export default class TaskController {
   }
 
   static async deleteSubtask(request: FastifyRequest<TaskTypes.DeleteSubtask>) {
-    const { subtask_id, task_id } = request.query;
-    const deleted = await TaskService.deleteSubtask(subtask_id, task_id);
+    const { subtask_id, taskId } = request.query;
+    const deleted = await TaskService.deleteSubtask(subtask_id, taskId);
     return deleted;
   }
 
@@ -53,8 +58,8 @@ export default class TaskController {
   }
 
   static async createTaskCsv(request: FastifyRequest<TaskTypes.CreateTaskCsv>, reply: FastifyReply) {
-    const { task_id } = request.query;
-    const stream = await TaskService.createTaskCsv(task_id);
+    const { taskId } = request.query;
+    const stream = await TaskService.createTaskCsv(taskId);
     return reply.header('Content-Type', 'application/octet-stream').send(stream);
   }
 }

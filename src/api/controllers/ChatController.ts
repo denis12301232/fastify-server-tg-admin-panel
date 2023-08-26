@@ -36,7 +36,9 @@ export default class MessangerController {
   static async removeUserFromGroup(this: FastifyInstance, request: FastifyRequest<ChatTypes.RemoveUserFromGroup>) {
     const _id = request.user._id;
     const { user_id, chatId } = request.body;
-    const response = await ChatService.removeUserFromGroup(this.io, _id, chatId, user_id);
+    const response = await ChatService.removeUserFromGroup(_id, chatId, user_id);
+    this.io.to(user_id).emit('chat:kick-from-group', chatId);
+    this.io.sockets.adapter.rooms.get(chatId)?.delete(user_id);
     return response;
   }
 
@@ -56,7 +58,11 @@ export default class MessangerController {
   static async updateRead(this: FastifyInstance, request: FastifyRequest<ChatTypes.UpdateRead>) {
     const _id = request.user._id;
     const { chatId } = request.body;
-    const updated = await ChatService.updateRead(this.io, chatId, _id);
+    const updated = await ChatService.updateRead(chatId, _id);
+
+    if (updated.modifiedCount) {
+      this.io.to(String(chatId)).emit('chat:read-message', chatId, _id);
+    }
     return updated;
   }
 

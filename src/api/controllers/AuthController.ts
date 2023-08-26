@@ -59,9 +59,11 @@ export default class AuthController {
     return message;
   }
 
-  static async setNewRestoredPassword(request: FastifyRequest<AuthTypes.UserNewRestoredPassword>) {
+  static async setNewPassword(request: FastifyRequest<AuthTypes.UserNewRestoredPassword>) {
     const { password, link } = request.body;
-    const message = await AuthService.setNewRestoredPassword(password, link);
+    const message = await AuthService.setNewPassword(password, link);
     return message;
   }
+
+
 }

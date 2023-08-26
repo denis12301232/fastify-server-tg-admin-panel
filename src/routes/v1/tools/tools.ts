@@ -10,7 +10,7 @@ export default async function ToolsRoutes(app: FastifyInstance) {
       onRequest: useAuthGuard,
       schema: ToolsSchemas.setNewName,
     },
-    ToolsController.setNewName
+    ToolsController.updateName
   );
   app.patch(
     '/email',
@@ -18,7 +18,7 @@ export default async function ToolsRoutes(app: FastifyInstance) {
       onRequest: useAuthGuard,
       schema: ToolsSchemas.setNewEmail,
     },
-    ToolsController.setNewEmail
+    ToolsController.updateEmail
   );
   app.patch(
     '/password',
@@ -26,7 +26,7 @@ export default async function ToolsRoutes(app: FastifyInstance) {
       onRequest: useAuthGuard,
       schema: ToolsSchemas.setNewPassword,
     },
-    ToolsController.setNewPassword
+    ToolsController.updatePassword
   );
   app.post(
     '/google/service',
@@ -44,19 +44,19 @@ export default async function ToolsRoutes(app: FastifyInstance) {
     },
     ToolsController.getUsers
   );
-  app.post(
-    '/setroles',
+  app.patch(
+    '/roles',
     {
       onRequest: [useAuthGuard, useRoleGuard(['admin'])],
       schema: ToolsSchemas.updateRoles,
     },
     ToolsController.updateRoles
   );
-  app.post(
+  app.patch(
     '/avatar',
     {
       onRequest: [useAuthGuard],
     },
-    ToolsController.setAvatar
+    ToolsController.updateAvatar
   );
 }

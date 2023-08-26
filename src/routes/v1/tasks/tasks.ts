@@ -29,7 +29,7 @@ export default async function MessangerRoutes(app: FastifyInstance) {
     TaskController.updateTaskStatus
   );
   app.get(
-    '/get_task_by_id',
+    '/:id',
     {
       schema: TaskSchemas.getTaskById,
       preHandler: useAuthGuard,

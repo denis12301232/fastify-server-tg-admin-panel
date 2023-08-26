@@ -5,40 +5,40 @@ import ApiError from '@/exceptions/ApiError.js';
 import Validate from '@/util/Validate.js';
 
 export default class AssistanceController {
-  static async saveForm(request: FastifyRequest<AssistanceTypes.SaveForm>) {
+  static async store(request: FastifyRequest<AssistanceTypes.SaveForm>) {
     const saved = await AssistanceService.saveForm(request.body);
     return { message: 'Saved!', saved };
   }
 
-  static async getForms(request: FastifyRequest<AssistanceTypes.GetForms>, reply: FastifyReply) {
-    const { forms, total } = await AssistanceService.getForms(request.body);
-    reply.header('X-Total-Count', total);
-    return forms;
+  static async destroy(request: FastifyRequest<AssistanceTypes.DeleteForms>) {
+    const ids = request.body;
+    const deleteResult = await AssistanceService.deleteForms(ids);
+    return deleteResult;
   }
 
-  static async findForms(request: FastifyRequest<AssistanceTypes.FindForms>, reply: FastifyReply) {
+  static async search(request: FastifyRequest<AssistanceTypes.FindForms>, reply: FastifyReply) {
     const { nameOrSurname, limit, page } = request.query;
     const { forms, count } = await AssistanceService.findForms(nameOrSurname, limit, page);
     reply.header('X-Total-Count', count);
     return forms;
   }
 
-  static async deleteForms(request: FastifyRequest<AssistanceTypes.DeleteForms>) {
-    const ids = request.body;
-    const deleteResult = await AssistanceService.deleteForms(ids);
-    return deleteResult;
-  }
-
-  static async modifyForm(request: FastifyRequest<AssistanceTypes.ModifyForm>) {
+  static async update(request: FastifyRequest<AssistanceTypes.ModifyForm>) {
     const { form, id } = request.body;
     const updateResult = await AssistanceService.modifyForm(id, form);
     return updateResult;
   }
 
-  static async getFormById(request: FastifyRequest<AssistanceTypes.GetFormById>) {
-    const { id } = request.query;
+  static async show(request: FastifyRequest<AssistanceTypes.GetFormById>) {
+    const { id } = request.params;
     const form = await AssistanceService.getFormById(id);
     return form;
+  }
+
+  static async getForms(request: FastifyRequest<AssistanceTypes.GetForms>, reply: FastifyReply) {
+    const { forms, total } = await AssistanceService.getForms(request.body);
+    reply.header('X-Total-Count', total);
+    return forms;
   }
 
   static async saveFormsToGoogleSheets(request: FastifyRequest<AssistanceTypes.SaveFormsToSheets>) {
@@ -68,8 +68,8 @@ export default class AssistanceController {
     return result;
   }
 
-  static async createReport(request: FastifyRequest<AssistanceTypes.CreateReport>) {
-    const rep = await AssistanceService.createReport(request.body);
-    return rep;
+  static async createReport(request: FastifyRequest<AssistanceTypes.CreateReport>, reply: FastifyReply) {
+    const result = await AssistanceService.createReport(request.body);
+    return reply.header('Content-Type', 'application/octet-stream').send(result);
   }
 }

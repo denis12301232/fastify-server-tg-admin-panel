@@ -59,20 +59,20 @@ export namespace TaskTypes {
 
   export interface UpdateTaskStatus extends RouteGenericInterface {
     Body: {
-      task_id: string;
+      taskId: string;
       status: TaskStatus;
     };
   }
 
   export interface GetTaskById extends RouteGenericInterface {
-    Querystring: {
-      task_id: string;
+    Params: {
+      id: string;
     };
   }
 
   export interface SetUserForTask extends RouteGenericInterface {
     Body: {
-      task_id: string;
+      taskId: string;
     };
   }
 
@@ -87,14 +87,14 @@ export namespace TaskTypes {
   export interface DeleteSubtask extends RouteGenericInterface {
     Querystring: {
       subtask_id: string;
-      task_id: string;
+      taskId: string;
     };
   }
 
   export interface MoveSubtask extends RouteGenericInterface {
     Body: {
       subtask_id: string;
-      task_id: string;
+      taskId: string;
       new_task_id: string;
     };
   }
@@ -111,7 +111,7 @@ export namespace TaskTypes {
 
   export interface CreateTaskCsv extends RouteGenericInterface {
     Querystring: {
-      task_id: string;
+      taskId: string;
     };
   }
 }
@@ -221,7 +221,7 @@ export namespace AssistanceTypes {
   }
 
   export interface GetFormById extends RouteGenericInterface {
-    Querystring: {
+    Params: {
       id: string;
     };
   }

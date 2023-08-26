@@ -21,21 +21,26 @@ export default class SocketEvents {
     ).forEach((func, event) => socket.on(event, func));
   }
 
-  private onConnection(socket: SocketTyped) {
+  private async onConnection(socket: SocketTyped) {
+    const STATUS = 'online';
     if (!socket.data.user) {
       return;
     }
 
-    ChatService.updateUserStatus(socket, socket.data.user._id, 'online');
+    const users = await ChatService.updateUserStatus(socket.data.user._id, STATUS);
+    socket.to(users).emit('chat:user-status', socket.data.user._id, STATUS);
     socket.on('disconnect', this.onDisconnect);
+
     this.setEvents(socket);
   }
 
-  private onDisconnect(this: SocketTyped) {
+  private async onDisconnect(this: SocketTyped) {
+    const STATUS = 'offline';
     if (!this.data.user) {
       return;
     }
 
-    ChatService.updateUserStatus(this, this.data.user._id, 'offline');
+    const users = await ChatService.updateUserStatus(this.data.user._id, STATUS);
+    this.to(users).emit('chat:user-status', this.data.user._id, STATUS);
   }
 }

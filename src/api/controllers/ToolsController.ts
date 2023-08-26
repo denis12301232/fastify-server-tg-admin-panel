@@ -4,24 +4,24 @@ import { ToolsService } from '@/api/services/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 
 export default class ToolsController {
-  static async setNewName(request: FastifyRequest<ToolsTypes.SetNewName>) {
+  static async updateName(request: FastifyRequest<ToolsTypes.SetNewName>) {
     const _id = request.user._id;
     const { name } = request.body;
-    const user = await ToolsService.setNewName(_id, name);
+    const user = await ToolsService.updateName(_id, name);
     return user;
   }
 
-  static async setNewEmail(request: FastifyRequest<ToolsTypes.SetNewEmail>) {
+  static async updateEmail(request: FastifyRequest<ToolsTypes.SetNewEmail>) {
     const _id = request.user._id;
     const { email } = request.body;
-    const user = await ToolsService.setNewEmail(_id, email);
+    const user = await ToolsService.updateEmail(_id, email);
     return user;
   }
 
-  static async setNewPassword(request: FastifyRequest<ToolsTypes.SetNewPassword>) {
+  static async updatePassword(request: FastifyRequest<ToolsTypes.SetNewPassword>) {
     const _id = request.user._id;
     const { newPassword, oldPassword } = request.body;
-    const user = await ToolsService.setNewPassword(_id, newPassword, oldPassword);
+    const user = await ToolsService.updatePassword(_id, newPassword, oldPassword);
     return user;
   }
 
@@ -47,12 +47,12 @@ export default class ToolsController {
     return result;
   }
 
-  static async setAvatar(this: FastifyInstance, request: FastifyRequest) {
+  static async updateAvatar(this: FastifyInstance, request: FastifyRequest) {
     const file = await request.file({ limits: { fileSize: 2048e3, fieldSize: 2048e3 } });
     if (!file) {
       throw ApiError.BadRequest(400, 'File required');
     }
-    const result = await ToolsService.setAvatar(request.user._id, file);
+    const result = await ToolsService.updateAvatar(request.user._id, file);
     return result;
   }
 }

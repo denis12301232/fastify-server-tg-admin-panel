@@ -1,6 +1,6 @@
 import type { Server, Socket, DisconnectReason } from 'socket.io';
 import type { UserDto, ChatDto } from '@/dto/index.js';
-import type { ChatTypes } from './index.js';
+import type { ChatTypes, ITask } from './index.js';
 
 export type ServerTyped = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 export type SocketTyped = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -31,6 +31,7 @@ interface ServerToClientEvents {
   'rtc:call-cancel': () => void;
   'meet:create': (meetId: string) => void;
   'error:meet-join': (code: number, message: string) => void;
+  'task:create': (task: ITask) => void;
 }
 
 interface ClientToServerEvents {

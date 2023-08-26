@@ -11,12 +11,12 @@ import { S3Service } from '@/api/services/index.js';
 import { join } from 'path';
 
 export default class ToolsService {
-  static async setNewName(id: string, name: string) {
+  static async updateName(id: string, name: string) {
     const updated = await Models.User.updateOne({ _id: id }, { name }).lean();
     return updated;
   }
 
-  static async setNewEmail(id: string, email: string) {
+  static async updateEmail(id: string, email: string) {
     const isUsed = await Models.User.findOne({ email }).lean();
     if (isUsed) {
       throw ApiError.BadRequest(400, `This email address already taken`);
@@ -25,7 +25,7 @@ export default class ToolsService {
     return updated;
   }
 
-  static async setNewPassword(id: string, newPassword: string, oldPassword: string) {
+  static async updatePassword(id: string, newPassword: string, oldPassword: string) {
     const user = await Models.User.findById(id);
     if (!user) {
       throw ApiError.BadRequest(400, `User not found`);
@@ -93,7 +93,7 @@ export default class ToolsService {
     return updated;
   }
 
-  static async setAvatar(userId: string, file: MultipartFile) {
+  static async updateAvatar(userId: string, file: MultipartFile) {
     const buffer = await file.toBuffer();
     const validateResult = await fileTypeFromBuffer(buffer);
 

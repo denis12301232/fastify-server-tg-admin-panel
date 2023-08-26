@@ -77,10 +77,11 @@ export default function useChatEvents(io: ServerTyped) {
   async function onChatCreateGroup(this: SocketTyped, data: ChatTypes.CreateGroup) {
     try {
       const { error } = ChatSchemas.createGroup.validate(data);
-      if (error) {
+      if (error || !this.data.user) {
         throw error;
       }
-      await ChatService.createGroup(this, data);
+      const group = await ChatService.createGroup(this.data.user._id, data);
+      this.emit('chat:create-group', group);
     } catch (e) {
       return this.disconnect(true);
     }

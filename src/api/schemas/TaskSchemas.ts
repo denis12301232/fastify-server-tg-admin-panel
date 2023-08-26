@@ -20,16 +20,16 @@ export default class TaskSchemas {
   static readonly updateTaskStatus = {
     body: Joi.object<TaskTypes.UpdateTaskStatus['Body']>()
       .keys({
-        task_id: Joi.string().required(),
+        taskId: Joi.string().required(),
         status: Joi.string().required().allow('untaken', 'performed', 'canceled', 'completed'),
       })
       .required(),
   };
 
   static readonly getTaskById = {
-    querystring: Joi.object<TaskTypes.GetTaskById['Querystring']>()
+    params: Joi.object<TaskTypes.GetTaskById['Params']>()
       .keys({
-        task_id: Joi.string().required(),
+        id: Joi.string().required(),
       })
       .required(),
   };
@@ -37,7 +37,7 @@ export default class TaskSchemas {
   static readonly setUserForTask = {
     body: Joi.object<TaskTypes.SetUserForTask['Body']>()
       .keys({
-        task_id: Joi.string().required(),
+        taskId: Joi.string().required(),
       })
       .required(),
   };
@@ -56,7 +56,7 @@ export default class TaskSchemas {
     querystring: Joi.object<TaskTypes.DeleteSubtask['Querystring']>()
       .keys({
         subtask_id: Joi.string().required(),
-        task_id: Joi.string().required(),
+        taskId: Joi.string().required(),
       })
       .required(),
   };
@@ -65,7 +65,7 @@ export default class TaskSchemas {
     body: Joi.object<TaskTypes.MoveSubtask['Body']>()
       .keys({
         subtask_id: Joi.string().required(),
-        task_id: Joi.string().required(),
+        taskId: Joi.string().required(),
         new_task_id: Joi.string().required(),
       })
       .required(),
@@ -85,10 +85,9 @@ export default class TaskSchemas {
 
   static readonly createTaskCsv = {
     querystring: Joi.object<TaskTypes.CreateTaskCsv['Querystring']>()
-    .keys({
-      task_id: Joi.string().required(),
-    })
-    .required()
-  }
-
+      .keys({
+        taskId: Joi.string().required(),
+      })
+      .required(),
+  };
 }

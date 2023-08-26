@@ -9,9 +9,5 @@ export default async function AuthRoutes(app: FastifyInstance) {
   app.get('/refresh', AuthController.refresh);
   app.get('/activate/:link', { schema: AuthSchemas.userActivate }, AuthController.activate);
   app.post('/restore/password', { schema: AuthSchemas.userPasswordRestore }, AuthController.restorePassword);
-  app.post(
-    '/restore/password/new',
-    { schema: AuthSchemas.userNewRestoredPassword },
-    AuthController.setNewRestoredPassword
-  );
+  app.post('/set/password', { schema: AuthSchemas.userNewRestoredPassword }, AuthController.setNewPassword);
 }
