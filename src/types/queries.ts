@@ -240,6 +240,7 @@ export namespace AssistanceTypes {
     };
   }
 
+
   export interface CreateReport extends RouteGenericInterface {
     Body: {
       locale: Langs;

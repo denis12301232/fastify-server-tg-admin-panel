@@ -9,6 +9,7 @@ import { Readable } from 'stream';
 import AssistanceSchemas from '@/api/schemas/AssistanceSchemas.js';
 import Util from '@/util/Util.js';
 import { GoogleService } from '@/api/services/index.js';
+import { jsPDF } from 'jspdf';
 
 export default class AssistanceService {
   static async saveForm(form: IAssistance) {
@@ -186,6 +187,17 @@ export default class AssistanceService {
     }
 
     return Object.fromEntries(list.entries());
+  }
+
+  static async createStatsPdf(data: MultipartFile) {
+    const buffer = await data.toBuffer();
+    const u8 = new Uint8Array(buffer);
+    const pdf = new jsPDF();
+    pdf.setFontSize(20);
+    pdf.text('Chart', 110, 15, { align: 'center' });
+    pdf.addImage(u8, 'PNG', 15, 20, 180, 120);
+
+    return Readable.from(Buffer.from(pdf.output('arraybuffer')));
   }
 
   static async createReport({ type, locale, ids }: AssistanceTypes.CreateReport['Body']) {

@@ -52,6 +52,16 @@ export default class AssistanceController {
     return result;
   }
 
+  static async getStatsPdf(request: FastifyRequest, reply: FastifyReply) {
+    const data = await request.file();
+    if (!data) {
+      throw ApiError.BadRequest();
+    }
+    const stream = await AssistanceService.createStatsPdf(data);
+    
+    return reply.header('Content-Type', 'application/octet-stream').send(stream);
+  }
+
   static async getReport(request: FastifyRequest<AssistanceTypes.CreateReport>, reply: FastifyReply) {
     const result = await AssistanceService.createReport(request.body);
     return reply.header('Content-Type', 'application/octet-stream').send(result);
