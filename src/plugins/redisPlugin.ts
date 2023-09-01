@@ -4,7 +4,7 @@ import { createClient, type RedisClientOptions } from 'redis';
 
 const redisPlugin: FastifyPluginCallback<RedisClientOptions> = async (app, options, done) => {
   try {
-    const client = createClient(options) as any; // docker build fails without any?!!!! wtf
+    const client = createClient(options);
     app.decorate('redis', client);
     app.addHook('onClose', (app, done) => app.redis.disconnect().finally(done));
     client.on('error', (e) => {
