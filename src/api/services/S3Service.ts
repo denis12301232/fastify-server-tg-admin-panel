@@ -20,7 +20,11 @@ export default class S3Service {
     credentials: { accessKeyId: this.accessKeyId, secretAccessKey: this.secretAccessKey },
   });
 
-  public static uploadFile(stream: ReadableStream | Buffer, path: string, filename: string) {
+  public static uploadFile(
+    stream: ReadableStream | Buffer,
+    path: string,
+    filename: string
+  ) {
     const command = new PutObjectCommand({ Bucket: this.bucketName, Body: stream, Key: join(path, filename) });
     return this.S3.send(command);
   }

@@ -2,38 +2,12 @@ import type { RouteGenericInterface } from 'fastify';
 import type { Langs, IAssistance } from './index.js';
 
 export namespace ToolsTypes {
-  export interface SetNewName extends RouteGenericInterface {
-    Body: {
-      name: string;
-    };
-  }
-
-  export interface SetNewEmail extends RouteGenericInterface {
-    Body: {
-      email: string;
-    };
-  }
-
-  export interface SetNewPassword extends RouteGenericInterface {
-    Body: {
-      newPassword: string;
-      oldPassword: string;
-    };
-  }
-
   export interface SetGoogleServiceAccountSettings extends RouteGenericInterface {
     Body: {
       serviceUser: string;
       servicePrivateKey: string;
       sheetId: string;
       folderId: string;
-    };
-  }
-
-  export interface UpdateRoles extends RouteGenericInterface {
-    Body: {
-      _id: string;
-      roles: string[];
     };
   }
 }
@@ -424,6 +398,32 @@ export namespace UserTypes {
       limit: number;
       page: number;
       filter: string;
+    };
+  }
+
+  export interface UpdateEmail extends RouteGenericInterface {
+    Body: {
+      email: string;
+    };
+  }
+
+  export interface UpdateName extends RouteGenericInterface {
+    Body: {
+      name: string;
+    };
+  }
+
+  export interface UpdatePassword extends RouteGenericInterface {
+    Body: {
+      newPassword: string;
+      oldPassword: string;
+    };
+  }
+
+  export interface UpdateRoles extends RouteGenericInterface {
+    Body: {
+      _id: string;
+      roles: string[];
     };
   }
 }

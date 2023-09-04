@@ -10,4 +10,17 @@ export default async function UserRoutes(app: FastifyInstance) {
     UserController.index
   );
   app.get('/:id', { onRequest: [useAuthGuard], schema: UserSchemas.getUser }, UserController.show);
+  app.patch('/email', { onRequest: useAuthGuard, schema: UserSchemas.updateEmail }, UserController.updateEmail);
+  app.patch('/name', { onRequest: useAuthGuard, schema: UserSchemas.updateName }, UserController.updateName);
+  app.patch('/avatar', { onRequest: useAuthGuard }, UserController.updateAvatar);
+  app.patch(
+    '/password',
+    { onRequest: useAuthGuard, schema: UserSchemas.updatePassword },
+    UserController.updatePassword
+  );
+  app.patch(
+    '/roles',
+    { onRequest: [useAuthGuard, useRoleGuard(['admin'])], schema: UserSchemas.updateRoles },
+    UserController.updateRoles
+  );
 }

@@ -1,6 +1,7 @@
 export default class ApiError extends Error {
   readonly status: number;
   readonly errors: unknown[];
+  readonly name = 'Api Error';
 
   constructor(status: number, message: string, errors: unknown[] = []) {
     super(message);
