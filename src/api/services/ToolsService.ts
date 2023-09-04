@@ -67,27 +67,6 @@ export default class ToolsService {
     return { message: 'Saved' };
   }
 
-  static async getUsers(_id: string, limit: number, page: number, filter: string) {
-    const query: FilterQuery<IUser> = filter
-      ? {
-          $or: [{ login: { $regex: filter, $options: 'i' } }, { name: { $regex: filter, $options: 'i' } }],
-        }
-      : {};
-    const skip = (page - 1) * limit;
-    const [users, count] = await Promise.all([
-      Models.User.find(
-        { $and: [{ _id: { $ne: _id }, login: { $ne: 'root' } }, query] },
-        { _id: 1, login: 1, name: 1, roles: 1 }
-      )
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Models.User.count({ $and: [{ _id: { $ne: _id }, login: { $ne: 'root' } }, query] }),
-    ]);
-
-    return { users, count };
-  }
-
   static async updateRoles(_id: string, roles: string[]) {
     const updated = await Models.User.updateOne({ _id, login: { $ne: 'root' } }, { roles }).lean();
     return updated;

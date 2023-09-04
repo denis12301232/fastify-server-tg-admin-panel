@@ -36,14 +36,6 @@ export namespace ToolsTypes {
       roles: string[];
     };
   }
-
-  export interface GetUsers extends RouteGenericInterface {
-    Querystring: {
-      limit: number;
-      page: number;
-      filter: string;
-    };
-  }
 }
 
 export namespace TaskTypes {
@@ -240,7 +232,6 @@ export namespace AssistanceTypes {
     };
   }
 
-
   export interface CreateReport extends RouteGenericInterface {
     Body: {
       locale: Langs;
@@ -418,5 +409,21 @@ export namespace ChatTypes {
   export interface MessageReaction {
     reaction: string;
     msgId: string;
+  }
+}
+
+export namespace UserTypes {
+  export interface GetUser extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+  }
+
+  export interface GetUsers extends RouteGenericInterface {
+    Querystring: {
+      limit: number;
+      page: number;
+      filter: string;
+    };
   }
 }

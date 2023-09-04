@@ -58,14 +58,4 @@ export default class ToolsSchemas {
       })
       .required(),
   };
-
-  static readonly getUsers = {
-    querystring: Joi.object<ToolsTypes.GetUsers['Querystring']>()
-      .keys({
-        limit: Joi.number().required().max(50),
-        page: Joi.number().required().min(1),
-        filter: Joi.string().allow(''),
-      })
-      .required(),
-  };
 }

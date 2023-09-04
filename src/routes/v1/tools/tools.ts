@@ -36,14 +36,7 @@ export default async function ToolsRoutes(app: FastifyInstance) {
     },
     ToolsController.setGoogleServiceAccountSettings
   );
-  app.get(
-    '/users',
-    {
-      onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: ToolsSchemas.getUsers,
-    },
-    ToolsController.getUsers
-  );
+ 
   app.patch(
     '/roles',
     {
