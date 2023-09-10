@@ -20,6 +20,10 @@ const GroupSchema = new Schema<IGroup>(
       of: [String],
       default: new Map(),
     },
+    banned: {
+      type: [],
+      default: [],
+    },
   },
   { timestamps: true }
 );

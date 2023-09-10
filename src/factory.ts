@@ -34,14 +34,12 @@ export default async function factory(app: FastifyInstance) {
   });
   app.register(Plugins.mongo, { url: process.env.MONGO_URL, opts: { dbName: process.env.MONGO_NAME } });
   app.register(Plugins.redis, { url: process.env.REDIS_URL });
-  app.setValidatorCompiler(
-    ({ schema }: { schema: ObjectSchema }) =>
+  app.setValidatorCompiler<ObjectSchema>(
+    ({ schema }) =>
       (data) =>
         schema.validate(data)
   );
-  app.setNotFoundHandler(async () => {
-    return { code: 404, message: 'Not Found' };
-  });
+  app.setNotFoundHandler(async () => ({ code: 404, message: 'Not Found' }));
   app.setErrorHandler(apiErrorHandler);
   await app.ready();
 }

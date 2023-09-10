@@ -16,12 +16,10 @@ async function main() {
     app.listen({ port: process.env.PORT, host: process.env.HOST });
   } catch (e) {
     app.log.error(e);
-    app.close();
-    process.exit(1);
+    app.close().then(() => process.exit(1));
   }
 }
 
-async function onShutDown() {
-  await app.close();
-  process.exit(0);
+function onShutDown() {
+  app.close().then(() => process.exit(0));
 }

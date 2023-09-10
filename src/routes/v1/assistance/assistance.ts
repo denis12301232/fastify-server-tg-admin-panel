@@ -4,38 +4,21 @@ import AssistanceSchemas from '@/api/schemas/AssistanceSchemas.js';
 import { useAuthGuard, useRoleGuard } from '@/hooks/index.js';
 
 export default async function AssistanceRoutes(app: FastifyInstance) {
-  app.post('/', { schema: AssistanceSchemas.saveForm }, AssistanceController.store);
-  app.post('/forms', { schema: AssistanceSchemas.getForms }, AssistanceController.getForms);
-  app.get(
-    '/search',
-    {
-      onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: AssistanceSchemas.findForms,
-    },
-    AssistanceController.search
-  );
+  app.post('/', { schema: AssistanceSchemas.store }, AssistanceController.store);
   app.delete(
     '/',
-    {
-      onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: AssistanceSchemas.deleteForms,
-    },
+    { schema: AssistanceSchemas.destroy, onRequest: [useAuthGuard, useRoleGuard(['admin'])] },
     AssistanceController.destroy
   );
+  app.post('/catch', {}, AssistanceController.catch);
   app.patch(
-    '/',
-    {
-      onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: AssistanceSchemas.modifyForm,
-    },
+    '/:id',
+    { onRequest: [useAuthGuard, useRoleGuard(['admin'])], schema: AssistanceSchemas.update },
     AssistanceController.update
   );
   app.get(
     '/:id',
-    {
-      onRequest: [useAuthGuard, useRoleGuard(['admin'])],
-      schema: AssistanceSchemas.getFormById,
-    },
+    { onRequest: [useAuthGuard, useRoleGuard(['admin'])], schema: AssistanceSchemas.show },
     AssistanceController.show
   );
   app.post(
@@ -55,7 +38,7 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
     AssistanceController.getStats
   );
 
-  app.post('/stats/pdf', {}, AssistanceController.getStatsPdf)
+  app.post('/stats/pdf', {}, AssistanceController.getStatsPdf);
 
   app.post(
     '/report',
@@ -66,7 +49,7 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
   app.post(
     '/list',
     {
-      onRequest: [useAuthGuard]
+      onRequest: [useAuthGuard],
     },
     AssistanceController.uploadListCSV
   );

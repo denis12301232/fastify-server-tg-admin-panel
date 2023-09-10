@@ -5,40 +5,30 @@ import ApiError from '@/exceptions/ApiError.js';
 import Validate from '@/util/Validate.js';
 
 export default class AssistanceController {
-  static async store(request: FastifyRequest<AssistanceTypes.SaveForm>) {
-    const saved = await AssistanceService.saveForm(request.body);
-    return { message: 'Saved!', saved };
+  static async store(request: FastifyRequest<AssistanceTypes.Store>) {
+    const saved = await AssistanceService.store(request.body);
+    return saved;
   }
 
-  static async destroy(request: FastifyRequest<AssistanceTypes.DeleteForms>) {
-    const ids = request.body;
-    const deleteResult = await AssistanceService.deleteForms(ids);
+  static async destroy(request: FastifyRequest<AssistanceTypes.Destroy>) {
+    const deleteResult = await AssistanceService.destroy(request.body);
     return deleteResult;
   }
 
-  static async search(request: FastifyRequest<AssistanceTypes.FindForms>, reply: FastifyReply) {
-    const { nameOrSurname, limit, page } = request.query;
-    const { forms, count } = await AssistanceService.findForms(nameOrSurname, limit, page);
-    reply.header('X-Total-Count', count);
+  static async catch(request: FastifyRequest<AssistanceTypes.Catch>, reply: FastifyReply) {
+    const { forms, total } = await AssistanceService.catch(request.body);
+    reply.header('X-Total-Count', total);
     return forms;
   }
 
-  static async update(request: FastifyRequest<AssistanceTypes.ModifyForm>) {
-    const { form, id } = request.body;
-    const updateResult = await AssistanceService.modifyForm(id, form);
+  static async update(request: FastifyRequest<AssistanceTypes.Update>) {
+    const updateResult = await AssistanceService.update(request.params.id, request.body);
     return updateResult;
   }
 
-  static async show(request: FastifyRequest<AssistanceTypes.GetFormById>) {
-    const { id } = request.params;
-    const form = await AssistanceService.getFormById(id);
+  static async show(request: FastifyRequest<AssistanceTypes.Show>) {
+    const form = await AssistanceService.show(request.params.id);
     return form;
-  }
-
-  static async getForms(request: FastifyRequest<AssistanceTypes.GetForms>, reply: FastifyReply) {
-    const { forms, total } = await AssistanceService.getForms(request.body);
-    reply.header('X-Total-Count', total);
-    return forms;
   }
 
   static async saveFormsToGoogleSheets(request: FastifyRequest<AssistanceTypes.SaveFormsToSheets>) {
@@ -47,18 +37,18 @@ export default class AssistanceController {
   }
 
   static async getStats(request: FastifyRequest<AssistanceTypes.GetStats>) {
-    const filters = request.query;
-    const result = await AssistanceService.getStats(filters);
+    const result = await AssistanceService.getStats(request.query);
     return result;
   }
 
   static async getStatsPdf(request: FastifyRequest, reply: FastifyReply) {
     const data = await request.file();
+
     if (!data) {
       throw ApiError.BadRequest();
     }
+
     const stream = await AssistanceService.createStatsPdf(data);
-    
     return reply.header('Content-Type', 'application/octet-stream').send(stream);
   }
 

@@ -121,7 +121,7 @@ export default class ImageService {
     return removed;
   }
 
-  static async updateDescription(id: string, description: string) {
+  static async updateDescription(id: string, { description }: ImageTypes.UpdateDescription['Body']) {
     const result = await Models.Media.updateOne({ _id: id }, { description }).lean();
     return result;
   }

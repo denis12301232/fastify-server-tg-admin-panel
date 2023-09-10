@@ -42,5 +42,6 @@ export default class SocketEvents {
 
     const users = await ChatService.updateUserStatus(this.data.user._id, STATUS);
     this.to(users).emit('chat:user-status', this.data.user._id, STATUS);
+    this.removeAllListeners();
   }
 }

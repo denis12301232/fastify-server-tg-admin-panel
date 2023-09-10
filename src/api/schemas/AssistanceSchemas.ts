@@ -1,12 +1,10 @@
-import type { AssistanceTypes, IAssistance } from '@/types/index.js';
+import type { AssistanceTypes } from '@/types/index.js';
 import Joi from 'joi';
 import { Validate } from '@/util/index.js';
 
-const year = new Date().getFullYear();
-
 export default class AssistanceSchemas {
-  static readonly saveForm = {
-    body: Joi.object<IAssistance>()
+  static readonly store = {
+    body: Joi.object<AssistanceTypes.Store['Body']>()
       .keys({
         name: Joi.string().required().max(100),
         surname: Joi.string().required().max(100),
@@ -17,18 +15,18 @@ export default class AssistanceSchemas {
           .required(),
         birth: Joi.string()
           .required()
-          .custom((value: string, helper) => {
-            return Validate.isYYYYMMDD(value) ? value : helper.error('any.invalid');
-          }),
-        district: Joi.number().required().valid(0, 1, 2, 3, 4, 5, 6, 7, 8),
+          .pattern(/^((1|2)(0|9)[0-9]{2})\/((0[1-9]{1})|(1[0-2]{1}))\/(([0-2]{1}[0-9]{1})|(3[0-1]{1}))$/),
+        district: Joi.number().required().min(0).max(8),
         street: Joi.number().required(),
         house: Joi.string().required().max(50),
         flat: Joi.string().max(50).pattern(/^\d+$/).required(),
         peopleCount: Joi.number().min(1).max(10).required(),
-        peopleFio: Joi.array().items(Joi.string().max(100)).empty(Joi.array().length(0)),
+        peopleFio: Joi.array<string>().items(Joi.string().max(100)).empty(Joi.array().length(0)),
         invalids: Joi.boolean(),
         kids: Joi.boolean(),
-        kidsAge: Joi.array().items(Joi.string().valid('0-1', '1-3', '3-9', '9-18')).empty(Joi.array().length(0)),
+        kidsAge: Joi.array<string>()
+          .items(Joi.string().valid('0-1', '1-3', '3-9', '9-18'))
+          .empty(Joi.array().length(0)),
         food: Joi.boolean(),
         water: Joi.boolean(),
         medicines: Joi.boolean(),
@@ -45,93 +43,75 @@ export default class AssistanceSchemas {
       .required(),
   };
 
-  static readonly findForms = {
-    querystring: Joi.object<AssistanceTypes.FindForms['Querystring']>()
-      .keys({
-        nameOrSurname: Joi.string().required(),
-        limit: Joi.number().required().min(1).max(100),
-        page: Joi.number().required(),
-      })
-      .required(),
+  static readonly destroy = {
+    body: Joi.array<AssistanceTypes.Destroy['Body']>().required().items(Joi.string()),
   };
 
-  static readonly getForms = {
-    body: Joi.object<AssistanceTypes.GetForms['Body']>()
+  static readonly catch = {
+    body: Joi.object<AssistanceTypes.Catch['Body']>()
       .keys({
-        limit: Joi.number().required(),
-        page: Joi.number().required(),
-        sort: Joi.string().required(),
         descending: Joi.boolean().required(),
-        filter: Joi.object<AssistanceTypes.GetForms['Body']['filter']>().keys({
-          district: Joi.number().allow('').valid(0, 1, 2, 3, 4, 5, 6, 7, 8),
+        limit: Joi.number().min(1).max(100).required(),
+        page: Joi.number().min(1).required(),
+        sort: Joi.string().required(),
+        filter: Joi.object<AssistanceTypes.Catch['Body']['filter']>().keys({
+          district: Joi.number().min(0).max(8),
+          street: Joi.string(),
+          sector: Joi.string(),
+          nameOrSurname: Joi.string(),
           birth: Joi.object<{ min: number; max: number }>().keys({
-            min: Joi.number().required().min(1920).max(year),
-            max: Joi.number().required().min(1920).max(year),
+            min: Joi.number().required().min(1920).max(new Date().getFullYear()),
+            max: Joi.number().required().min(1920).max(new Date().getFullYear()),
           }),
-          street: Joi.string().allow(''),
-          sector: Joi.string().allow(''),
-        }).allow('', null),
+        }),
       })
       .required(),
   };
 
-  static readonly deleteForms = {
-    body: Joi.array<AssistanceTypes.DeleteForms['Body']>().required().items(Joi.string()),
-  };
-
-  static readonly modifyForm = {
-    body: Joi.object<AssistanceTypes.ModifyForm['Body']>()
+  static readonly update = {
+    params: Joi.object<AssistanceTypes.Update['Params']>().keys({ id: Joi.string().required }).required(),
+    body: Joi.object<AssistanceTypes.Update['Body']>()
       .keys({
-        id: Joi.string().required(),
-        form: Joi.object<AssistanceTypes.ModifyForm['Body']['form']>()
-          .keys({
-            _id: Joi.string(),
-            name: Joi.string().required().max(100),
-            surname: Joi.string().required().max(100),
-            patronymic: Joi.string().required().max(100),
-            phone: Joi.string()
-              .length(10)
-              .pattern(/^[0-9]+$/)
-              .required(),
-            birth: Joi.string()
-              .required()
-              .custom((value: string, helper) => {
-                return Validate.isYYYYMMDD(value) ? value : helper.error('any.invalid');
-              }),
-            district: Joi.number().required().valid(0, 1, 2, 3, 4, 5, 6, 7, 8),
-            street: Joi.number().required().max(50),
-            house: Joi.string().required().max(50),
-            flat: Joi.number().required(),
-            peopleCount: Joi.number().min(1).max(10).required(),
-            peopleFio: Joi.array().items(Joi.string().max(100)).empty(Joi.array().length(0)),
-            invalids: Joi.boolean(),
-            kids: Joi.boolean(),
-            kidsAge: Joi.array().items(Joi.string().valid('0-1', '1-3', '3-9', '9-18')).empty(Joi.array().length(0)),
-            food: Joi.boolean(),
-            water: Joi.boolean(),
-            medicines: Joi.boolean(),
-            medicinesInfo: Joi.string().max(500).allow('', null),
-            hygiene: Joi.boolean(),
-            hygieneInfo: Joi.string().max(500).allow('', null),
-            pampers: Joi.boolean(),
-            pampersInfo: Joi.string().max(500).allow('', null),
-            extraInfo: Joi.string().max(500).allow('', null),
-            personalDataAgreement: Joi.boolean().required().valid(true),
-            photoAgreement: Joi.boolean().required().valid(true),
-            sector: Joi.string().allow(''),
-          })
+        _id: Joi.string(),
+        name: Joi.string().required().max(100),
+        surname: Joi.string().required().max(100),
+        patronymic: Joi.string().required().max(100),
+        phone: Joi.string()
+          .length(10)
+          .pattern(/^[0-9]+$/)
           .required(),
+        birth: Joi.string()
+          .required()
+          .custom((value: string, helper) => {
+            return Validate.isYYYYMMDD(value) ? value : helper.error('any.invalid');
+          }),
+        district: Joi.number().required().valid(0, 1, 2, 3, 4, 5, 6, 7, 8),
+        street: Joi.number().required().max(50),
+        house: Joi.string().required().max(50),
+        flat: Joi.number().required(),
+        peopleCount: Joi.number().min(1).max(10).required(),
+        peopleFio: Joi.array().items(Joi.string().max(100)).empty(Joi.array().length(0)),
+        invalids: Joi.boolean(),
+        kids: Joi.boolean(),
+        kidsAge: Joi.array().items(Joi.string().valid('0-1', '1-3', '3-9', '9-18')).empty(Joi.array().length(0)),
+        food: Joi.boolean(),
+        water: Joi.boolean(),
+        medicines: Joi.boolean(),
+        medicinesInfo: Joi.string().max(500).allow('', null),
+        hygiene: Joi.boolean(),
+        hygieneInfo: Joi.string().max(500).allow('', null),
+        pampers: Joi.boolean(),
+        pampersInfo: Joi.string().max(500).allow('', null),
+        extraInfo: Joi.string().max(500).allow('', null),
+        personalDataAgreement: Joi.boolean().required().valid(true),
+        photoAgreement: Joi.boolean().required().valid(true),
+        sector: Joi.string().allow(''),
       })
       .required(),
   };
 
-  static readonly getFormById = {
-    params: Joi.object<AssistanceTypes.GetFormById['Querystring']>()
-      .keys({
-        id: Joi.string().required(),
-      })
-      .required(),
-      
+  static readonly show = {
+    params: Joi.object<AssistanceTypes.Show['Params']>().keys({ id: Joi.string().required() }).required(),
   };
 
   static readonly saveFormsToGoogleSheets = {

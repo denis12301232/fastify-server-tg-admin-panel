@@ -12,13 +12,21 @@ import { GoogleService } from '@/api/services/index.js';
 import { jsPDF } from 'jspdf';
 
 export default class AssistanceService {
-  static async saveForm(form: IAssistance) {
+  static async store(form: IAssistance) {
     const saved = await Models.Assistance.create(form);
     return saved;
   }
 
-  static async getForms({ limit, page, sort, descending, filter }: AssistanceTypes.GetForms['Body']) {
-    const conditions: FilterQuery<IAssistance>[] = [
+  static async catch({ limit, page, sort, descending, filter }: AssistanceTypes.Catch['Body']) {
+    const conditions: FilterQuery<IAssistance[]> = [
+      filter?.nameOrSurname
+        ? {
+            $or: [
+              { name: { $regex: filter.nameOrSurname, $options: 'i' } },
+              { surname: { $regex: filter.nameOrSurname, $options: 'i' } },
+            ],
+          }
+        : {},
       filter?.district ? { district: filter.district } : {},
       filter?.street ? { street: filter.street } : {},
       filter?.sector ? { sector: filter.sector } : {},
@@ -26,7 +34,7 @@ export default class AssistanceService {
         ? {
             $expr: {
               $function: {
-                body: `${function (birth: string, filter: AssistanceTypes.GetForms['Body']['filter']) {
+                body: `${function (birth: string, filter: AssistanceTypes.Catch['Body']['filter']) {
                   return (
                     +birth.split('/')[0] >= Number(filter?.birth?.min) &&
                     +birth.split('/')[0] <= Number(filter?.birth?.max)
@@ -39,6 +47,7 @@ export default class AssistanceService {
           }
         : {},
     ];
+
     const skip = (page - 1) * limit;
     const [forms, total] = await Promise.all([
       Models.Assistance.find({ $and: conditions }, { __v: 0, createdAt: 0, updatedAt: 0 })
@@ -51,30 +60,17 @@ export default class AssistanceService {
     return { forms, total };
   }
 
-  static async findForms(nameOrSurname: string, limit: number, page: number) {
-    const skip = (page - 1) * limit;
-    const query: FilterQuery<IAssistance> = {
-      $or: [{ name: { $regex: nameOrSurname, $options: 'i' } }, { surname: { $regex: nameOrSurname, $options: 'i' } }],
-    };
-    const [forms, count] = await Promise.all([
-      Models.Assistance.find(query, { __v: 0, createdAt: 0, updatedAt: 0 }).skip(skip).limit(limit).lean(),
-      Models.Assistance.count(query),
-    ]);
-
-    return { forms, count };
+  static async destroy(ids: string[]) {
+    const result = await Models.Assistance.deleteMany({ _id: { $in: ids } }).lean();
+    return result;
   }
 
-  static async deleteForms(ids: string[]) {
-    const deleteResult = await Models.Assistance.deleteMany({ _id: { $in: ids } }).lean();
-    return deleteResult;
-  }
-
-  static async modifyForm(id: string, form: IAssistance) {
-    const updateResult = await Models.Assistance.updateOne({ _id: id }, { $set: form }, { runValidators: true }).lean();
+  static async update(_id: string, form: AssistanceTypes.Update['Body']) {
+    const updateResult = await Models.Assistance.updateOne({ _id }, { $set: form }, { runValidators: true }).lean();
     return updateResult;
   }
 
-  static async getFormById(id: string) {
+  static async show(id: string) {
     const form = await Models.Assistance.findById(id, { __v: 0, _id: 0, createdAt: 0, updatedAt: 0 }).lean();
     return form;
   }
@@ -283,7 +279,7 @@ export default class AssistanceService {
         return form;
       }, {} as { [key in keyof Omit<IAssistance, '_id'>]: unknown });
 
-      const { error } = AssistanceSchemas.saveForm.body.validate(form);
+      const { error } = AssistanceSchemas.store.body.validate(form);
 
       if (error) {
         errors.push({ message: 'Error in row', row: number });

@@ -2,76 +2,7 @@ import type { TaskTypes } from '@/types/index.js';
 import Joi from 'joi';
 
 export default class TaskSchemas {
-  static readonly createTask = {
-    body: Joi.object<TaskTypes.CreateTask['Body']>()
-      .keys({
-        title: Joi.string().required().max(30),
-        tags: Joi.array().required().min(1),
-        subtasks: Joi.array().items(
-          Joi.object().keys({
-            title: Joi.string().required(),
-            description: Joi.string().required(),
-          })
-        ),
-      })
-      .required(),
-  };
-
-  static readonly updateTaskStatus = {
-    body: Joi.object<TaskTypes.UpdateTaskStatus['Body']>()
-      .keys({
-        taskId: Joi.string().required(),
-        status: Joi.string().required().allow('untaken', 'performed', 'canceled', 'completed'),
-      })
-      .required(),
-  };
-
-  static readonly getTaskById = {
-    params: Joi.object<TaskTypes.GetTaskById['Params']>()
-      .keys({
-        id: Joi.string().required(),
-      })
-      .required(),
-  };
-
-  static readonly setUserForTask = {
-    body: Joi.object<TaskTypes.SetUserForTask['Body']>()
-      .keys({
-        taskId: Joi.string().required(),
-      })
-      .required(),
-  };
-
-  static readonly updateSubtask = {
-    body: Joi.object<TaskTypes.UpdateSubtask['Body']>()
-      .keys({
-        subtask_id: Joi.string().required(),
-        status: Joi.string().allow('untaken', 'performed', 'canceled', 'completed'),
-        cause: Joi.string(),
-      })
-      .required(),
-  };
-
-  static readonly deleteSubtask = {
-    querystring: Joi.object<TaskTypes.DeleteSubtask['Querystring']>()
-      .keys({
-        subtask_id: Joi.string().required(),
-        taskId: Joi.string().required(),
-      })
-      .required(),
-  };
-
-  static readonly moveSubtask = {
-    body: Joi.object<TaskTypes.MoveSubtask['Body']>()
-      .keys({
-        subtask_id: Joi.string().required(),
-        taskId: Joi.string().required(),
-        new_task_id: Joi.string().required(),
-      })
-      .required(),
-  };
-
-  static readonly getTasks = {
+  static readonly index = {
     querystring: Joi.object<TaskTypes.GetTasks['Querystring']>()
       .keys({
         limit: Joi.number().required(),
@@ -83,11 +14,65 @@ export default class TaskSchemas {
       .required(),
   };
 
-  static readonly createTaskCsv = {
-    querystring: Joi.object<TaskTypes.CreateTaskCsv['Querystring']>()
+  static readonly store = {
+    body: Joi.object<TaskTypes.CreateTask['Body']>()
       .keys({
-        taskId: Joi.string().required(),
+        title: Joi.string().required().max(30),
+        tags: Joi.array().required().min(1),
+        subtasks: Joi.array<TaskTypes.CreateTask['Body']['subtasks']>().items(
+          Joi.object<TaskTypes.CreateTask['Body']['subtasks']['0']>().keys({
+            title: Joi.string().required(),
+            description: Joi.string().required(),
+          })
+        ),
       })
       .required(),
+  };
+
+  static readonly update = {
+    body: Joi.object<TaskTypes.Update['Body']>()
+      .keys({ status: Joi.string(), userId: Joi.string() })
+      .or('status', 'userId'),
+    params: Joi.object<TaskTypes.Update['Params']>().keys({ id: Joi.string().required() }).required(),
+  };
+
+  static readonly show = {
+    params: Joi.object<TaskTypes.GetTaskById['Params']>()
+      .keys({
+        id: Joi.string().required(),
+      })
+      .required(),
+  };
+
+  static readonly report = {
+    params: Joi.object<TaskTypes.Report['Params']>()
+      .keys({
+        id: Joi.string().required(),
+      })
+      .required(),
+  };
+
+  static readonly updateSubtask = {
+    body: Joi.object<TaskTypes.UpdateSubtask['Body']>()
+      .keys({
+        status: Joi.string().allow('untaken', 'performed', 'canceled', 'completed'),
+        cause: Joi.string(),
+      })
+      .required(),
+    params: Joi.object<TaskTypes.UpdateSubtask['Params']>().keys({ id: Joi.string().required() }).required(),
+  };
+
+  static readonly deleteSubtask = {
+    querystring: Joi.object<TaskTypes.DeleteSubtask['Querystring']>()
+      .keys({ taskId: Joi.string().required() })
+      .required(),
+    params: Joi.object<TaskTypes.DeleteSubtask['Params']>().keys({ id: Joi.string().required() }).required(),
+  };
+
+  static readonly moveSubtask = {
+    body: Joi.object<TaskTypes.MoveSubtask['Body']>()
+      .keys({ taskId: Joi.string().required(), newTaskId: Joi.string().required() })
+      .required(),
+    params: Joi.object<TaskTypes.MoveSubtask['Params']>().keys({ id: Joi.string().required() }).required(),
   };
 }

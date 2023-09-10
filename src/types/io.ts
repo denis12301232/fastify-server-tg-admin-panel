@@ -6,14 +6,14 @@ export type ServerTyped = Server<ClientToServerEvents, ServerToClientEvents, Int
 export type SocketTyped = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 
 interface ServerToClientEvents {
-  'chat:typing': (chatId: string, user_name: string, user_id: string) => void;
+  'chat:typing': (chatId: string, user_name: string, userId: string) => void;
   'chat:user-status': (socketId: string, status: 'online' | 'offline') => void;
   'chat:message': (msg: unknown) => void;
   'chat:messages-delete': (chatId: string, msgIds: string[]) => void;
   'chat:message-reactions': (chatId: string, msgId: string, reactions: Map<string, string[]>) => void;
   'chat:invite-to-group': (chat: ChatDto) => void;
   'chat:kick-from-group': (chatId: string) => void;
-  'chat:read-message': (chatId: string, user_id: string) => void;
+  'chat:read-message': (chatId: string, userId: string) => void;
   'chat:call': (chatId: string) => void;
   'chat:call-answer': (chatId: string, answer: boolean) => void;
   'chat:call-cancel': () => void;
@@ -35,7 +35,7 @@ interface ServerToClientEvents {
 }
 
 interface ClientToServerEvents {
-  'chat:typing': (this: SocketTyped, chatId: string, user_name: string, user_id: string) => void;
+  'chat:typing': (this: SocketTyped, chatId: string, user_name: string, userId: string) => void;
   'chat:message': (this: SocketTyped, data: ChatTypes.Message) => void;
   'chat:messages-delete': (this: SocketTyped, data: ChatTypes.DeleteMessages) => void;
   'chat:message-reactions': (this: SocketTyped, data: ChatTypes.MessageReaction) => void;

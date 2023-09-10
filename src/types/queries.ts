@@ -23,6 +23,16 @@ export namespace TaskTypes {
     };
   }
 
+  export interface Update extends RouteGenericInterface {
+    Body: {
+      userId: string;
+      status: TaskStatus;
+    };
+    Params: {
+      id: string;
+    };
+  }
+
   export interface UpdateTaskStatus extends RouteGenericInterface {
     Body: {
       taskId: string;
@@ -44,24 +54,30 @@ export namespace TaskTypes {
 
   export interface UpdateSubtask extends RouteGenericInterface {
     Body: {
-      subtask_id: string;
       status: TaskStatus;
       cause: string;
+    };
+    Params: {
+      id: string;
     };
   }
 
   export interface DeleteSubtask extends RouteGenericInterface {
     Querystring: {
-      subtask_id: string;
       taskId: string;
+    };
+    Params: {
+      id: string;
     };
   }
 
   export interface MoveSubtask extends RouteGenericInterface {
     Body: {
-      subtask_id: string;
       taskId: string;
-      new_task_id: string;
+      newTaskId: string;
+    };
+    Params: {
+      id: string;
     };
   }
 
@@ -75,17 +91,17 @@ export namespace TaskTypes {
     };
   }
 
-  export interface CreateTaskCsv extends RouteGenericInterface {
-    Querystring: {
-      taskId: string;
+  export interface Report extends RouteGenericInterface {
+    Params: {
+      id: string;
     };
   }
 }
 
 export namespace MeetTypes {
-  export interface GetInfo extends RouteGenericInterface {
-    Querystring: {
-      meetId: string;
+  export interface Show extends RouteGenericInterface {
+    Params: {
+      id: string;
     };
   }
 }
@@ -102,8 +118,10 @@ export namespace ImageTypes {
 
   export interface UpdateDescription extends RouteGenericInterface {
     Body: {
-      id: string;
       description: string;
+    };
+    Params: {
+      id: string;
     };
   }
 
@@ -113,7 +131,7 @@ export namespace ImageTypes {
 }
 
 export namespace AuthTypes {
-  export interface UserRegistration extends RouteGenericInterface {
+  export interface Registration extends RouteGenericInterface {
     Body: {
       login: string;
       name: string;
@@ -122,26 +140,26 @@ export namespace AuthTypes {
     };
   }
 
-  export interface UserLogin extends RouteGenericInterface {
+  export interface Login extends RouteGenericInterface {
     Body: {
       loginOrEmail: string;
       password: string;
     };
   }
 
-  export interface UserActivate extends RouteGenericInterface {
+  export interface Activate extends RouteGenericInterface {
     Params: {
       link: string;
     };
   }
 
-  export interface UserPasswordRestore extends RouteGenericInterface {
+  export interface RestorePassword extends RouteGenericInterface {
     Body: {
       email: string;
     };
   }
 
-  export interface UserNewRestoredPassword extends RouteGenericInterface {
+  export interface SetNewPassword extends RouteGenericInterface {
     Body: {
       password: string;
       link: string;
@@ -150,43 +168,53 @@ export namespace AuthTypes {
 }
 
 export namespace AssistanceTypes {
-  export interface SaveForm {
+  export interface Index extends RouteGenericInterface {
+    Querystring: {
+      limit: number;
+      page: number;
+      descending: boolean;
+      sort: string;
+      name?: string;
+      surname?: string;
+      district?: number;
+      street?: number;
+      sector?: string;
+      birth?: number[];
+    };
+  }
+
+  export interface Store extends RouteGenericInterface {
     Body: IAssistance;
   }
-  export interface GetForms extends RouteGenericInterface {
+
+  export interface Destroy extends RouteGenericInterface {
+    Body: string[];
+  }
+
+  export interface Catch extends RouteGenericInterface {
     Body: {
       limit: number;
       page: number;
       descending: boolean;
       sort: string;
       filter?: {
-        district?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+        district?: number;
         birth?: { min: number; max: number };
         street?: string;
         sector?: string;
+        nameOrSurname?: string;
       };
     };
   }
-  export interface FindForms extends RouteGenericInterface {
-    Querystring: {
-      nameOrSurname: string;
-      limit: number;
-      page: number;
-    };
-  }
 
-  export interface DeleteForms extends RouteGenericInterface {
-    Body: string[];
-  }
-
-  export interface ModifyForm extends RouteGenericInterface {
-    Body: {
+  export interface Update extends RouteGenericInterface {
+    Params: {
       id: string;
-      form: IAssistance;
     };
+    Body: IAssistance;
   }
 
-  export interface GetFormById extends RouteGenericInterface {
+  export interface Show extends RouteGenericInterface {
     Params: {
       id: string;
     };
@@ -231,6 +259,34 @@ export namespace AssistanceTypes {
 }
 
 export namespace ChatTypes {
+  export interface Show extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+  }
+
+  export interface Destroy extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+  }
+
+  export interface GetMessages extends RouteGenericInterface {
+    Querystring: {
+      limit: number;
+      skip: number;
+    };
+    Params: {
+      id: string;
+    };
+  }
+
+  export interface GetMembers extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+  }
+
   export interface Typing {
     chatId: string;
     userName: string;
@@ -268,35 +324,19 @@ export namespace ChatTypes {
     attachments?: Buffer[];
   }
 
-  export interface FindUsers extends RouteGenericInterface {
-    Querystring: {
-      loginOrName: string;
-    };
-  }
-
   export interface CreateChat extends RouteGenericInterface {
     Body: {
       users: string[];
     };
   }
 
-  export interface AddUserToGroup extends RouteGenericInterface {
-    Body: {
-      user_id: string;
-      chatId: string;
+  export interface UpdateGroupMembers extends RouteGenericInterface {
+    Params: {
+      id: string;
     };
-  }
-
-  export interface RemoveUserFromGroup extends RouteGenericInterface {
     Body: {
-      user_id: string;
-      chatId: string;
-    };
-  }
-
-  export interface GetUsersListInChat extends RouteGenericInterface {
-    Querystring: {
-      chatId: string;
+      userId: string;
+      action: 'add' | 'kick';
     };
   }
 
@@ -314,19 +354,6 @@ export namespace ChatTypes {
       page: number;
     };
   }
-  export interface GetChatMessages extends RouteGenericInterface {
-    Querystring: {
-      chatId: string;
-      limit: number;
-      skip: number;
-    };
-  }
-
-  export interface DeleteChat extends RouteGenericInterface {
-    Body: {
-      chatId: string;
-    };
-  }
 
   export interface SaveAudioMessage extends RouteGenericInterface {
     Querystring: {
@@ -335,8 +362,8 @@ export namespace ChatTypes {
   }
 
   export interface UpdateRead extends RouteGenericInterface {
-    Body: {
-      chatId: string;
+    Params: {
+      id: string;
     };
   }
 
@@ -347,29 +374,27 @@ export namespace ChatTypes {
     };
   }
 
-  export interface UpdateRolesInGroup extends RouteGenericInterface {
+  export interface UpdateGroupRoles extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
     Body: {
-      group_id: string;
       role: string;
       users: string[];
     };
   }
 
   export interface UpdateGroup extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
     Querystring: {
-      group_id: string;
       title: string;
       about: string;
     };
   }
 
-  export interface GetUserChatById extends RouteGenericInterface {
-    Querystring: {
-      chatId: string;
-    };
-  }
-
-  export interface GetFileFromS3 extends RouteGenericInterface {
+  export interface GetAttachment extends RouteGenericInterface {
     Querystring: {
       filename: string;
     };

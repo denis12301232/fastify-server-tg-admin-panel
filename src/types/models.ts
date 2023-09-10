@@ -59,6 +59,7 @@ export interface IGroup {
   avatar: string;
   about: string;
   roles: { [name: string]: string[] };
+  banned: string[];
   createdAt: NativeDate;
   updatedAt: NativeDate;
 }

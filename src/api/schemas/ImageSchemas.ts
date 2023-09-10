@@ -2,7 +2,7 @@ import type { ImageTypes } from '@/types/index.js';
 import Joi from 'joi';
 
 export default class ImageSchemas {
-  static readonly getImages = {
+  static readonly index = {
     querystring: Joi.object<ImageTypes.GetImages['Querystring']>()
       .keys({
         skip: Joi.number().required(),
@@ -13,16 +13,14 @@ export default class ImageSchemas {
       .required(),
   };
 
-  static readonly deleteImages = {
-    body: Joi.array().items(Joi.string()).required(),
+  static readonly delete = {
+    body: Joi.array<string[]>().items(Joi.string()).required(),
   };
 
-  static readonly updateDescription = {
+  static readonly update = {
     body: Joi.object<ImageTypes.UpdateDescription['Body']>()
-      .keys({
-        id: Joi.string().required(),
-        description: Joi.string().max(50),
-      })
+      .keys({ description: Joi.string().max(50) })
       .required(),
+    params: Joi.object<ImageTypes.UpdateDescription['Params']>().keys({ id: Joi.string().required() }).required(),
   };
 }

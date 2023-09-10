@@ -1,4 +1,4 @@
-import type { ChatTypes, IGroup, IUser, IMessage, IAttachment } from '@/types/index.js';
+import type { ChatTypes, IGroup, IUser, IMessage, IAttachment, IChat } from '@/types/index.js';
 import Models from '@/models/mongo/index.js';
 import { ChatDto } from '@/dto/index.js';
 import { v4 } from 'uuid';
@@ -7,8 +7,76 @@ import ApiError from '@/exceptions/ApiError.js';
 import { MultipartFile } from '@fastify/multipart';
 import { S3Service } from '@/api/services/index.js';
 import { join } from 'path';
+import { FilterQuery } from 'mongoose';
 
 export default class ChatService {
+  static async index(userId: string) {
+    const chats = await Models.Chat.find({ users: { $in: [userId] }, deleted: { $nin: [userId] } })
+      .populate<{ messages: IMessage[] }>({
+        path: 'messages',
+        populate: { path: 'attachments' },
+      })
+      .populate<{ users: IUser[] }>({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
+      .populate<{ group: IGroup }>({ path: 'group', select: { title: 1, avatar: 1, roles: 1, about: 1, _id: 1 } })
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    return chats.map((chat) => new ChatDto(chat, userId));
+  }
+
+  static async show(userId: string, chatId: string) {
+    const chat = await Models.Chat.findOne({ _id: chatId, users: { $in: [userId] } })
+      .populate<{ messages: IMessage[] }>({ path: 'messages' })
+      .populate({ path: 'messages.attachments', select: { type: 1, name: 1 } })
+      .populate<{ users: IUser[] }>({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
+      .populate<{ group: IGroup }>({ path: 'group', select: { title: 1, avatar: 1, roles: 1, _id: 1 } })
+      .lean();
+
+    return chat ? new ChatDto(chat, userId) : null;
+  }
+
+  static async destroy(myId: string, chatId: string) {
+    const result = await Models.Chat.updateOne({ _id: chatId }, { $addToSet: { deleted: myId } }).lean();
+    return result;
+  }
+
+  static async chatMessages(userId: string, chatId: string, { skip, limit }: ChatTypes.GetMessages['Querystring']) {
+    const chat = await Models.Chat.findOne({ _id: chatId, users: { $in: [userId] } }, { _id: 1 }).lean();
+
+    if (!chat) {
+      throw ApiError.NotFound();
+    }
+
+    const messages = await Models.Message.find({ chatId })
+      .populate<{ attachments: IAttachment[] }>({ path: 'attachments' })
+      .sort({ _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    return messages.reverse();
+  }
+
+  static async updateRead(chatId: string, userId: string) {
+    const updated = await Models.Message.updateMany(
+      { chatId, read: { $nin: [userId] } },
+      { $addToSet: { read: userId } }
+    ).lean();
+
+    return updated;
+  }
+
+  static async updateGroupRoles(groupId: string, myId: string, { role, users }: ChatTypes.UpdateGroupRoles['Body']) {
+    const group = await Models.Group.findById(groupId).lean();
+
+    if (!group?.roles?.admin.includes(myId)) {
+      throw ApiError.BadRequest(403, 'Not enough rights');
+    }
+
+    const updated = await Models.Group.updateOne({ _id: groupId }, { $set: { ['roles.' + role]: users } }).lean();
+    return updated;
+  }
+
   static async createChat(userId: string, users: string[]) {
     let chat = await Models.Chat.findOneAndUpdate(
       { users: { $all: users }, type: 'dialog' },
@@ -121,64 +189,30 @@ export default class ChatService {
     return ids;
   }
 
-  static async updateUserStatus(user_id: string, status: 'online' | 'offline') {
-    await Models.User.updateOne({ _id: user_id }, { status }).lean();
-    const chats = await Models.Chat.find({ users: { $in: [user_id] } }, { messages: 0 }).lean();
+  static async updateUserStatus(userId: string, status: 'online' | 'offline') {
+    await Models.User.updateOne({ _id: userId }, { status }).lean();
+    const chats = await Models.Chat.find({ users: { $in: [userId] } }, { messages: 0 }).lean();
 
     const uniqueUsers = Array.from(
       chats.reduce((unique, chat) => {
-        chat.users.forEach((user) => (user.toString() !== user_id ? unique.add(user.toString()) : ''));
+        chat.users.forEach((user) => (user.toString() !== userId ? unique.add(user.toString()) : ''));
         return unique;
       }, new Set<string>())
     );
     return uniqueUsers;
   }
 
-  static async getUserChatsId(user_id: string) {
-    const chats = await Models.Chat.find({ users: { $in: [user_id] }, deleted: { $nin: [user_id] } }).lean();
+  static async getUserChatsId(userId: string) {
+    const chats = await Models.Chat.find({ users: { $in: [userId] }, deleted: { $nin: [userId] } }).lean();
     return chats.reduce((arr, chat) => [...arr, String(chat._id)], [] as string[]);
   }
 
-  static async getUserChats(user_id: string) {
-    const chats = await Models.Chat.find({ users: { $in: [user_id] }, deleted: { $nin: [user_id] } })
-      .populate<{ messages: IMessage[] }>({
-        path: 'messages',
-        populate: { path: 'attachments' },
-      })
-      .populate<{ users: IUser[] }>({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
-      .populate<{ group: IGroup }>({ path: 'group', select: { title: 1, avatar: 1, roles: 1, about: 1, _id: 1 } })
-      .sort({ updatedAt: -1 })
-      .lean();
-
-    return chats.map((chat) => new ChatDto(chat, user_id));
-  }
-
-  static async getChatMessages(userId: string, { chatId, skip, limit }: ChatTypes.GetChatMessages['Querystring']) {
-    const chat = await Models.Chat.findOne({ _id: chatId, users: { $in: [userId] } }, { _id: 1 }).lean();
-    if (!chat) {
-      throw ApiError.Forbidden();
-    }
-
-    const messages = await Models.Message.find({ chatId: chatId })
-      .populate<{ attachments: IAttachment[] }>({ path: 'attachments' })
-      .sort({ _id: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    return messages.reverse();
-  }
-
-  static async findUsers(loginOrName: string, user_id: string) {
-    const users = await Models.User.find({
-      _id: { $ne: user_id },
-      $or: [{ login: { $regex: loginOrName, $options: 'i' } }, { name: { $regex: loginOrName, $options: 'i' } }],
-    }).lean();
-    return users;
-  }
-
-  static async addUserToGroup(myId: string, chatId: string, userId: string) {
-    const chat = await Models.Chat.findById(chatId, { _id: 1, deleted: 1, users: 1 })
+  static async updateGroupMembers(
+    chatId: string,
+    myId: string,
+    { userId, action }: ChatTypes.UpdateGroupMembers['Body']
+  ) {
+    const chat = await Models.Chat.findById(chatId, { deleted: 1, users: 1 })
       .populate<{ group: IGroup }>({ path: 'group', select: { roles: 1 } })
       .lean();
 
@@ -186,13 +220,16 @@ export default class ChatService {
       throw ApiError.BadRequest(403, 'Not enough rights');
     }
 
-    if (chat?.users.map((user) => user.toString()).includes(userId) && !chat?.deleted.includes(userId)) {
-      throw ApiError.BadRequest(400, 'User already in group');
+    const query: FilterQuery<IChat> =
+      action === 'add' ? { $addToSet: { users: userId } } : { $pull: { users: userId } };
+
+    const updated = await Models.Chat.updateOne({ _id: chatId }, query);
+
+    if (!updated.modifiedCount) {
+      throw ApiError.BadRequest();
     }
 
-    await Models.Chat.updateOne({ _id: chatId }, { $addToSet: { users: userId }, $pull: { deleted: userId } }).lean();
-
-    const result = await Models.Chat.findById(chat?._id)
+    const result = await Models.Chat.findById(chatId)
       .populate<{ messages: IMessage[] }>({ path: 'messages' })
       .populate({ path: 'messages.attachments', select: { type: 1, name: 1 } })
       .populate<{ users: IUser[] }>({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
@@ -202,20 +239,6 @@ export default class ChatService {
     return new ChatDto(result, userId);
   }
 
-  static async removeUserFromGroup(my_id: string, chatId: string, userId: string) {
-    const chat = await Models.Chat.findById(chatId, { group: 1 })
-      .populate<{ group: IGroup }>({ path: 'group', select: { roles: 1 } })
-      .lean();
-
-    if (!chat?.group.roles?.admin?.includes(my_id)) {
-      throw ApiError.BadRequest(403, 'Not enough rights');
-    }
-
-    const updated = await Models.Chat.updateOne({ _id: chat?._id }, { $addToSet: { deleted: userId } }).lean();
-
-    return updated;
-  }
-
   static async getUsersListInChat(chatId: string) {
     const users = await Models.Chat.findById(chatId, { users: 1, deleted: 1, _id: 0 })
       .populate<IUser>({ path: 'users', select: { name: 1, _id: 1, login: 1, avatar: 1 } })
@@ -223,40 +246,21 @@ export default class ChatService {
     return users?.users.filter((user) => !users.deleted.includes(user._id.toString()));
   }
 
-  static async deleteChat(my_id: string, chatId: string) {
-    const result = await Models.Chat.updateOne({ _id: chatId }, { $addToSet: { deleted: my_id } }).lean();
-    return result;
-  }
+  static async updateGroup(
+    groupId: string,
+    userId: string,
+    info: ChatTypes.UpdateGroup['Querystring'],
+    file?: MultipartFile
+  ) {
+    const group = await Models.Group.findById(groupId).lean();
 
-  static async updateRead(chatId: string, userId: string) {
-    await Models.Chat.findById(chatId, { users: 1 }).lean();
-    const updated = await Models.Message.updateMany(
-      { chatId, read: { $nin: [userId] } },
-      { $addToSet: { read: userId } }
-    ).lean();
-
-    return updated;
-  }
-
-  static async updateRolesInGroup(my_id: string, group_id: string, role: string, users: string[]) {
-    const group = await Models.Group.findById(group_id).lean();
-
-    if (!group?.roles?.admin.includes(my_id)) {
-      throw ApiError.BadRequest(403, 'Not enough rights');
-    }
-
-    const updated = await Models.Group.updateOne({ _id: group_id }, { $set: { ['roles.' + role]: users } }).lean();
-    return updated;
-  }
-
-  static async updateGroup(userId: string, info: ChatTypes.UpdateGroup['Querystring'], file?: MultipartFile) {
-    const group = await Models.Group.findById(info.group_id).lean();
     if (!group?.roles.admin?.includes(userId)) {
       throw ApiError.Forbidden();
     }
 
     if (file) {
       const buffer = await file.toBuffer();
+
       if (!buffer) {
         throw ApiError.BadRequest(400, 'File required');
       }
@@ -270,17 +274,11 @@ export default class ChatService {
       const fileName = `${v4()}.${ext}`;
 
       const [oldGroup, newGroup] = await Promise.all([
-        Models.Group.findOne({ _id: info.group_id }, { avatar: 1 }).lean(),
+        Models.Group.findOne({ _id: groupId }, { avatar: 1 }).lean(),
         Models.Group.findOneAndUpdate(
-          { _id: info.group_id },
-          {
-            avatar: fileName,
-            title: info.title,
-            about: info.about,
-          },
-          {
-            new: true,
-          }
+          { _id: groupId },
+          { avatar: fileName, title: info.title, about: info.about },
+          { new: true }
         ).lean(),
         S3Service.uploadFile(buffer, S3Service.IMAGE_FOLDER, fileName),
       ]);
@@ -293,26 +291,13 @@ export default class ChatService {
       return newGroup;
     } else {
       const group = await Models.Group.findOneAndUpdate(
-        { _id: info.group_id },
+        { _id: groupId },
         { title: info.title, about: info.about },
         { new: true }
       ).lean();
 
       return group;
     }
-  }
-
-  static async getUserChatById(user_id: string, chatId: string) {
-    const chat = await Models.Chat.findOne({ _id: chatId, users: { $in: [user_id] } })
-      .populate<{ messages: IMessage[] }>({
-        path: 'messages',
-        populate: { path: 'attachments', select: { type: 1, name: 1 } },
-      })
-      .populate<{ users: IUser[] }>({ path: 'users', select: { email: 1, login: 1, name: 1, avatar: 1, status: 1 } })
-      .populate<{ group: IGroup }>({ path: 'group', select: { title: 1, avatar: 1, roles: 1, _id: 1 } })
-      .lean();
-
-    return chat ? new ChatDto(chat, user_id) : null;
   }
 
   static async deleteMessages(userId: string, { chatId, msgIds }: ChatTypes.DeleteMessages) {

@@ -10,17 +10,7 @@ import { join } from 'path';
 import { compare, hash } from 'bcrypt';
 
 export default class UserService {
-  static async getUser(userId: string) {
-    const user = await Models.User.findById(userId, { avatar: 1, login: 1, name: 1, roles: 1, status: 1 }).lean();
-
-    if (!user) {
-      throw ApiError.NotFound();
-    }
-
-    return user;
-  }
-
-  static async getUsers(_id: string, { limit, page, filter }: UserTypes.GetUsers['Querystring']) {
+  static async index(_id: string, { limit, page, filter }: UserTypes.GetUsers['Querystring']) {
     const query: FilterQuery<IUser> = filter
       ? {
           $or: [{ login: { $regex: filter, $options: 'i' } }, { name: { $regex: filter, $options: 'i' } }],
@@ -39,6 +29,16 @@ export default class UserService {
     ]);
 
     return { users, count };
+  }
+
+  static async show(userId: string) {
+    const user = await Models.User.findById(userId, { avatar: 1, login: 1, name: 1, roles: 1, status: 1 }).lean();
+
+    if (!user) {
+      throw ApiError.NotFound();
+    }
+
+    return user;
   }
 
   static async updateEmail(id: string, email: string) {

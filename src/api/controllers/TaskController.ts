@@ -3,9 +3,14 @@ import type { TaskTypes } from '@/types/index.js';
 import { TaskService } from '@/api/services/index.js';
 
 export default class TaskController {
-  static async createTask(this: FastifyInstance, request: FastifyRequest<TaskTypes.CreateTask>) {
-    const { title, tags, subtasks } = request.body;
-    const task = await TaskService.createTask({ title, tags, subtasks });
+  static async index(request: FastifyRequest<TaskTypes.GetTasks>, reply: FastifyReply) {
+    const { tasks, count } = await TaskService.index(request.user._id, request.query);
+    reply.header('X-Total-Count', count);
+    return tasks;
+  }
+
+  static async store(this: FastifyInstance, request: FastifyRequest<TaskTypes.CreateTask>) {
+    const task = await TaskService.store(request.body);
 
     for (const socket of this.io.sockets.sockets.values()) {
       socket.data.user?._id !== request.user._id && socket.emit('task:create', task);
@@ -14,52 +19,33 @@ export default class TaskController {
     return task;
   }
 
-  static async getTasks(request: FastifyRequest<TaskTypes.GetTasks>, reply: FastifyReply) {
-    const _id = request.user._id;
-    const { tasks, count } = await TaskService.getTasks(request.query, _id);
-    reply.header('X-Total-Count', count);
-    return tasks;
+  static async update(request: FastifyRequest<TaskTypes.Update>) {
+    const result = await TaskService.update(request.params.id, request.body);
+    return result;
   }
 
-  static async updateTaskStatus(request: FastifyRequest<TaskTypes.UpdateTaskStatus>) {
-    const { taskId, status } = request.body;
-    const updated = await TaskService.updateTaskStatus(taskId, status);
-    return updated;
-  }
-
-  static async getTaskById(request: FastifyRequest<TaskTypes.GetTaskById>) {
-    const { id } = request.params;
-    const task = await TaskService.getTaskById(id);
+  static async show(request: FastifyRequest<TaskTypes.GetTaskById>) {
+    const task = await TaskService.show(request.params.id);
     return task;
   }
 
-  static async setUserForTask(request: FastifyRequest<TaskTypes.SetUserForTask>) {
-    const _id = request.user._id;
-    const { taskId } = request.body;
-    const updated = await TaskService.setUserForTask(_id, taskId);
-    return updated;
+  static async report(request: FastifyRequest<TaskTypes.Report>, reply: FastifyReply) {
+    const stream = await TaskService.createTaskCsv(request.params.id);
+    return reply.header('Content-Type', 'application/octet-stream').send(stream);
   }
 
   static async updateSubtask(request: FastifyRequest<TaskTypes.UpdateSubtask>) {
-    const { subtask_id, status, cause } = request.body;
-    const updated = await TaskService.updateSubtask(subtask_id, status, cause);
+    const updated = await TaskService.updateSubtask(request.params.id, request.body);
     return updated;
   }
 
   static async deleteSubtask(request: FastifyRequest<TaskTypes.DeleteSubtask>) {
-    const { subtask_id, taskId } = request.query;
-    const deleted = await TaskService.deleteSubtask(subtask_id, taskId);
+    const deleted = await TaskService.deleteSubtask(request.params.id, request.query);
     return deleted;
   }
 
   static async moveSubtask(request: FastifyRequest<TaskTypes.MoveSubtask>) {
-    const result = await TaskService.moveSubtask(request.body);
+    const result = await TaskService.moveSubtask(request.params.id, request.body);
     return result;
-  }
-
-  static async createTaskCsv(request: FastifyRequest<TaskTypes.CreateTaskCsv>, reply: FastifyReply) {
-    const { taskId } = request.query;
-    const stream = await TaskService.createTaskCsv(taskId);
-    return reply.header('Content-Type', 'application/octet-stream').send(stream);
   }
 }

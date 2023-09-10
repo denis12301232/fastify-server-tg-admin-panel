@@ -3,8 +3,8 @@ import Joi from 'joi';
 import { Validate } from '@/util/index.js';
 
 export default class AuthSchemas {
-  static readonly userRegistration = {
-    body: Joi.object<AuthTypes.UserRegistration['Body']>()
+  static readonly registration = {
+    body: Joi.object<AuthTypes.Registration['Body']>()
       .keys({
         login: Joi.string().required(),
         name: Joi.string().required(),
@@ -18,8 +18,8 @@ export default class AuthSchemas {
       .required(),
   };
 
-  static readonly userLogin = {
-    body: Joi.object<AuthTypes.UserLogin['Body']>()
+  static readonly login = {
+    body: Joi.object<AuthTypes.Login['Body']>()
       .keys({
         loginOrEmail: Joi.string().required(),
         password: Joi.string().required(),
@@ -27,16 +27,16 @@ export default class AuthSchemas {
       .required(),
   };
 
-  static readonly userActivate = {
-    params: Joi.object<AuthTypes.UserActivate['Params']>()
+  static readonly activate = {
+    params: Joi.object<AuthTypes.Activate['Params']>()
       .keys({
         link: Joi.string().required(),
       })
       .required(),
   };
 
-  static readonly userPasswordRestore = {
-    body: Joi.object<AuthTypes.UserPasswordRestore['Body']>()
+  static readonly restorePassword = {
+    body: Joi.object<AuthTypes.RestorePassword['Body']>()
       .keys({
         email: Joi.string()
           .required()
@@ -47,8 +47,8 @@ export default class AuthSchemas {
       .required(),
   };
 
-  static readonly userNewRestoredPassword = {
-    body: Joi.object<AuthTypes.UserNewRestoredPassword['Body']>()
+  static readonly setNewPassword = {
+    body: Joi.object<AuthTypes.SetNewPassword['Body']>()
       .keys({
         password: Joi.string().min(6).max(20),
         link: Joi.string().required(),

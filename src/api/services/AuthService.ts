@@ -1,13 +1,13 @@
 import type { AuthTypes } from '@/types/index.js';
 import { v4 } from 'uuid';
-import bcrypt from 'bcrypt';
+import { hash, compare } from 'bcrypt';
 import Models from '@/models/mongo/index.js';
 import { UserDto } from '@/dto/index.js';
 import { MailService, TokenService } from '@/api/services/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 
 export default class AuthService {
-  static async registration(user: AuthTypes.UserRegistration['Body']) {
+  static async registration(user: AuthTypes.Registration['Body']) {
     const { login, name, email, password } = user;
     const candidate = await Models.User.findOne({
       $or: [{ email: email.toLowerCase() }, { login: login.toLowerCase() }],
@@ -17,7 +17,7 @@ export default class AuthService {
       throw ApiError.BadRequest(400, `Already taken`, [candidate.email === email ? 'email' : 'login']);
     }
 
-    const hashPassword = await bcrypt.hash(password, 5);
+    const hashPassword = await hash(password, 5);
     const activationLink = v4();
     const newUser = await Models.User.create({
       login: login.toLowerCase(),
@@ -38,7 +38,7 @@ export default class AuthService {
     return { ...tokens, user: userDto };
   }
 
-  static async login(user: AuthTypes.UserLogin['Body']) {
+  static async login(user: AuthTypes.Login['Body']) {
     const { loginOrEmail, password } = user;
     const userFromDb = await Models.User.findOne({
       $or: [{ email: loginOrEmail.toLowerCase() }, { login: loginOrEmail.toLowerCase() }],
@@ -48,7 +48,7 @@ export default class AuthService {
       throw ApiError.BadRequest(400, `Incorrect login or email`, ['login', 'email']);
     }
 
-    const isPasswordsEqual = await bcrypt.compare(password, userFromDb.password);
+    const isPasswordsEqual = await compare(password, userFromDb.password);
 
     if (!isPasswordsEqual) {
       throw ApiError.BadRequest(400, `Incorrect password`, ['password']);
@@ -126,7 +126,7 @@ export default class AuthService {
     return { message: `Link was sent to email` };
   }
 
-  static async setNewPassword(password: string, link: string) {
+  static async setNewPassword({ password, link }: AuthTypes.SetNewPassword['Body']) {
     const LINK_LIFETIME = 6048e5;
     const restoreData = await Models.Restore.findOne({ restoreLink: link });
     const date = new Date();
@@ -135,17 +135,20 @@ export default class AuthService {
       throw ApiError.BadRequest(400, 'Link expired');
     }
 
-    const hashPassword: string = await bcrypt.hash(password, 5);
-    const userData = await Models.User.findById(restoreData.user);
+    const [hashPassword, userData] = await Promise.all([
+      hash(password, 5),
+      Models.User.findById(restoreData.user).lean(),
+    ]);
 
     if (!userData) {
       throw ApiError.BadRequest();
     }
 
-    userData.password = hashPassword;
-    await userData.save();
-    await Models.Restore.deleteOne({ _id: restoreData._id });
+    const [result] = await Promise.all([
+      Models.User.updateOne({ _id: restoreData.user }, { password: hashPassword }).lean(),
+      Models.Restore.deleteOne({ _id: restoreData._id }),
+    ]);
 
-    return { message: 'Password was changed' };
+    return result;
   }
 }

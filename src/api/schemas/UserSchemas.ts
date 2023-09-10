@@ -2,18 +2,18 @@ import type { UserTypes } from '@/types/index.js';
 import Joi from 'joi';
 
 export default class UserSchemas {
-  static readonly getUser = {
-    params: Joi.object<UserTypes.GetUser['Params']>().keys({ id: Joi.string().required() }).required(),
-  };
-
-  static readonly getUsers = {
+  static readonly index = {
     querystring: Joi.object<UserTypes.GetUsers['Querystring']>()
       .keys({
-        limit: Joi.number().required().max(50),
+        limit: Joi.number().required().max(1e5),
         page: Joi.number().required().min(1),
         filter: Joi.string().allow(''),
       })
       .required(),
+  };
+
+  static readonly show = {
+    params: Joi.object<UserTypes.GetUser['Params']>().keys({ id: Joi.string().required() }).required(),
   };
 
   static readonly updateName = {

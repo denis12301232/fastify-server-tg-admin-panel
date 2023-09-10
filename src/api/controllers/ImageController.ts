@@ -3,26 +3,24 @@ import type { ImageTypes } from '@/types/index.js';
 import { ImageService } from '@/api/services/index.js';
 
 export default class ImagesController {
-  static async getImages(request: FastifyRequest<ImageTypes.GetImages>) {
+  static async index(request: FastifyRequest<ImageTypes.GetImages>) {
     const result = await ImageService.getImages(request.query);
     return result;
   }
 
-  static async uploadImages(request: FastifyRequest) {
+  static async store(request: FastifyRequest) {
     const parts = request.files({ limits: { files: 100, fileSize: 10e6, fieldSize: 10e6 } });
     const result = await ImageService.uploadToS3(parts);
     return result;
   }
 
-  static async deleteImages(request: FastifyRequest<ImageTypes.DeleteImages>) {
-    const ids = request.body;
-    const result = await ImageService.deleteFromS3(ids);
+  static async destroy(request: FastifyRequest<ImageTypes.DeleteImages>) {
+    const result = await ImageService.deleteFromS3(request.body);
     return result;
   }
 
-  static async updateDescription(request: FastifyRequest<ImageTypes.UpdateDescription>) {
-    const { id, description } = request.body;
-    const result = await ImageService.updateDescription(id, description);
+  static async update(request: FastifyRequest<ImageTypes.UpdateDescription>) {
+    const result = await ImageService.updateDescription(request.params.id, request.body);
     return result;
   }
 }

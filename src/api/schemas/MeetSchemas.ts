@@ -2,9 +2,7 @@ import type { MeetTypes } from '@/types/index.js';
 import Joi from 'joi';
 
 export default class MeetSchemas {
-  static readonly getMeetInfo = {
-    querystring: Joi.object<MeetTypes.GetInfo['Querystring']>({
-      meetId: Joi.string().required(),
-    }).required(),
+  static readonly show = {
+    params: Joi.object<MeetTypes.Show['Params']>({ id: Joi.string().required() }).required(),
   };
 }

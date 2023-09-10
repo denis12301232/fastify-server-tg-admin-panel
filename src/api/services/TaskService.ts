@@ -6,22 +6,8 @@ import Excel from 'exceljs';
 import { Readable } from 'stream';
 
 export default class TaskService {
-  static async createTask(data: TaskTypes.CreateTask['Body']) {
-    const { title, tags, subtasks } = data;
-
-    if (!subtasks.length) {
-      const task = await Models.Task.create({ title, tags });
-      return task;
-    }
-
-    const newSubtasks = await Models.Subtask.create(subtasks);
-    const subtasksIds = newSubtasks.map((item) => item._id);
-    const task = await Models.Task.create({ title, tags, subtasks: subtasksIds });
-    return task;
-  }
-
-  static async getTasks({ page, limit, sort, descending, filter }: TaskTypes.GetTasks['Querystring'], user_id: string) {
-    const query: FilterQuery<ITask> = filter === 'my' ? { user: user_id } : {};
+  static async index(userId: string, { page, limit, sort, descending, filter }: TaskTypes.GetTasks['Querystring']) {
+    const query: FilterQuery<ITask> = filter === 'my' ? { user: userId } : {};
     const skip = (page - 1) * limit;
     const [tasks, count] = await Promise.all([
       Models.Task.find(query)
@@ -35,43 +21,31 @@ export default class TaskService {
     return { tasks, count };
   }
 
-  static async updateTaskStatus(taskId: string, status: string) {
-    const task = await Models.Task.findByIdAndUpdate(taskId, { status }).lean();
-    await Models.Subtask.updateMany({ _id: { $in: task?.subtasks }, status: { $ne: 'canceled' } }, { status }).lean();
+  static async store(data: TaskTypes.CreateTask['Body']) {
+    const { title, tags, subtasks } = data;
 
-    return { message: 'Updated', taskId };
+    if (!subtasks.length) {
+      const task = await Models.Task.create({ title, tags });
+      return task;
+    }
+
+    const newSubtasks = await Models.Subtask.create(subtasks);
+    const subtasksIds = newSubtasks.map((item) => item._id);
+    const task = await Models.Task.create({ title, tags, subtasks: subtasksIds });
+    return task;
   }
 
-  static async getTaskById(taskId: string) {
+  static async update(taskId: string, { status, userId }: TaskTypes.Update['Body']) {
+    const result = await Models.Task.updateOne({ _id: taskId }, { status, user: userId });
+    return result;
+  }
+
+  static async show(taskId: string) {
     const task = await Models.Task.findById(taskId)
       .populate<ISubtask>({ path: 'subtasks', select: { __v: 0 } })
       .populate<IUser>({ path: 'user', select: { login: 1, email: 1, name: 1 } })
       .lean();
     return task;
-  }
-
-  static async setUserForTask(userId: string, taskId: string) {
-    const task = await Models.Task.findByIdAndUpdate(taskId, { user: userId, status: 'performed' }).lean();
-    await Models.Subtask.updateMany({ _id: { $in: task?.subtasks } }, { status: 'performed' }).lean();
-
-    return { message: 'Updated', taskId };
-  }
-
-  static async updateSubtask(subtask_id: string, status: string, cause: string) {
-    const updated = await Models.Subtask.updateOne({ _id: subtask_id }, { status, cause }).lean();
-    return updated;
-  }
-
-  static async deleteSubtask(subtask_id: string, taskId: string) {
-    await Models.Task.updateOne({ _id: taskId }, { $pull: { subtasks: { $eq: subtask_id } } }).lean();
-    const updated = await Models.Subtask.deleteOne({ _id: taskId }).lean();
-    return updated;
-  }
-
-  static async moveSubtask({ subtask_id, taskId, new_task_id }: TaskTypes.MoveSubtask['Body']) {
-    await Models.Task.updateOne({ _id: taskId }, { $pull: { subtasks: { $eq: subtask_id } } }).lean();
-    const result = await Models.Task.updateOne({ _id: new_task_id }, { $addToSet: { subtasks: subtask_id } }).lean();
-    return result;
   }
 
   static async createTaskCsv(taskId: string) {
@@ -89,5 +63,24 @@ export default class TaskService {
     const buffer = await workbook.csv.writeBuffer();
 
     return Readable.from(Buffer.from(buffer));
+  }
+
+  static async updateSubtask(id: string, { status, cause }: TaskTypes.UpdateSubtask['Body']) {
+    const updated = await Models.Subtask.updateOne({ _id: id }, { status, cause }).lean();
+    return updated;
+  }
+
+  static async deleteSubtask(subtaskId: string, { taskId }: TaskTypes.DeleteSubtask['Querystring']) {
+    await Models.Task.updateOne({ _id: taskId }, { $pull: { subtasks: { $eq: subtaskId } } }).lean();
+    const updated = await Models.Subtask.deleteOne({ _id: taskId }).lean();
+    return updated;
+  }
+
+  static async moveSubtask(subtaskId: string, { taskId, newTaskId }: TaskTypes.MoveSubtask['Body']) {
+    const [result] = await Promise.all([
+      Models.Task.updateOne({ _id: newTaskId }, { $addToSet: { subtasks: subtaskId } }).lean(),
+      Models.Task.updateOne({ _id: taskId }, { $pull: { subtasks: { $eq: subtaskId } } }).lean(),
+    ]);
+    return result;
   }
 }
