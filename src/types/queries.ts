@@ -1,6 +1,24 @@
 import type { RouteGenericInterface } from 'fastify';
 import type { Langs, IAssistance } from './index.js';
 
+export namespace NoticeTypes {
+  export interface Store extends RouteGenericInterface {
+    Body: {
+      id: string;
+      title: string;
+      time: string;
+      text: string;
+      show: boolean;
+    };
+  }
+
+  export interface Destroy extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+  }
+}
+
 export namespace ToolsTypes {
   export interface SetGoogleServiceAccountSettings extends RouteGenericInterface {
     Body: {
