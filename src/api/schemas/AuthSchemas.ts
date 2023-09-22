@@ -1,6 +1,5 @@
 import type { AuthTypes } from '@/types/index.js';
 import Joi from 'joi';
-import { Validate } from '@/util/index.js';
 
 export default class AuthSchemas {
   static readonly registration = {
@@ -8,11 +7,7 @@ export default class AuthSchemas {
       .keys({
         login: Joi.string().required(),
         name: Joi.string().required(),
-        email: Joi.string()
-          .required()
-          .custom((value, helper) => {
-            return Validate.isEmail(value) ? value : helper.error('any.invalid');
-          }),
+        email: Joi.string().required().email(),
         password: Joi.string().required().min(6).max(20),
       })
       .required(),
@@ -28,23 +23,11 @@ export default class AuthSchemas {
   };
 
   static readonly activate = {
-    params: Joi.object<AuthTypes.Activate['Params']>()
-      .keys({
-        link: Joi.string().required(),
-      })
-      .required(),
+    params: Joi.object<AuthTypes.Activate['Params']>().keys({ link: Joi.string().required() }).required(),
   };
 
   static readonly restorePassword = {
-    body: Joi.object<AuthTypes.RestorePassword['Body']>()
-      .keys({
-        email: Joi.string()
-          .required()
-          .custom((value, helper) => {
-            return Validate.isEmail(value) ? value : helper.error('any.invalid');
-          }),
-      })
-      .required(),
+    body: Joi.object<AuthTypes.RestorePassword['Body']>().keys({ email: Joi.string().required().email() }).required(),
   };
 
   static readonly setNewPassword = {

@@ -32,6 +32,7 @@ interface ServerToClientEvents {
   'meet:create': (meetId: string) => void;
   'error:meet-join': (code: number, message: string) => void;
   'task:create': (task: ITask) => void;
+  'notice:new': (notice: any) => void;
 }
 
 interface ClientToServerEvents {

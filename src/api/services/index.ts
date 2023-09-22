@@ -9,3 +9,5 @@ export { default as ChatService } from './ChatService.js';
 export { default as S3Service } from './S3Service.js';
 export { default as GoogleService } from './GoogleService.js';
 export { default as UserService } from './UserService.js';
+export { default as MeetService } from './MeetService.js';
+export { default as NoticeService } from './NoticeService.js';

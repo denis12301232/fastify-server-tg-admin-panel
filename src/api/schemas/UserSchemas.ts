@@ -39,7 +39,7 @@ export default class UserSchemas {
     body: Joi.object<UserTypes.UpdateRoles['Body']>()
       .keys({
         _id: Joi.string().required(),
-        roles: Joi.array().required().has(['user']).unique().allow('user', 'admin'),
+        roles: Joi.array<string[]>().required().has(['user']).unique().allow('user', 'admin'),
       })
       .required(),
   };

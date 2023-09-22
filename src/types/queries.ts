@@ -4,17 +4,24 @@ import type { Langs, IAssistance } from './index.js';
 export namespace NoticeTypes {
   export interface Store extends RouteGenericInterface {
     Body: {
-      id: string;
       title: string;
-      time: string;
       text: string;
-      show: boolean;
+      show?: boolean;
     };
   }
 
   export interface Destroy extends RouteGenericInterface {
     Params: {
       id: string;
+    };
+  }
+
+  export interface Update extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+    Body: {
+      show: boolean;
     };
   }
 }
@@ -117,10 +124,46 @@ export namespace TaskTypes {
 }
 
 export namespace MeetTypes {
+  export interface Create extends RouteGenericInterface {
+    Body: {
+      title: string;
+      invited: string[];
+    };
+  }
+
   export interface Show extends RouteGenericInterface {
     Params: {
       id: string;
     };
+  }
+
+  export interface Update extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+    Body: {
+      invited: string[];
+      title: string;
+    };
+  }
+
+  export interface Join extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+  }
+
+  export interface Leave extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+  }
+
+  export interface Invite extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+    Body: string[];
   }
 }
 
@@ -186,21 +229,6 @@ export namespace AuthTypes {
 }
 
 export namespace AssistanceTypes {
-  export interface Index extends RouteGenericInterface {
-    Querystring: {
-      limit: number;
-      page: number;
-      descending: boolean;
-      sort: string;
-      name?: string;
-      surname?: string;
-      district?: number;
-      street?: number;
-      sector?: string;
-      birth?: number[];
-    };
-  }
-
   export interface Store extends RouteGenericInterface {
     Body: IAssistance;
   }
@@ -268,7 +296,7 @@ export namespace AssistanceTypes {
 
   export interface FilteredForms extends RouteGenericInterface {
     Body: {
-      district?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+      district?: number;
       birth?: { min: number; max: number };
       street?: string;
       sector?: string;

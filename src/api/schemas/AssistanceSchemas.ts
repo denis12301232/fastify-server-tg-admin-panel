@@ -1,6 +1,5 @@
 import type { AssistanceTypes } from '@/types/index.js';
 import Joi from 'joi';
-import { Validate } from '@/util/index.js';
 
 export default class AssistanceSchemas {
   static readonly store = {
@@ -69,7 +68,7 @@ export default class AssistanceSchemas {
   };
 
   static readonly update = {
-    params: Joi.object<AssistanceTypes.Update['Params']>().keys({ id: Joi.string().required }).required(),
+    params: Joi.object<AssistanceTypes.Update['Params']>().keys({ id: Joi.string().required() }).required(),
     body: Joi.object<AssistanceTypes.Update['Body']>()
       .keys({
         _id: Joi.string(),
@@ -81,10 +80,8 @@ export default class AssistanceSchemas {
           .pattern(/^[0-9]+$/)
           .required(),
         birth: Joi.string()
-          .required()
-          .custom((value: string, helper) => {
-            return Validate.isYYYYMMDD(value) ? value : helper.error('any.invalid');
-          }),
+          .pattern(/^((1|2)(0|9)[0-9]{2})\/((0[1-9]{1})|(1[0-2]{1}))\/(([0-2]{1}[0-9]{1})|(3[0-1]{1}))$/)
+          .required(),
         district: Joi.number().required().valid(0, 1, 2, 3, 4, 5, 6, 7, 8),
         street: Joi.number().required().max(50),
         house: Joi.string().required().max(50),

@@ -10,6 +10,8 @@ import AttachmentModel from './AttachmentModel.js';
 import TaskModel from './TaskModel.js';
 import SubtaskModel from './SubtaskModel.js';
 import MediaModel from './MediaModel.js';
+import MeetModel from './MeetModel.js';
+import NoticeModel from './NoticeModel.js';
 
 export default class Models {
   static readonly Assistance = AssistanceModel;
@@ -24,4 +26,6 @@ export default class Models {
   static readonly Task = TaskModel;
   static readonly Subtask = SubtaskModel;
   static readonly Media = MediaModel;
+  static readonly Meet = MeetModel;
+  static readonly Notice = NoticeModel;
 }

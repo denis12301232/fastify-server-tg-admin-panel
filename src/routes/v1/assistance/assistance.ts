@@ -10,7 +10,7 @@ export default async function AssistanceRoutes(app: FastifyInstance) {
     { schema: AssistanceSchemas.destroy, onRequest: [useAuthGuard, useRoleGuard(['admin'])] },
     AssistanceController.destroy
   );
-  app.post('/catch', {}, AssistanceController.catch);
+  app.post('/catch', { schema: AssistanceSchemas.catch, onRequest: useAuthGuard }, AssistanceController.catch);
   app.patch(
     '/:id',
     { onRequest: [useAuthGuard, useRoleGuard(['admin'])], schema: AssistanceSchemas.update },

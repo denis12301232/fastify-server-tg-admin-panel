@@ -5,13 +5,16 @@ export default class AssistanceSchemas {
   static readonly store = {
     body: Joi.object<NoticeTypes.Store['Body']>()
       .keys({
-        id: Joi.string().required(),
         text: Joi.string().required(),
-        time: Joi.date().required(),
         title: Joi.string().required(),
-        show: Joi.boolean().required(),
+        show: Joi.boolean(),
       })
       .required(),
+  };
+
+  static readonly update = {
+    params: Joi.object<NoticeTypes.Update['Params']>().keys({ id: Joi.string().required() }).required(),
+    body: Joi.object<NoticeTypes.Update['Body']>().keys({ show: Joi.boolean().required() }).required(),
   };
 
   static readonly destroy = {

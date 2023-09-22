@@ -1,35 +1,30 @@
-import type { FastifyRequest, FastifyInstance } from 'fastify';
+import type { FastifyRequest } from 'fastify';
 import type { NoticeTypes } from '@/types/index.js';
+import { NoticeService } from '@/api/services/index.js';
 
 export default class NoticeController {
-  static async index(this: FastifyInstance, request: FastifyRequest) {
-    const result = await this.redis.json.GET('notices', { path: `.${request?.user?._id}` }).catch(() => []);
+  static async index(request: FastifyRequest) {
+    const notices = await NoticeService.index(request.user._id);
+    return notices;
+  }
+
+  static async store(request: FastifyRequest<NoticeTypes.Store>) {
+    const result = await NoticeService.store(request.user._id, request.body);
     return result;
   }
 
-  static async store(this: FastifyInstance, request: FastifyRequest<NoticeTypes.Store>) {
-    const isExists = (await this.redis.json
-      .GET('notices', { path: `.${request?.user?._id}` })
-      .catch(() => [])) as string[];
-
-    isExists?.length
-      ? this.redis.json.ARRAPPEND('notices', `.${request?.user?._id}`, request.body)
-      : this.redis.json.SET('notices', '$', { [request?.user?._id]: [request.body] });
-
-    return null;
+  static async update(request: FastifyRequest<NoticeTypes.Update>) {
+    const result = await NoticeService.update(request.params.id, request.body);
+    return result;
   }
 
-  static async destroy(this: FastifyInstance, request: FastifyRequest<NoticeTypes.Destroy>) {
-    const arr = (await this.redis.json
-      .GET('notices', { path: `.${request?.user?._id}` })
-      .catch(() => [])) as NoticeTypes.Store['Body'][];
-    this.redis.json.SET('notices', '$', { [request.user._id]: arr.filter((item) => item.id !== request.params.id) });
-
-    return null;
+  static async destroy(request: FastifyRequest<NoticeTypes.Destroy>) {
+    const result = await NoticeService.destroy(request.params.id);
+    return result;
   }
 
-  static async clear(this: FastifyInstance, request: FastifyRequest) {
-    const result = await this.redis.json.DEL('notices', `.${request?.user?._id}`);
+  static async clear(request: FastifyRequest) {
+    const result = await NoticeService.clear(request.user._id);
     return result;
   }
 }

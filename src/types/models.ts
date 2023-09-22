@@ -71,7 +71,7 @@ export interface IMessage {
   text: string;
   attachments: Types.ObjectId[];
   read: string[];
-  reactions: Map<string, Array<string>>;
+  reactions: Map<string, string[]>;
   createdAt: NativeDate;
   updatedAt: NativeDate;
 }
@@ -130,4 +130,21 @@ export interface IMedia {
   fileName: string;
   mimeType: string;
   ext: string;
+}
+
+export interface IMeet {
+  _id: Types.ObjectId;
+  title: string;
+  invited: string[];
+  members: string[];
+  roles: Map<string, string[]>;
+}
+
+export interface INotice {
+  _id: Types.ObjectId;
+  title: string;
+  text: string;
+  user: string;
+  show: boolean;
+  
 }
