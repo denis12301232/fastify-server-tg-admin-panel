@@ -8,6 +8,10 @@ export default class MailService {
     auth: { user: this.GOOGLE_USER, pass: this.GOOGLE_APP_PASS },
   });
 
+  public static send(to: string, subject: string, html: string) {
+    return this.transport.sendMail({ from: this.GOOGLE_USER, to, subject, html });
+  }
+
   private static sendMail(to: string, subject: string, html: string) {
     return this.transport.sendMail({ from: this.GOOGLE_USER, to, subject, html });
   }
@@ -21,6 +25,12 @@ export default class MailService {
   public static sendRestoreMail(to: string, link: string) {
     const subject = `Восстановление пароля на сайте ${process.env.CLIENT_DOMAIN}`;
     const html = `<div><h1>Для восстановления перейдите по ссылке:</h1><a href="${link}">${link}</a></div>`;
+    return this.sendMail(to, subject, html);
+  }
+
+  public static sendInviteToMeetMail(to: string, link: string) {
+    const subject = 'New meet invite';
+    const html = `<div><h1>Нажмите на <a href="${link}">ссылку</a> для присоединения ко встрече</h1></div>`;
     return this.sendMail(to, subject, html);
   }
 }

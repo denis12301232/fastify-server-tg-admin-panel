@@ -1,15 +1,15 @@
-import type { AssistanceTypes, Entries, IAssistance, Langs } from '@/types/index.js';
+import type { AssistanceTypes, Entries, IAssistance } from '@/types/index.js';
 import type { FilterQuery } from 'mongoose';
 import type { MultipartFile } from '@fastify/multipart';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
-import locales from '@/i18n/index.js';
 import Excel from 'exceljs';
 import { Readable } from 'stream';
 import AssistanceSchemas from '@/api/schemas/AssistanceSchemas.js';
 import Util from '@/util/Util.js';
 import { GoogleService } from '@/api/services/index.js';
 import { jsPDF } from 'jspdf';
+import useI18n from '@/hooks/useI18n.js';
 
 export default class AssistanceService {
   static async store(form: IAssistance) {
@@ -75,7 +75,8 @@ export default class AssistanceService {
     return form;
   }
 
-  static async saveFormsToSheet({ locale, ids }: AssistanceTypes.SaveFormsToSheets['Body']) {
+  static async saveFormsToSheet(locale: string, { ids }: AssistanceTypes.SaveFormsToSheets['Body']) {
+    const { i18n, locales } = useI18n();
     const [googleApi, forms] = await Promise.all([
       Models.Tools.findOne({ api: 'google' }).lean(),
       Models.Assistance.find({ _id: { $in: ids } }).lean(),
@@ -92,20 +93,18 @@ export default class AssistanceService {
     const fields = Object.entries(locales[locale].assistance.fields) as Entries<
       (typeof locales)['en']['assistance']['fields']
     >;
-    const rows: any[] = [fields.map((item) => item[1])];
+    const rows = [fields.map((item) => item[1])];
 
     for (const item of forms) {
-      const row = fields.map(([key]) => {
+      const row = fields.map<string>(([key]: [string, unknown]) => {
         if (key === 'district') {
-          return locales[locale].districts[item[key]];
+          return i18n.t(`districts.${item[key]}`);
         } else if (key === 'street') {
-          return locales[locale].streets[item.district][item[key]];
+          return i18n.t(`streets.${item.district}.${item[key]}`);
         } else if (Array.isArray(item[key])) {
           return (item[key] as string[])?.join(',');
         } else if (typeof item[key] === 'boolean') {
-          return item[key]
-            ? locales[locale].assistance.checkboxes.yesNo[0]
-            : locales[locale].assistance.checkboxes.yesNo[1];
+          return item[key] ? i18n.t('assistance.checkboxes.yesNo.0') : i18n.t('assistance.checkboxes.yesNo.0');
         } else {
           return item[key];
         }
@@ -128,9 +127,7 @@ export default class AssistanceService {
       spreadsheetId: googleApi.settings.sheetId as string,
       range: `${listTitle}!A:Y`,
       valueInputOption: 'RAW',
-      requestBody: {
-        values: rows,
-      },
+      requestBody: { values: rows },
     });
     return {
       message: 'Successfully formed',
@@ -196,7 +193,8 @@ export default class AssistanceService {
     return Readable.from(Buffer.from(pdf.output('arraybuffer')));
   }
 
-  static async createReport({ type, locale, ids }: AssistanceTypes.CreateReport['Body']) {
+  static async createReport(locale: string, { type, ids }: AssistanceTypes.CreateReport['Body']) {
+    const { i18n, locales } = useI18n();
     const forms = await Models.Assistance.find({ _id: { $in: ids } }).lean();
     const allFields = Object.entries(locales[locale].assistance.fields) as Entries<
       (typeof locales)['en']['assistance']['fields']
@@ -210,30 +208,29 @@ export default class AssistanceService {
     const sheet = workbook.addWorksheet('Assistance');
     sheet.columns = allFields.map(([key, value]) => ({ header: value, key, width: 10 }));
     for (const item of forms) {
-      const sheetObj = allFields.reduce((obj, [key]) => {
+      const obj: object = {};
+      for (const [key] of allFields) {
         if (key === 'district') {
-          obj[key] = locales[locale].districts[item[key]];
+          obj[key] = i18n.t(`districts.${item[key]}`);
         } else if (key === 'street') {
-          obj[key] = locales[locale].streets[item.district][item[key]];
+          obj[key] = i18n.t(`streets.${item.district}.${item[key]}`);
         } else if (Array.isArray(item[key])) {
           obj[key] = (item[key] as string[])?.join(',');
         } else if (typeof item[key] === 'boolean') {
-          obj[key] = item[key]
-            ? locales[locale].assistance.checkboxes.yesNo[0]
-            : locales[locale].assistance.checkboxes.yesNo[1];
+          obj[key] = item[key] ? i18n.t('assistance.checkboxes.yesNo.0') : i18n.t('assistance.checkboxes.yesNo.1');
         } else {
           obj[key] = item[key];
         }
-        return obj;
-      }, {});
-      sheet.addRow(sheetObj);
+      }
+      sheet.addRow(obj);
     }
     const buffer = type === 'xlsx' ? await workbook.xlsx.writeBuffer() : await workbook.csv.writeBuffer();
     return Readable.from(Buffer.from(buffer));
   }
 
-  static async uploadListCSV(data: MultipartFile, locale: Langs) {
-    const column = Object.keys(locales.en.assistance.fields) as Array<
+  static async uploadListCSV(locale: string, data: MultipartFile) {
+    const { locales } = useI18n();
+    const column = Object.keys(locales[locale].assistance.fields) as Array<
       keyof Omit<IAssistance, '_id' | 'createdAt' | 'updatedAt'>
     >;
     const forms: { [key in keyof Omit<IAssistance, '_id' | 'createdAt' | 'updatedAt'>]: unknown }[] = [];

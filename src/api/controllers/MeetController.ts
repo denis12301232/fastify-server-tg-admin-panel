@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { MeetTypes } from '@/types/index.js';
-import { MeetService, NoticeService } from '@/api/services/index.js';
+import { MeetService, NoticeService, MailService } from '@/api/services/index.js';
 
 export default class MeetController {
   static async create(this: FastifyInstance, request: FastifyRequest<MeetTypes.Create>) {
@@ -54,17 +54,19 @@ export default class MeetController {
   }
 
   static async invite(this: FastifyInstance, request: FastifyRequest<MeetTypes.Invite>) {
-    const result = await MeetService.invite(request.params.id, request.body);
+    const { updated, users } = await MeetService.invite(request.params.id, request.body);
     const sockets = Array.from(this.io.sockets.sockets.values());
+    const link = `${process.env.CLIENT_DOMAIN}/meets/${request.params.id}`;
 
-    for (const userId of request.body) {
-      const notice = await NoticeService.store(userId, {
-        title: 'Invite to meet',
+    for (const { _id, email } of users) {
+      const notice = await NoticeService.store(_id, {
+        title: this.i18n.t('mail.invite.subject'),
         text: `/meets/${request.params.id}`,
       });
-      sockets.find((socket) => socket.data.user?._id === userId)?.emit('notice:new', notice);
+      sockets.find((socket) => socket.data.user?._id === _id)?.emit('notice:new', notice);
+      MailService.send(email, this.i18n.t('mail.invite.subject'), this.i18n.t('mail.invite.messages.invite', { link }));
     }
-
-    return result;
+    
+    return updated;
   }
 }

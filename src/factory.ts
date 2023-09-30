@@ -24,6 +24,7 @@ export default async function factory(app: FastifyInstance) {
     options: { prefix: '/api' },
     forceESM: true,
   });
+  app.register(Plugins.i18n, { fallbackLocale: 'ru' });
   app.register(Plugins.io, {
     cors: {
       origin: process.env.CLIENT_DOMAIN.split(' '),

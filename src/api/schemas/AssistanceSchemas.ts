@@ -54,10 +54,10 @@ export default class AssistanceSchemas {
         page: Joi.number().min(1).required(),
         sort: Joi.string().required(),
         filter: Joi.object<AssistanceTypes.Catch['Body']['filter']>().keys({
-          district: Joi.number().min(0).max(8),
-          street: Joi.string(),
-          sector: Joi.string(),
-          nameOrSurname: Joi.string(),
+          district: Joi.number().min(0).max(8).allow(''),
+          street: Joi.string().allow(''),
+          sector: Joi.string().allow(''),
+          nameOrSurname: Joi.string().allow(''),
           birth: Joi.object<{ min: number; max: number }>().keys({
             min: Joi.number().required().min(1920).max(new Date().getFullYear()),
             max: Joi.number().required().min(1920).max(new Date().getFullYear()),
@@ -114,7 +114,6 @@ export default class AssistanceSchemas {
   static readonly saveFormsToGoogleSheets = {
     body: Joi.object<AssistanceTypes.SaveFormsToSheets['Body']>()
       .keys({
-        locale: Joi.string().required().valid('ru', 'uk', 'en'),
         ids: Joi.array().items(Joi.string()).required(),
       })
       .required(),
@@ -122,7 +121,7 @@ export default class AssistanceSchemas {
 
   static readonly getStats = {
     querystring: Joi.object<AssistanceTypes.GetStats['Querystring']>({
-      by: Joi.string().required().valid('month', 'year'),
+      by: Joi.string().valid('month', 'year').required(),
       timestamp: Joi.number().required(),
     }).required(),
   };
@@ -130,8 +129,7 @@ export default class AssistanceSchemas {
   static readonly createReport = {
     body: Joi.object<AssistanceTypes.CreateReport['Body']>()
       .keys({
-        locale: Joi.string().required().valid('ru', 'uk', 'en'),
-        type: Joi.string().required().valid('xlsx', 'csv'),
+        type: Joi.string().valid('xlsx', 'csv').required(),
         ids: Joi.array().items(Joi.string()).required(),
       })
       .required(),

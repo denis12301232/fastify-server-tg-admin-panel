@@ -45,7 +45,11 @@ export default class MeetService {
   }
 
   static async invite(meetId: string, users: MeetTypes.Invite['Body']) {
-    const updated = await Models.Meet.updateOne({ _id: meetId }, { $addToSet: { invited: { $each: users } } }).lean();
-    return updated;
+    const [updated, list] = await Promise.all([
+      Models.Meet.updateOne({ _id: meetId }, { $addToSet: { invited: { $each: users } } }).lean(),
+      Models.User.find({ _id: { $in: users } }, { email: 1 }).lean(),
+    ]);
+
+    return { updated, users: list.map((item) => ({ _id: String(item._id), email: item.email })) };
   }
 }

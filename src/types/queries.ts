@@ -1,5 +1,5 @@
 import type { RouteGenericInterface } from 'fastify';
-import type { Langs, IAssistance } from './index.js';
+import type { IAssistance } from './index.js';
 
 export namespace NoticeTypes {
   export interface Store extends RouteGenericInterface {
@@ -268,7 +268,6 @@ export namespace AssistanceTypes {
 
   export interface SaveFormsToSheets extends RouteGenericInterface {
     Body: {
-      locale: Langs;
       ids: string[];
     };
   }
@@ -282,15 +281,8 @@ export namespace AssistanceTypes {
 
   export interface CreateReport extends RouteGenericInterface {
     Body: {
-      locale: Langs;
       type: 'csv' | 'xlsx';
       ids: string[];
-    };
-  }
-
-  export interface UploadListCSV extends RouteGenericInterface {
-    Querystring: {
-      locale: Langs;
     };
   }
 

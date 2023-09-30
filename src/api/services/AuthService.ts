@@ -3,7 +3,7 @@ import { v4 } from 'uuid';
 import { hash, compare } from 'bcrypt';
 import Models from '@/models/mongo/index.js';
 import { UserDto } from '@/dto/index.js';
-import { MailService, TokenService } from '@/api/services/index.js';
+import { TokenService } from '@/api/services/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 
 export default class AuthService {
@@ -26,16 +26,13 @@ export default class AuthService {
       activationLink,
       name,
     });
-    MailService.sendActivationMail(email, `${process.env.CLIENT_DOMAIN}/api/auth/activate/${activationLink}`).catch(
-      (e: Error) => console.log(e.message)
-    );
 
     const userDto = new UserDto(newUser);
     const tokens = TokenService.generateTokens({ ...userDto });
 
     await TokenService.saveToken(userDto._id, tokens.refreshToken);
 
-    return { ...tokens, user: userDto };
+    return { ...tokens, user: userDto, activationLink };
   }
 
   static async login(user: AuthTypes.Login['Body']) {
@@ -107,23 +104,14 @@ export default class AuthService {
       throw ApiError.BadRequest(400, `Incorrect email`, ['email']);
     }
 
-    const link = v4();
+    const restoreLink = v4();
     const restoreData = await Models.Restore.findOne({ user: user._id });
     const dateNow = new Date();
+    const result = restoreData
+      ? await Models.Restore.findOneAndUpdate({ user: user._id }, { restoreLink, createdAt: dateNow }).lean()
+      : await Models.Restore.create({ user: user._id, restoreLink, createdAt: dateNow });
 
-    if (restoreData) {
-      restoreData.restoreLink = link;
-      restoreData.createdAt = dateNow;
-      await restoreData.save();
-    } else {
-      await Models.Restore.create({ user: user._id, restoreLink: link, createdAt: dateNow });
-    }
-
-    await MailService.sendRestoreMail(email, `${process.env.CLIENT_DOMAIN}/restore?link=${link}`).catch((e) => {
-      throw ApiError.BadRequest(400, `Message sending error`, [e]);
-    });
-
-    return { message: `Link was sent to email` };
+    return result;
   }
 
   static async setNewPassword({ password, link }: AuthTypes.SetNewPassword['Body']) {

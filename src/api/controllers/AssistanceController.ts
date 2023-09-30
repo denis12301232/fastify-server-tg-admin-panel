@@ -1,4 +1,4 @@
-import type { FastifyRequest, FastifyReply } from 'fastify';
+import type { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
 import type { AssistanceTypes } from '@/types/index.js';
 import { AssistanceService } from '@/api/services/index.js';
 import ApiError from '@/exceptions/ApiError.js';
@@ -31,8 +31,11 @@ export default class AssistanceController {
     return form;
   }
 
-  static async saveFormsToGoogleSheets(request: FastifyRequest<AssistanceTypes.SaveFormsToSheets>) {
-    const result = await AssistanceService.saveFormsToSheet(request.body);
+  static async saveFormsToGoogleSheets(
+    this: FastifyInstance,
+    request: FastifyRequest<AssistanceTypes.SaveFormsToSheets>
+  ) {
+    const result = await AssistanceService.saveFormsToSheet(this.i18n.locale(), request.body);
     return result;
   }
 
@@ -52,24 +55,23 @@ export default class AssistanceController {
     return reply.header('Content-Type', 'application/octet-stream').send(stream);
   }
 
-  static async getReport(request: FastifyRequest<AssistanceTypes.CreateReport>, reply: FastifyReply) {
-    const result = await AssistanceService.createReport(request.body);
-    return reply.header('Content-Type', 'application/octet-stream').send(result);
-  }
-
-  static async uploadListCSV(request: FastifyRequest<AssistanceTypes.UploadListCSV>) {
+  static async uploadListCSV(this: FastifyInstance, request: FastifyRequest) {
     const file = await request.file();
 
     if (!file || Validate.isValidMime(['text/csv'])) {
       throw ApiError.BadRequest(400, 'Wrong query');
     }
 
-    const result = await AssistanceService.uploadListCSV(file, request.query.locale);
+    const result = await AssistanceService.uploadListCSV(this.i18n.locale(), file);
     return result;
   }
 
-  static async createReport(request: FastifyRequest<AssistanceTypes.CreateReport>, reply: FastifyReply) {
-    const result = await AssistanceService.createReport(request.body);
+  static async createReport(
+    this: FastifyInstance,
+    request: FastifyRequest<AssistanceTypes.CreateReport>,
+    reply: FastifyReply
+  ) {
+    const result = await AssistanceService.createReport(this.i18n.locale(), request.body);
     return reply.header('Content-Type', 'application/octet-stream').send(result);
   }
 }
