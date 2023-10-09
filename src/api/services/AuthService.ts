@@ -1,4 +1,4 @@
-import type { AuthTypes } from '@/types/index.js';
+import type { AuthTypes, IFacebookUser, IGoogleUser } from '@/types/index.js';
 import { v4 } from 'uuid';
 import { hash, compare } from 'bcrypt';
 import Models from '@/models/mongo/index.js';
@@ -52,7 +52,7 @@ export default class AuthService {
     }
 
     const userDto = new UserDto(userFromDb);
-    const tokens = TokenService.generateTokens({ ...userDto });
+    const tokens = TokenService.generateTokens({...userDto});
 
     await TokenService.saveToken(userDto._id, tokens.refreshToken);
 
@@ -86,7 +86,7 @@ export default class AuthService {
     }
 
     const userDto = new UserDto(user);
-    const tokens = TokenService.generateTokens({ ...userDto });
+    const tokens = TokenService.generateTokens({...userDto});
 
     await TokenService.saveToken(userDto._id, tokens.refreshToken);
     return { ...tokens, user: userDto };
@@ -138,5 +138,30 @@ export default class AuthService {
     ]);
 
     return result;
+  }
+
+  static async oAuth2({ email, name }: IGoogleUser | IFacebookUser) {
+    const candidate = await Models.User.findOne({ email: email.toLowerCase() }).lean();
+
+    if (candidate) {
+      const userDto = new UserDto(candidate);
+      const tokens = TokenService.generateTokens({...userDto});
+
+      await TokenService.saveToken(userDto._id, tokens.refreshToken);
+      return { ...tokens, user: userDto };
+    }
+
+    const newUser = await Models.User.create({
+      email,
+      name,
+      password: await hash(Math.random().toString(36).slice(-8), 5),
+      login: `${email.split('@').at(0)}_${v4()}`,
+    });
+
+    const userDto = new UserDto(newUser);
+    const tokens = TokenService.generateTokens({...userDto});
+
+    await TokenService.saveToken(userDto._id, tokens.refreshToken);
+    return { ...tokens, user: userDto };
   }
 }

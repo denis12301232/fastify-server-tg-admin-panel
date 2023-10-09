@@ -1,6 +1,29 @@
 import type { Types } from 'mongoose';
 import type { TaskTypes } from './queries.js';
 
+export interface IGoogleUser {
+  id: string;
+  email: string;
+  verified_email: boolean;
+  name: string;
+  given_name: string;
+  family_name: string;
+  picture: string;
+  locale: string;
+}
+
+export interface IFacebookUser {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  middle_name: string;
+  name: string;
+  name_format: string;
+  picture: string;
+  short_name: string;
+}
+
 export interface IAssistance {
   _id: Types.ObjectId;
   name: string;
@@ -146,5 +169,4 @@ export interface INotice {
   text: string;
   user: string;
   show: boolean;
-  
 }

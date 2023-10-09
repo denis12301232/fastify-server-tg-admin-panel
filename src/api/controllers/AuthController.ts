@@ -1,6 +1,7 @@
 import type { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
-import type { AuthTypes } from '@/types/index.js';
+import type { AuthTypes, IGoogleUser, IFacebookUser } from '@/types/index.js';
 import { AuthService, MailService } from '@/api/services/index.js';
+import { got } from 'got';
 
 export default class AuthController {
   static async registration(
@@ -73,5 +74,45 @@ export default class AuthController {
   static async setNewPassword(request: FastifyRequest<AuthTypes.SetNewPassword>) {
     const message = await AuthService.setNewPassword(request.body);
     return message;
+  }
+
+  static async googleOAuth2(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+    const { token } = await this.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
+    const url = 'https://www.googleapis.com/oauth2/v2/userinfo';
+    const user = await got.get(url, { headers: { Authorization: 'Bearer ' + token.access_token } }).json<IGoogleUser>();
+    const userData = await AuthService.oAuth2(user);
+
+    reply
+      .setCookie('refreshToken', userData.refreshToken, {
+        maxAge: 2592e6, // 30 * 24 * 60 * 60 * 1000
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/api/v1/auth',
+        domain: process.env.DOMAIN_NAME,
+      })
+      .redirect(302, `${process.env.CLIENT_DOMAIN}/oauth2?accessToken=${userData.accessToken}`);
+
+    return null;
+  }
+
+  static async facebookOAuth2(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+    const { token } = await this.facebookOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
+    const url = 'https://graph.facebook.com/me';
+    const user = await got
+      .get(url, { searchParams: { access_token: token.access_token, fields: 'email,name' } })
+      .json<IFacebookUser>();
+    const userData = await AuthService.oAuth2(user);
+
+    reply
+      .setCookie('refreshToken', userData.refreshToken, {
+        maxAge: 2592e6, // 30 * 24 * 60 * 60 * 1000
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/api/v1/auth',
+        domain: process.env.DOMAIN_NAME,
+      })
+      .redirect(302, `${process.env.CLIENT_DOMAIN}/oauth2?accessToken=${userData.accessToken}`);
+
+    return null;
   }
 }

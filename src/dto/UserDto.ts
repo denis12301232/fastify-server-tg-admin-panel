@@ -12,7 +12,7 @@ export default class UserDto {
 
   constructor(model: IUser) {
     this.email = model.email;
-    this._id = model._id.toString();
+    this._id = String(model._id);
     this.isActivated = model.isActivated;
     this.name = model.name;
     this.roles = model.roles;

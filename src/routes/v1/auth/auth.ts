@@ -10,4 +10,6 @@ export default async function AuthRoutes(app: FastifyInstance) {
   app.get('/activate/:link', { schema: AuthSchemas.activate }, AuthController.activate);
   app.post('/restore/password', { schema: AuthSchemas.restorePassword }, AuthController.restorePassword);
   app.post('/set/password', { schema: AuthSchemas.setNewPassword }, AuthController.setNewPassword);
+  app.get('/oauth2/google/callback', {}, AuthController.googleOAuth2);
+  app.get('/oauth2/facebook/callback', {}, AuthController.facebookOAuth2);
 }
