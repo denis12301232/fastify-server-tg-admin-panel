@@ -20,6 +20,11 @@ const MediaSchema = new Schema<IMedia>(
       type: String,
       required: true,
     },
+    comments: {
+      type: [Schema.Types.ObjectId],
+      ref: 'Comment',
+      default: [],
+    },
   },
   { timestamps: true }
 );

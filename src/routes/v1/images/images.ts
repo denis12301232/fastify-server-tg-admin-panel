@@ -16,4 +16,9 @@ export default async function ImageRoutes(app: FastifyInstance) {
     { schema: ImageSchemas.update, preHandler: [useAuthGuard, useRoleGuard(['admin'])] },
     ImagesController.update
   );
+  app.post(
+    '/:id/comment',
+    { schema: ImageSchemas.saveComment, preHandler: useAuthGuard },
+    ImagesController.saveComment
+  );
 }

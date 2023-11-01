@@ -23,7 +23,7 @@ export default class ImageService {
   }
 
   static async uploadToS3(parts: AsyncIterableIterator<MultipartFile>) {
-    const images: Omit<IMedia, '_id'>[] = [];
+    const images: Omit<IMedia, '_id' | 'comments'>[] = [];
 
     for await (const part of parts) {
       const buffer = await part.toBuffer();
@@ -124,5 +124,12 @@ export default class ImageService {
   static async updateDescription(id: string, { description }: ImageTypes.UpdateDescription['Body']) {
     const result = await Models.Media.updateOne({ _id: id }, { description }).lean();
     return result;
+  }
+
+  static async saveComment(mediaId: string, userId: string, text: string) {
+    const comment = await Models.Commment.create({ mediaId, text, userId });
+    await Models.Media.updateOne({ _id: mediaId }, { $addToSet: { comments: comment.id } }).lean();
+
+    return comment;
   }
 }

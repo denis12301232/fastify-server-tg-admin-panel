@@ -1,4 +1,4 @@
-import type { FastifyRequest } from 'fastify';
+import type { FastifyRequest, FastifyInstance } from 'fastify';
 import type { ImageTypes } from '@/types/index.js';
 import { ImageService } from '@/api/services/index.js';
 
@@ -21,6 +21,11 @@ export default class ImagesController {
 
   static async update(request: FastifyRequest<ImageTypes.UpdateDescription>) {
     const result = await ImageService.updateDescription(request.params.id, request.body);
+    return result;
+  }
+
+  static async saveComment(this: FastifyInstance, request: FastifyRequest<ImageTypes.SaveComment>) {
+    const result = await ImageService.saveComment(request.params.id, request.user._id, request.body.text);
     return result;
   }
 }

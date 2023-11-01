@@ -1,6 +1,14 @@
 import type { Types } from 'mongoose';
 import type { TaskTypes } from './queries.js';
 
+export interface IComment {
+  _id: Types.ObjectId;
+  mediaId: Types.ObjectId;
+  userId: Types.ObjectId;
+  text: string;
+  reactions: Map<string, string[]>;
+}
+
 export interface IGoogleUser {
   id: string;
   email: string;
@@ -153,6 +161,7 @@ export interface IMedia {
   fileName: string;
   mimeType: string;
   ext: string;
+  comments: Types.ObjectId[];
 }
 
 export interface IMeet {

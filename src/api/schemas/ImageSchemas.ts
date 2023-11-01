@@ -23,4 +23,9 @@ export default class ImageSchemas {
       .required(),
     params: Joi.object<ImageTypes.UpdateDescription['Params']>().keys({ id: Joi.string().required() }).required(),
   };
+
+  static readonly saveComment = {
+    body: Joi.object<ImageTypes.SaveComment['Body']>().keys({ text: Joi.string().required() }).required(),
+    params: Joi.object<ImageTypes.SaveComment['Params']>().keys({ id: Joi.string().required() }).required(),
+  };
 }

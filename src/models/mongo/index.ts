@@ -12,6 +12,7 @@ import SubtaskModel from './SubtaskModel.js';
 import MediaModel from './MediaModel.js';
 import MeetModel from './MeetModel.js';
 import NoticeModel from './NoticeModel.js';
+import CommentModel from './CommentModel.js';
 
 export default class Models {
   static readonly Assistance = AssistanceModel;
@@ -28,4 +29,5 @@ export default class Models {
   static readonly Media = MediaModel;
   static readonly Meet = MeetModel;
   static readonly Notice = NoticeModel;
+  static readonly Commment = CommentModel;
 }

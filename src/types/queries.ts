@@ -189,6 +189,15 @@ export namespace ImageTypes {
   export interface DeleteImages extends RouteGenericInterface {
     Body: string[];
   }
+
+  export interface SaveComment extends RouteGenericInterface {
+    Body: {
+      text: string;
+    };
+    Params: {
+      id: string;
+    };
+  }
 }
 
 export namespace AuthTypes {
