@@ -17,8 +17,10 @@ export default async function ImageRoutes(app: FastifyInstance) {
     ImagesController.update
   );
   app.post(
-    '/:id/comment',
+    '/:id/comments',
     { schema: ImageSchemas.saveComment, preHandler: useAuthGuard },
     ImagesController.saveComment
   );
+  app.get('/:id/comments', { schema: ImageSchemas.getComments }, ImagesController.getComments);
+  app.patch('/comments/:id', {}, ImagesController.updateComment);
 }

@@ -1,5 +1,5 @@
 import type { MultipartFile } from '@fastify/multipart';
-import type { ImageTypes, IMedia } from '@/types/index.js';
+import type { ImageTypes, IMedia, IUser } from '@/types/index.js';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 import { v4 } from 'uuid';
@@ -126,10 +126,29 @@ export default class ImageService {
     return result;
   }
 
-  static async saveComment(mediaId: string, userId: string, text: string) {
-    const comment = await Models.Commment.create({ mediaId, text, userId });
-    await Models.Media.updateOne({ _id: mediaId }, { $addToSet: { comments: comment.id } }).lean();
+  static async saveComment(media: string, user: string, text: string) {
+    const comment = await Models.Commment.create({ media, text, user });
+    await Models.Media.updateOne({ _id: media }, { $addToSet: { comments: comment.id } }).lean();
 
     return comment;
+  }
+
+  static async getComments(media: string, { limit, skip, sort, descending }: ImageTypes.GetComments['Querystring']) {
+    const [comments, count] = await Promise.all([
+      Models.Commment.find({ media })
+        .sort({ [sort]: descending ? -1 : 1 })
+        .skip(skip)
+        .limit(limit)
+        .populate<{ user: IUser }>({ path: 'user', select: 'login avatar name' })
+        .lean(),
+      Models.Commment.find({ media }).count(),
+    ]);
+
+    return { comments, count };
+  }
+
+  static async updateComment(id: string, { reactions }: ImageTypes.UpdateComment['Body']) {
+    const updated = await Models.Commment.updateOne({ _id: id }, { reactions }).lean();
+    return updated;
   }
 }

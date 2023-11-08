@@ -28,4 +28,14 @@ export default class ImageSchemas {
     body: Joi.object<ImageTypes.SaveComment['Body']>().keys({ text: Joi.string().required() }).required(),
     params: Joi.object<ImageTypes.SaveComment['Params']>().keys({ id: Joi.string().required() }).required(),
   };
+
+  static readonly getComments = {
+    params: Joi.object<ImageTypes.GetComments['Params']>().keys({ id: Joi.string().required() }).required(),
+    querystring: Joi.object<ImageTypes.GetComments['Querystring']>().keys({
+      skip: Joi.number(),
+      limit: Joi.number().min(1).required(),
+      descending: Joi.boolean(),
+      sort: Joi.string(),
+    }),
+  };
 }

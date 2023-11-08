@@ -3,10 +3,10 @@ import type { TaskTypes } from './queries.js';
 
 export interface IComment {
   _id: Types.ObjectId;
-  mediaId: Types.ObjectId;
-  userId: Types.ObjectId;
+  media: Types.ObjectId;
+  user: Types.ObjectId;
   text: string;
-  reactions: Map<string, string[]>;
+  reactions: string[];
 }
 
 export interface IGoogleUser {

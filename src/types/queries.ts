@@ -198,6 +198,27 @@ export namespace ImageTypes {
       id: string;
     };
   }
+
+  export interface GetComments extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+    Querystring: {
+      limit: number;
+      skip: number;
+      descending: boolean;
+      sort: string;
+    };
+  }
+
+  export interface UpdateComment extends RouteGenericInterface {
+    Params: {
+      id: string;
+    };
+    Body: {
+      reactions: string[];
+    };
+  }
 }
 
 export namespace AuthTypes {

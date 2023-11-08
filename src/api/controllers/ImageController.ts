@@ -28,4 +28,14 @@ export default class ImagesController {
     const result = await ImageService.saveComment(request.params.id, request.user._id, request.body.text);
     return result;
   }
+
+  static async getComments(request: FastifyRequest<ImageTypes.GetComments>) {
+    const { comments, count } = await ImageService.getComments(request.params.id, request.query);
+    return { comments, count };
+  }
+
+  static async updateComment(request: FastifyRequest<ImageTypes.UpdateComment>) {
+    const result = await ImageService.updateComment(request.params.id, request.body);
+    return result;
+  }
 }

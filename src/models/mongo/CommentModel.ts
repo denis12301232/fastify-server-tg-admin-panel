@@ -7,20 +7,19 @@ const CommentSchema = new Schema<IComment>(
       type: String,
       required: true,
     },
-    mediaId: {
+    media: {
       type: Schema.Types.ObjectId,
       ref: 'Media',
       required: true,
     },
-    userId: {
+    user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
     reactions: {
-      type: Schema.Types.Map,
-      of: [String],
-      default: new Map(Object.entries({ '👍': [], '👎': [], '😊': [], '😂': [], '❤️': [] })),
+      type: [],
+      default: [],
     },
   },
   { timestamps: true }
