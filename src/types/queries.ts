@@ -168,7 +168,7 @@ export namespace MeetTypes {
 }
 
 export namespace ImageTypes {
-  export interface GetImages extends RouteGenericInterface {
+  export interface Index extends RouteGenericInterface {
     Querystring: {
       limit: number;
       sort: string;
@@ -177,7 +177,7 @@ export namespace ImageTypes {
     };
   }
 
-  export interface UpdateDescription extends RouteGenericInterface {
+  export interface Update extends RouteGenericInterface {
     Body: {
       description: string;
     };
@@ -186,24 +186,22 @@ export namespace ImageTypes {
     };
   }
 
-  export interface DeleteImages extends RouteGenericInterface {
+  export interface Destroy extends RouteGenericInterface {
     Body: string[];
   }
+}
 
-  export interface SaveComment extends RouteGenericInterface {
+export namespace CommentTypes {
+  export interface Store extends RouteGenericInterface {
     Body: {
       text: string;
-    };
-    Params: {
-      id: string;
+      mediaId: string;
     };
   }
 
-  export interface GetComments extends RouteGenericInterface {
-    Params: {
-      id: string;
-    };
+  export interface Index extends RouteGenericInterface {
     Querystring: {
+      mediaId: string;
       limit: number;
       skip: number;
       descending: boolean;
@@ -211,7 +209,7 @@ export namespace ImageTypes {
     };
   }
 
-  export interface UpdateComment extends RouteGenericInterface {
+  export interface Update extends RouteGenericInterface {
     Params: {
       id: string;
     };

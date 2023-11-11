@@ -8,7 +8,7 @@ export default async function ImageRoutes(app: FastifyInstance) {
   app.post('/', { preHandler: [useAuthGuard, useRoleGuard(['admin'])] }, ImagesController.store);
   app.delete(
     '/',
-    { schema: ImageSchemas.delete, preHandler: [useAuthGuard, useRoleGuard(['admin'])] },
+    { schema: ImageSchemas.destroy, preHandler: [useAuthGuard, useRoleGuard(['admin'])] },
     ImagesController.destroy
   );
   app.patch(
@@ -16,11 +16,4 @@ export default async function ImageRoutes(app: FastifyInstance) {
     { schema: ImageSchemas.update, preHandler: [useAuthGuard, useRoleGuard(['admin'])] },
     ImagesController.update
   );
-  app.post(
-    '/:id/comments',
-    { schema: ImageSchemas.saveComment, preHandler: useAuthGuard },
-    ImagesController.saveComment
-  );
-  app.get('/:id/comments', { schema: ImageSchemas.getComments }, ImagesController.getComments);
-  app.patch('/comments/:id', {}, ImagesController.updateComment);
 }

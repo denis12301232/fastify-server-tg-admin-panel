@@ -7,6 +7,8 @@ export interface IComment {
   user: Types.ObjectId;
   text: string;
   reactions: string[];
+  createdAt: NativeDate;
+  updatedAt: NativeDate;
 }
 
 export interface IGoogleUser {

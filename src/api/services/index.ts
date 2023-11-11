@@ -11,3 +11,4 @@ export { default as GoogleService } from './GoogleService.js';
 export { default as UserService } from './UserService.js';
 export { default as MeetService } from './MeetService.js';
 export { default as NoticeService } from './NoticeService.js';
+export { default as CommentService } from './CommentSevice.js';

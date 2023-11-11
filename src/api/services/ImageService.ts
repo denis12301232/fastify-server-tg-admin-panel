@@ -1,5 +1,5 @@
 import type { MultipartFile } from '@fastify/multipart';
-import type { ImageTypes, IMedia, IUser } from '@/types/index.js';
+import type { ImageTypes, IMedia } from '@/types/index.js';
 import Models from '@/models/mongo/index.js';
 import ApiError from '@/exceptions/ApiError.js';
 import { v4 } from 'uuid';
@@ -9,7 +9,7 @@ import { S3Service, GoogleService } from '@/api/services/index.js';
 import { join } from 'path';
 
 export default class ImageService {
-  static async getImages({ limit, descending, sort, skip }: ImageTypes.GetImages['Querystring']) {
+  static async index({ limit, descending, sort, skip }: ImageTypes.Index['Querystring']) {
     const [images, count] = await Promise.all([
       Models.Media.find({}, { __v: 0 })
         .sort({ [sort]: descending ? -1 : 1 })
@@ -22,7 +22,7 @@ export default class ImageService {
     return { images, count };
   }
 
-  static async uploadToS3(parts: AsyncIterableIterator<MultipartFile>) {
+  static async store(parts: AsyncIterableIterator<MultipartFile>) {
     const images: Omit<IMedia, '_id' | 'comments'>[] = [];
 
     for await (const part of parts) {
@@ -53,11 +53,15 @@ export default class ImageService {
     return result;
   }
 
-  static async deleteFromS3(ids: string[]) {
+  static async destroy(ids: string[]) {
     const images = await Models.Media.find({ _id: { $in: ids } }).lean();
     const objects = images.map((img) => ({ Key: join(S3Service.IMAGE_FOLDER, `${img.fileName}.${img.ext}`) }));
 
-    await Promise.all([S3Service.deleteFiles(objects), Models.Media.deleteMany({ _id: { $in: ids } })]);
+    await Promise.all([
+      S3Service.deleteFiles(objects),
+      Models.Media.deleteMany({ _id: { $in: ids } }),
+      Models.Commment.deleteMany({ media: { $in: ids } }),
+    ]);
 
     return images.map((img) => img._id);
   }
@@ -121,34 +125,8 @@ export default class ImageService {
     return removed;
   }
 
-  static async updateDescription(id: string, { description }: ImageTypes.UpdateDescription['Body']) {
+  static async update(id: string, { description }: ImageTypes.Update['Body']) {
     const result = await Models.Media.updateOne({ _id: id }, { description }).lean();
     return result;
-  }
-
-  static async saveComment(media: string, user: string, text: string) {
-    const comment = await Models.Commment.create({ media, text, user });
-    await Models.Media.updateOne({ _id: media }, { $addToSet: { comments: comment.id } }).lean();
-
-    return comment;
-  }
-
-  static async getComments(media: string, { limit, skip, sort, descending }: ImageTypes.GetComments['Querystring']) {
-    const [comments, count] = await Promise.all([
-      Models.Commment.find({ media })
-        .sort({ [sort]: descending ? -1 : 1 })
-        .skip(skip)
-        .limit(limit)
-        .populate<{ user: IUser }>({ path: 'user', select: 'login avatar name' })
-        .lean(),
-      Models.Commment.find({ media }).count(),
-    ]);
-
-    return { comments, count };
-  }
-
-  static async updateComment(id: string, { reactions }: ImageTypes.UpdateComment['Body']) {
-    const updated = await Models.Commment.updateOne({ _id: id }, { reactions }).lean();
-    return updated;
   }
 }
